@@ -4,6 +4,7 @@
 
 import * as THREE from "three";
 import type JoltTypes from "jolt-physics/wasm";
+import { getPlayerData, resetPlayerRotDelta } from "./player";
 const { default: initJolt } = await import("jolt-physics/wasm");
 
 let Jolt: typeof initJolt;
@@ -16,6 +17,8 @@ const LAYER_DYNAMIC = 1;
 const NUM_OBJECT_LAYERS = 2;
 const debugGroup = new THREE.Group();
 debugGroup.visible = false;
+
+export let playerRotDelta = 0;
 
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
@@ -65,7 +68,7 @@ export async function addPhysicsToObject(
   obj: THREE.Mesh,
   dynamic: boolean = false,
   showDebug = false,
-  player = false,
+  isPlayer = false,
   scene?: THREE.Scene,
 ) {
   if (initPromise) await initPromise;
@@ -122,7 +125,7 @@ export async function addPhysicsToObject(
   bodySettings.mLinearDamping = 0.2;
   bodySettings.mAngularDamping = 0.2;
 
-  if (player)
+  if (isPlayer)
     bodySettings.set_mAllowedDOFs(
       Jolt.EAllowedDOFs_TranslationX |
         Jolt.EAllowedDOFs_TranslationY |
@@ -204,6 +207,32 @@ export function updatePhysics(delta: number) {
     const rot = bodyInterface.GetRotation(body.GetID());
 
     obj.parent.position.set(pos.GetX(), pos.GetY(), pos.GetZ());
+
+    if (obj.name == "Player") {
+      const deltaY = getPlayerData().deltaRotY;
+
+      if (deltaY !== 0) {
+        const halfAngle = deltaY * 0.5;
+        const deltaQuat = new Jolt.Quat(
+          0,
+          Math.sin(halfAngle),
+          0,
+          Math.cos(halfAngle),
+        );
+        const newRot = rot.MulQuat(deltaQuat);
+
+        bodyInterface.SetRotation(
+          body.GetID(),
+          newRot,
+          Jolt.EActivation_Activate,
+        );
+
+        Jolt.destroy(deltaQuat);
+        Jolt.destroy(newRot);
+      }
+
+      resetPlayerRotDelta();
+    }
     obj.parent.quaternion.set(rot.GetX(), rot.GetY(), rot.GetZ(), rot.GetW());
 
     if (obj.userData.debugMesh) {

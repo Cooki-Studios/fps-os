@@ -19,6 +19,9 @@ export function enableInput() {
 export function disableInput() {
   enabled = false;
 }
+export function isInputEnabled() {
+  return enabled;
+}
 
 export function initInput() {
   for (const [action, key] of Object.entries(actions)) {

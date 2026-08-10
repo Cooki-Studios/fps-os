@@ -3,9 +3,9 @@ import { USDLoader } from "three/examples/jsm/loaders/USDLoader.js";
 import { initLighting } from "./lighting";
 import { compileRenderer, enableRenderer, initRenderer } from "./renderer";
 import { addPhysicsToObject, initPhysics, togglePhysicsDebug } from "./physics";
-import { disableInput, enableInput, initInput, onActionPressed } from "./input";
-import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls.js";
+import { initInput, onActionPressed } from "./input";
 import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
+import { getPlayerMesh, initPlayer } from "./player";
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -16,20 +16,10 @@ const camera = new THREE.PerspectiveCamera(
 );
 camera.rotation.order = "YXZ";
 
-const player = new THREE.Group();
-
-const playerGeo = new THREE.CapsuleGeometry(1, 2, 16, 32);
-const playerMat = new THREE.MeshPhysicalMaterial({
-  colorWrite: false,
-});
-const playerMesh = new THREE.Mesh(playerGeo, playerMat);
-playerMesh.castShadow = true;
-
-scene.add(player);
-player.position.set(0, 2, 0);
-player.add(playerMesh);
-player.add(camera);
-camera.position.set(0, 1.8, 0);
+initLighting(scene);
+const canvas = initRenderer(camera);
+initPhysics(scene);
+initInput();
 
 const manager = new THREE.LoadingManager();
 manager.onLoad = () => {
@@ -39,28 +29,14 @@ manager.onLoad = () => {
     } else addPhysicsToObject(mesh, false, true, false, scene);
   }
 
-  addPhysicsToObject(playerMesh, true, false, true, scene);
+  initPlayer(scene, camera, canvas);
+  addPhysicsToObject(getPlayerMesh(), true, false, true, scene);
 
   compileRenderer(scene, camera);
   enableRenderer(scene, camera);
 
   console.log("Loading complete!");
 };
-
-initLighting(scene);
-const canvas = initRenderer(camera);
-initPhysics(scene);
-initInput();
-
-const controls = new PointerLockControls(camera, canvas);
-canvas.onclick = () => controls.lock();
-
-controls.addEventListener("lock", function () {
-  enableInput();
-});
-controls.addEventListener("unlock", function () {
-  disableInput();
-});
 
 onActionPressed("debug", () => {
   togglePhysicsDebug();

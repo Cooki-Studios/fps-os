@@ -9,10 +9,10 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@types/three": "^0.185.1",
+    "@types/three": "^0.185.4",
     "less": "^4.8.1",
-    "typescript": "~6.0.2",
-    "vite": "^8.1.1"
+    "typescript": "~6.0.3",
+    "vite": "^8.2.1"
   },
   "dependencies": {
     "jolt-physics": "^1.1.0",
