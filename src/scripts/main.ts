@@ -50,6 +50,7 @@ const loader = new USDLoader(manager),
 
 room.traverse((child) => {
   if (child instanceof THREE.Mesh) {
+    child.material.dithering = true;
     setupShadowMaterial(child.material);
     meshes.push(child);
   }
