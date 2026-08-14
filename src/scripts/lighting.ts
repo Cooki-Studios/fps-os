@@ -1,28 +1,44 @@
-import { Scene, AmbientLight, DirectionalLight, CameraHelper } from "three";
+import * as THREE from "three";
+import { CSM } from "three/addons/csm/CSM.js";
+import { CSMHelper } from "three/addons/csm/CSMHelper.js";
 
-export function initLighting(scene: Scene, debug = false) {
-  const light = new AmbientLight(0xffffff, 3.0); // global light
-  scene.add(light);
+let csm: CSM | undefined, csmHelper: CSMHelper | undefined;
 
-  const directionalLight = new DirectionalLight(0xffffff, 3.0); // shading light
-  scene.add(directionalLight);
-  directionalLight.castShadow = true;
-  directionalLight.position.set(10, 20, 10);
+export function initLighting(
+  scene: THREE.Scene,
+  camera: THREE.PerspectiveCamera,
+  debug = false,
+) {
+  const ambientLight = new THREE.AmbientLight(0xffffff, 3);
+  scene.add(ambientLight);
 
-  const shadowCam = directionalLight.shadow.camera;
-  const shadowRes = 10;
-  shadowCam.left = -shadowRes;
-  shadowCam.right = shadowRes;
-  shadowCam.top = shadowRes;
-  shadowCam.bottom = -shadowRes;
-  shadowCam.updateProjectionMatrix();
+  csm = new CSM({
+    maxFar: 50,
+    mode: "practical",
+    parent: scene,
+    shadowMapSize: 2048,
+    lightDirection: new THREE.Vector3(-1, -2, -1).normalize(),
+    lightIntensity: 2,
+    camera: camera,
+  });
+  csm.lights.forEach((light) => {
+    light.shadow.radius = 2.5;
+    light.shadow.intensity = 0.55;
+    light.shadow.normalBias = -0.04;
+  });
 
-  if (debug) scene.add(new CameraHelper(shadowCam));
+  if (debug) {
+    csmHelper = new CSMHelper(csm);
+    csmHelper.visible = true;
+    scene.add(csmHelper);
+  }
+}
 
-  directionalLight.shadow.intensity = 0.55;
-  directionalLight.shadow.normalBias = -0.04;
-  directionalLight.shadow.radius = 1.5;
+export function updateCSM() {
+  if (csm) csm.update();
+  if (csmHelper) csmHelper.update();
+}
 
-  directionalLight.shadow.mapSize.width = 2048;
-  directionalLight.shadow.mapSize.height = 2048;
+export function setupShadowMaterial(mat: THREE.MeshPhysicalMaterial) {
+  if (csm) csm.setupMaterial(mat);
 }

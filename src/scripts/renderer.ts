@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { updatePhysics } from "./physics";
+import { updateCSM } from "./lighting";
 
 let renderer: THREE.WebGLRenderer;
 export const timer = new THREE.Timer();
@@ -13,6 +14,7 @@ export function enableRenderer(
     const delta = timer.getDelta();
 
     updatePhysics(delta);
+    updateCSM();
 
     renderer.render(scene, camera);
   }
@@ -28,7 +30,7 @@ export function initRenderer(
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = true;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.0;
+  renderer.toneMappingExposure = 1;
 
   const canvas = renderer.domElement;
 

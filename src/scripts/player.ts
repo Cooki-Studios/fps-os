@@ -1,22 +1,59 @@
 import * as THREE from "three";
-import { disableInput, enableInput, isInputEnabled } from "./input";
-// import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls.js";
+import {
+  disableInput,
+  enableInput,
+  getInputVector,
+  isActionPressed,
+  isInputEnabled,
+  onActionPressed,
+  onActionReleased,
+} from "./input";
+import { getGravityY, isPlayerGrounded } from "./physics";
+import { lerp } from "three/src/math/MathUtils.js";
 
 export type PlayerData = {
-  deltaRotY: number;
+  velRotY: number;
+  velPosX: number;
+  velPosY: number;
+  velPosZ: number;
+  velGrav: number;
 };
 export const playerData: PlayerData = {
-  deltaRotY: 0,
+  velRotY: 0,
+  velPosX: 0,
+  velPosY: 0,
+  velPosZ: 0,
+  velGrav: 0,
 };
 
 export function getPlayerData() {
   return playerData;
 }
-export function resetPlayerRotDelta() {
-  playerData.deltaRotY = 0;
+export function resetPlayerVelRot() {
+  playerData.velRotY = 0;
 }
 
-const playerGeo = new THREE.CapsuleGeometry(1, 2, 16, 32);
+export const PLAYER_RADIUS = 1,
+  PLAYER_HEIGHT = 2,
+  SPEED = 5,
+  SPEED_SPRINT = 7,
+  JUMP_VELOCITY = 7,
+  MOUSE_SENS = 0.5;
+let speed = SPEED;
+
+onActionPressed("sprint", () => {
+  speed = SPEED_SPRINT;
+});
+onActionReleased("sprint", () => {
+  speed = SPEED;
+});
+
+const playerGeo = new THREE.CapsuleGeometry(
+  PLAYER_RADIUS,
+  PLAYER_HEIGHT,
+  16,
+  32,
+);
 const playerMat = new THREE.MeshPhysicalMaterial({
   colorWrite: false,
 });
@@ -58,11 +95,45 @@ export function initPlayer(
   canvas.onpointermove = (e) => {
     if (isInputEnabled()) {
       camera.rotation.x = clamp(
-        camera.rotation.x - e.movementY * deg,
+        camera.rotation.x - e.movementY * MOUSE_SENS * deg,
         -90 * deg,
         90 * deg,
       );
-      playerData.deltaRotY -= e.movementX * deg;
+      playerData.velRotY -= e.movementX * MOUSE_SENS * deg;
     }
   };
+
+  let jumping = false;
+
+  // https://github.com/godotengine/godot/blob/master/modules/gdscript/editor/script_templates/CharacterBody3D/basic_movement.gd
+  document.addEventListener("physics", () => {
+    if (!playerMesh.parent) return;
+
+    const grounded = isPlayerGrounded();
+
+    if (!grounded) {
+      playerData.velGrav = getGravityY();
+    } else {
+      playerData.velGrav = 0;
+      jumping = false;
+    }
+
+    if (isActionPressed("jump") && grounded && !jumping) {
+      jumping = true;
+      playerData.velPosY = JUMP_VELOCITY;
+    } else playerData.velPosY = 0;
+
+    var input_dir = getInputVector("left", "right", "forward", "back");
+    const direction = new THREE.Vector3(input_dir.x, 0, input_dir.y)
+      .applyQuaternion(playerMesh.parent.quaternion)
+      .normalize();
+
+    if (direction) {
+      playerData.velPosX = direction.x * speed;
+      playerData.velPosZ = direction.z * speed;
+    } else {
+      playerData.velPosX = lerp(playerData.velPosX, 0, speed);
+      playerData.velPosZ = lerp(playerData.velPosZ, 0, speed);
+    }
+  });
 }

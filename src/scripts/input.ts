@@ -1,16 +1,19 @@
-const actions: { [action: string]: string } = {
+const actions = {
   forward: "w",
   back: "s",
   left: "a",
   right: "d",
   jump: " ",
+  sprint: "shift",
   debug: "`",
+  debugPlayer: "~",
   fullscreen: "f",
-};
+} as const;
+export type Action = keyof typeof actions;
 
-const keys: { [key: string]: boolean } = {};
-const pressEvents: { [key: string]: CustomEvent } = {};
-const releaseEvents: { [key: string]: CustomEvent } = {};
+const keys: Record<string, boolean> = {};
+const pressEvents: Record<string, CustomEvent> = {};
+const releaseEvents: Record<string, CustomEvent> = {};
 export let enabled = false;
 
 export function enableInput() {
@@ -18,9 +21,16 @@ export function enableInput() {
 }
 export function disableInput() {
   enabled = false;
+  resetKeys();
 }
 export function isInputEnabled() {
   return enabled;
+}
+
+function resetKeys() {
+  for (const key of Object.keys(keys)) {
+    keys[key] = false;
+  }
 }
 
 export function initInput() {
@@ -29,16 +39,31 @@ export function initInput() {
     releaseEvents[key] = new CustomEvent(`${action}:released`);
   }
 
+  window.addEventListener("blur", () => {
+    resetKeys();
+  });
+
   document.onkeydown = (e) => {
-    if (e.key == actions["fullscreen"]) {
-      if (!document.fullscreenElement) {
-        document.body.requestFullscreen();
-      } else document.exitFullscreen();
+    const target = e.target as HTMLElement | null;
+    if (
+      target &&
+      (target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable)
+    ) {
+      return;
+    }
+
+    const key = e.key.toLowerCase();
+
+    if (key === actions.fullscreen) {
+      if (!document.fullscreenElement)
+        document.body.requestFullscreen().catch(() => {});
+      else document.exitFullscreen().catch(() => {});
     }
 
     if (!enabled) return;
 
-    const key = e.key.toLowerCase();
     if (!keys[key]) {
       const event = pressEvents[key];
       if (event) document.dispatchEvent(event);
@@ -56,12 +81,29 @@ export function initInput() {
   };
 }
 
-export function onActionPressed(action: string, callback: (e: Event) => void) {
+export function isActionPressed(action: Action): boolean {
+  return Boolean(keys[actions[action]]);
+}
+
+export function getInputVector(
+  negativeX: Action,
+  positiveX: Action,
+  negativeY: Action,
+  positiveY: Action,
+): { x: number; y: number } {
+  const x =
+    (isActionPressed(positiveX) ? 1 : 0) - (isActionPressed(negativeX) ? 1 : 0);
+  const y =
+    (isActionPressed(positiveY) ? 1 : 0) - (isActionPressed(negativeY) ? 1 : 0);
+  return { x, y };
+}
+
+export function onActionPressed(action: Action, callback: (e: Event) => void) {
   document.addEventListener(`${action}:pressed`, callback);
   return () => document.removeEventListener(`${action}:pressed`, callback);
 }
 
-export function onActionReleased(action: string, callback: (e: Event) => void) {
+export function onActionReleased(action: Action, callback: (e: Event) => void) {
   document.addEventListener(`${action}:released`, callback);
   return () => document.removeEventListener(`${action}:released`, callback);
 }

@@ -1,10 +1,9 @@
 import * as THREE from "three";
 import { USDLoader } from "three/examples/jsm/loaders/USDLoader.js";
-import { initLighting } from "./lighting";
+import { initLighting, setupShadowMaterial } from "./lighting";
 import { compileRenderer, enableRenderer, initRenderer } from "./renderer";
 import { addPhysicsToObject, initPhysics, togglePhysicsDebug } from "./physics";
 import { initInput, onActionPressed } from "./input";
-import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 import { getPlayerMesh, initPlayer } from "./player";
 
 const scene = new THREE.Scene();
@@ -16,7 +15,7 @@ const camera = new THREE.PerspectiveCamera(
 );
 camera.rotation.order = "YXZ";
 
-initLighting(scene);
+initLighting(scene, camera);
 const canvas = initRenderer(camera);
 initPhysics(scene);
 initInput();
@@ -30,7 +29,7 @@ manager.onLoad = () => {
   }
 
   initPlayer(scene, camera, canvas);
-  addPhysicsToObject(getPlayerMesh(), true, false, true, scene);
+  addPhysicsToObject(getPlayerMesh(), true, true, true, scene);
 
   compileRenderer(scene, camera);
   enableRenderer(scene, camera);
@@ -41,14 +40,17 @@ manager.onLoad = () => {
 onActionPressed("debug", () => {
   togglePhysicsDebug();
 });
+onActionPressed("debugPlayer", () => {
+  togglePhysicsDebug(true);
+});
 
 const loader = new USDLoader(manager);
 const room = await loader.loadAsync("room.usdc");
-const hdrLoader = new HDRLoader(manager);
 
 const meshes: THREE.Mesh[] = [];
 room.traverse((child) => {
   if (child instanceof THREE.Mesh) {
+    setupShadowMaterial(child.material);
     meshes.push(child);
   }
 });
@@ -65,21 +67,5 @@ for (const mesh of meshes) {
   scene.attach(mesh.parent);
 
   mesh.receiveShadow = true;
-
-  if (mesh.name.startsWith("D_")) {
-    mesh.castShadow = true;
-  } else {
-    hdrLoader
-      .loadAsync(`/fps-os/textures/${mesh.name}_Baked.hdr`)
-      .then((tex) => {
-        const mat = Array.isArray(mesh.material)
-          ? (mesh.material[0] as THREE.MeshPhysicalMaterial)
-          : (mesh.material as THREE.MeshPhysicalMaterial);
-
-        if (mat && "aoMap" in mat) {
-          mat.aoMap = tex;
-          mat.needsUpdate = true;
-        }
-      });
-  }
+  mesh.castShadow = true;
 }
