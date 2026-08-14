@@ -259,10 +259,6 @@ function createDebugMesh(shape: JoltTypes.Shape, isPlayer = false): THREE.Mesh {
   );
 }
 
-export function getGravityY() {
-  return gravity.GetY();
-}
-
 let accumulator = 0;
 export function updatePhysics(delta: number) {
   if (!joltInterface || delta <= 0) return;
@@ -351,13 +347,15 @@ function doPhysicsStep(delta: number) {
   const playerData = getPlayerData();
   const currentVel = playerChar.GetLinearVelocity();
 
-  tempVec3.Set(
-    playerData.velPosX,
-    playerData.velPosY !== 0
-      ? playerData.velPosY
-      : currentVel.GetY() + playerData.velGrav * delta,
-    playerData.velPosZ,
-  );
+  let velPosY = playerData.velPosY;
+
+  if (velPosY === 0) {
+    if (isPlayerGrounded()) velPosY = 0;
+    else velPosY = currentVel.GetY() + gravity.GetY() * delta;
+  }
+
+  tempVec3.Set(playerData.velPosX, velPosY, playerData.velPosZ);
+
   Jolt.destroy(currentVel);
 
   playerChar.SetLinearVelocity(tempVec3);

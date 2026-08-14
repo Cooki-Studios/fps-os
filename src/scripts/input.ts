@@ -1,13 +1,19 @@
 const actions = {
+  // General
+  fullscreen: "f",
+
+  // Player
   forward: "w",
   back: "s",
   left: "a",
   right: "d",
   jump: " ",
   sprint: "shift",
+  sourceMovement: "r",
+
+  // Debug
   debug: "`",
   debugPlayer: "~",
-  fullscreen: "f",
 } as const;
 export type Action = keyof typeof actions;
 

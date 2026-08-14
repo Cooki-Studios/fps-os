@@ -21,6 +21,7 @@ export function initLighting(
     lightIntensity: 2,
     camera: camera,
   });
+  csm.fade = true;
   csm.lights.forEach((light) => {
     light.shadow.radius = 2.5;
     light.shadow.intensity = 0.55;

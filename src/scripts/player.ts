@@ -8,7 +8,7 @@ import {
   onActionPressed,
   onActionReleased,
 } from "./input";
-import { getGravityY, isPlayerGrounded } from "./physics";
+import { isPlayerGrounded } from "./physics";
 import { lerp } from "three/src/math/MathUtils.js";
 
 export type PlayerData = {
@@ -16,14 +16,12 @@ export type PlayerData = {
   velPosX: number;
   velPosY: number;
   velPosZ: number;
-  velGrav: number;
 };
 export const playerData: PlayerData = {
   velRotY: 0,
   velPosX: 0,
   velPosY: 0,
   velPosZ: 0,
-  velGrav: 0,
 };
 
 export function getPlayerData() {
@@ -39,13 +37,18 @@ export const PLAYER_RADIUS = 1,
   SPEED_SPRINT = 7,
   JUMP_VELOCITY = 7,
   MOUSE_SENS = 0.5;
-let speed = SPEED;
+
+let speed = SPEED,
+  sourceMovement = false;
 
 onActionPressed("sprint", () => {
   speed = SPEED_SPRINT;
 });
 onActionReleased("sprint", () => {
   speed = SPEED;
+});
+onActionPressed("sourceMovement", () => {
+  sourceMovement = !sourceMovement;
 });
 
 const playerGeo = new THREE.CapsuleGeometry(
@@ -103,37 +106,28 @@ export function initPlayer(
     }
   };
 
-  let jumping = false;
-
   // https://github.com/godotengine/godot/blob/master/modules/gdscript/editor/script_templates/CharacterBody3D/basic_movement.gd
   document.addEventListener("physics", () => {
     if (!playerMesh.parent) return;
 
-    const grounded = isPlayerGrounded();
-
-    if (!grounded) {
-      playerData.velGrav = getGravityY();
+    if (sourceMovement) {
     } else {
-      playerData.velGrav = 0;
-      jumping = false;
-    }
+      if (isActionPressed("jump") && isPlayerGrounded()) {
+        playerData.velPosY = JUMP_VELOCITY;
+      } else playerData.velPosY = 0;
 
-    if (isActionPressed("jump") && grounded && !jumping) {
-      jumping = true;
-      playerData.velPosY = JUMP_VELOCITY;
-    } else playerData.velPosY = 0;
+      var input_dir = getInputVector("left", "right", "forward", "back");
+      const direction = new THREE.Vector3(input_dir.x, 0, input_dir.y)
+        .applyQuaternion(playerMesh.parent.quaternion)
+        .normalize();
 
-    var input_dir = getInputVector("left", "right", "forward", "back");
-    const direction = new THREE.Vector3(input_dir.x, 0, input_dir.y)
-      .applyQuaternion(playerMesh.parent.quaternion)
-      .normalize();
-
-    if (direction) {
-      playerData.velPosX = direction.x * speed;
-      playerData.velPosZ = direction.z * speed;
-    } else {
-      playerData.velPosX = lerp(playerData.velPosX, 0, speed);
-      playerData.velPosZ = lerp(playerData.velPosZ, 0, speed);
+      if (direction) {
+        playerData.velPosX = direction.x * speed;
+        playerData.velPosZ = direction.z * speed;
+      } else {
+        playerData.velPosX = lerp(playerData.velPosX, 0, speed);
+        playerData.velPosZ = lerp(playerData.velPosZ, 0, speed);
+      }
     }
   });
 }
