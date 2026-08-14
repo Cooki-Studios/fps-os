@@ -1,3 +1,5 @@
+import { isMobile } from "./player";
+
 const actions = {
   // General
   fullscreen: "f",
@@ -17,9 +19,9 @@ const actions = {
 } as const;
 export type Action = keyof typeof actions;
 
-const keys: Record<string, boolean> = {};
-const pressEvents: Record<string, CustomEvent> = {};
-const releaseEvents: Record<string, CustomEvent> = {};
+const keys: Record<string, boolean> = {},
+  pressEvents: Record<string, CustomEvent> = {},
+  releaseEvents: Record<string, CustomEvent> = {};
 export let enabled = false;
 
 export function enableInput() {
@@ -112,4 +114,79 @@ export function onActionPressed(action: Action, callback: (e: Event) => void) {
 export function onActionReleased(action: Action, callback: (e: Event) => void) {
   document.addEventListener(`${action}:released`, callback);
   return () => document.removeEventListener(`${action}:released`, callback);
+}
+
+const joystickCont = document.getElementById("joystick-cont") as HTMLDivElement,
+  joystickPos = document.getElementById("joystick-pos") as HTMLDivElement,
+  joystick = document.getElementById("joystick") as HTMLDivElement,
+  joystick2 = document.getElementById("joystick2") as HTMLDivElement,
+  joystick3 = document.getElementById("joystick3") as HTMLDivElement,
+  MAX_RADIUS = 200;
+
+let isDragging = false,
+  startX = 0,
+  startY = 0,
+  joystickX = 0,
+  joystickY = 0;
+
+if (isMobile()) {
+  joystickCont.style.display = "grid";
+
+  joystickCont.onpointerdown = (e) => {
+    isDragging = true;
+    joystickCont.setPointerCapture(e.pointerId);
+
+    startX = e.clientX;
+    startY = e.clientY;
+    joystickX = 0;
+    joystickY = 0;
+
+    joystickPos.style.left = `${e.offsetX}px`;
+    joystickPos.style.top = `${e.offsetY}px`;
+
+    joystick.style.visibility = "visible";
+    joystick2.style.visibility = "visible";
+    joystick3.style.visibility = "visible";
+  };
+
+  joystickCont.onpointermove = (e) => {
+    if (!isDragging) return;
+
+    const dx = e.clientX - startX,
+      dy = e.clientY - startY,
+      distance = Math.hypot(dx, dy);
+
+    const clampDist = Math.min(distance, MAX_RADIUS),
+      angle = Math.atan2(dy, dx);
+
+    const clampedX = Math.cos(angle) * clampDist,
+      clampedY = Math.sin(angle) * clampDist;
+
+    joystickX = clampedX / MAX_RADIUS;
+    joystickY = clampedY / MAX_RADIUS;
+
+    joystick.style.transform = `translate(${clampedX}px, ${clampedY}px) translate(-50%, -50%)`;
+    joystick2.style.transform = `translate(${clampedX / 2.5}px, ${clampedY / 2.5}px) translate(-50%, -50%)`;
+  };
+
+  const handlePointerEnd = (e: PointerEvent) => {
+    if (!isDragging) return;
+    isDragging = false;
+    joystickCont.releasePointerCapture(e.pointerId);
+
+    joystick.style.visibility = "hidden";
+    joystick2.style.visibility = "hidden";
+    joystick3.style.visibility = "hidden";
+
+    startX = 0;
+    startY = 0;
+    joystickX = 0;
+    joystickY = 0;
+  };
+  joystickCont.onpointerup = handlePointerEnd;
+  joystickCont.onpointercancel = handlePointerEnd;
+}
+
+export function getJoystickVector(): { x: number; y: number } {
+  return { x: joystickX, y: joystickY };
 }

@@ -7,9 +7,56 @@ body {
     background-color: black;
     overscroll-behavior: none;
     touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
 }
 
 canvas {
     position: absolute;
     top: 0;
+}
+
+#joystick-cont {
+    position: absolute;
+    bottom: 0;
+
+    width: 30vmax;
+    aspect-ratio: 1 / 1;
+    z-index: 1;
+    /*background-color: rgba(15, 15, 15, 0.05);*/
+    display: none;
+    border-radius: 0 1vmax 0 0;
+    z-index: 1;
+
+    #joystick-pos {
+        position: relative;
+        pointer-events: none;
+
+        #joystick,
+        #joystick2,
+        #joystick3 {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(15, 15, 15, 0.5);
+            width: 15vmax;
+            aspect-ratio: 1 / 1;
+            border-radius: 15vmax;
+            visibility: hidden;
+            pointer-events: none;
+            z-index: 3;
+            transform: translate(-50%, -50%);
+        }
+
+        #joystick2 {
+            width: 5vmax;
+            z-index: 2;
+        }
+
+        #joystick3 {
+            width: 4vmax;
+            z-index: 1;
+        }
+    }
 }

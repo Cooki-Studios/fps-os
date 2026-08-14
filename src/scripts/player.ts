@@ -3,6 +3,7 @@ import {
   disableInput,
   enableInput,
   getInputVector,
+  getJoystickVector,
   isActionPressed,
   isInputEnabled,
   onActionPressed,
@@ -36,10 +37,15 @@ export const PLAYER_RADIUS = 1,
   SPEED = 5,
   SPEED_SPRINT = 7,
   JUMP_VELOCITY = 7,
-  MOUSE_SENS = 0.5;
+  MOUSE_SENS = isMobile() ? 1 : 0.5;
 
 let speed = SPEED,
-  sourceMovement = false;
+  sourceMovement = false,
+  sens = MOUSE_SENS,
+  lastPointerX = 0,
+  lastPointerY = 0,
+  dragging = false,
+  activePointerId: number | null = null;
 
 onActionPressed("sprint", () => {
   speed = SPEED_SPRINT;
@@ -68,9 +74,13 @@ export function getPlayerMesh() {
   return playerMesh;
 }
 
-const deg = Math.PI / 180;
-const clamp = (num: number, min: number, max: number) =>
-  Math.max(min, Math.min(max, num));
+const deg = Math.PI / 180,
+  clamp = (num: number, min: number, max: number) =>
+    Math.max(min, Math.min(max, num));
+
+export function isMobile() {
+  return !document.body.requestPointerLock;
+}
 
 export function initPlayer(
   scene: THREE.Scene,
@@ -85,24 +95,60 @@ export function initPlayer(
   player.add(camera);
   camera.position.set(0, 1.8, 0);
 
-  canvas.onclick = async () => {
-    await canvas.requestPointerLock();
-  };
-  document.onpointerlockchange = () => {
-    if (document.pointerLockElement == canvas) enableInput();
-    else {
-      disableInput();
-    }
-  };
+  if (!isMobile()) {
+    canvas.onclick = async () => {
+      await canvas.requestPointerLock();
+    };
+    document.onpointerlockchange = () => {
+      if (document.pointerLockElement == canvas) enableInput();
+      else {
+        disableInput();
+      }
+    };
+  } else {
+    canvas.onpointerdown = (e) => {
+      if (activePointerId !== null) return;
+      activePointerId = e.pointerId;
+      dragging = true;
+      lastPointerX = e.clientX;
+      lastPointerY = e.clientY;
+    };
+
+    const releasePointer = (e: PointerEvent) => {
+      if (e.pointerId !== activePointerId) return;
+      if (canvas.hasPointerCapture(e.pointerId)) {
+        canvas.releasePointerCapture(e.pointerId);
+      }
+      activePointerId = null;
+      dragging = false;
+    };
+    canvas.onpointerup = releasePointer;
+    canvas.onpointercancel = releasePointer;
+  }
 
   canvas.onpointermove = (e) => {
-    if (isInputEnabled()) {
+    if (isMobile() && e.pointerId !== activePointerId) return;
+    if (isMobile() || isInputEnabled()) {
+      e.preventDefault();
+      let deltaX: number, deltaY: number;
+
+      if (isMobile()) {
+        if (!dragging) return;
+        deltaX = e.clientX - lastPointerX;
+        deltaY = e.clientY - lastPointerY;
+        lastPointerX = e.clientX;
+        lastPointerY = e.clientY;
+      } else {
+        deltaX = e.movementX;
+        deltaY = e.movementY;
+      }
+
       camera.rotation.x = clamp(
-        camera.rotation.x - e.movementY * MOUSE_SENS * deg,
+        camera.rotation.x - deltaY * sens * deg,
         -90 * deg,
         90 * deg,
       );
-      playerData.velRotY -= e.movementX * MOUSE_SENS * deg;
+      playerData.velRotY -= deltaX * sens * deg;
     }
   };
 
@@ -116,17 +162,21 @@ export function initPlayer(
         playerData.velPosY = JUMP_VELOCITY;
       } else playerData.velPosY = 0;
 
-      var input_dir = getInputVector("left", "right", "forward", "back");
-      const direction = new THREE.Vector3(input_dir.x, 0, input_dir.y)
+      var inputDir = isMobile()
+        ? getJoystickVector()
+        : getInputVector("left", "right", "forward", "back");
+      const direction = new THREE.Vector3(inputDir.x, 0, inputDir.y)
         .applyQuaternion(playerMesh.parent.quaternion)
         .normalize();
 
       if (direction) {
-        playerData.velPosX = direction.x * speed;
-        playerData.velPosZ = direction.z * speed;
-      } else {
-        playerData.velPosX = lerp(playerData.velPosX, 0, speed);
-        playerData.velPosZ = lerp(playerData.velPosZ, 0, speed);
+        if (inputDir.x !== 0 || inputDir.y !== 0) {
+          playerData.velPosX = direction.x * speed;
+          playerData.velPosZ = direction.z * speed;
+        } else {
+          playerData.velPosX = lerp(playerData.velPosX, 0, 0.8);
+          playerData.velPosZ = lerp(playerData.velPosZ, 0, 0.8);
+        }
       }
     }
   });

@@ -44,10 +44,10 @@ onActionPressed("debugPlayer", () => {
   togglePhysicsDebug(true);
 });
 
-const loader = new USDLoader(manager);
-const room = await loader.loadAsync("room.usdc");
+const loader = new USDLoader(manager),
+  room = await loader.loadAsync("room.usdc"),
+  meshes: THREE.Mesh[] = [];
 
-const meshes: THREE.Mesh[] = [];
 room.traverse((child) => {
   if (child instanceof THREE.Mesh) {
     setupShadowMaterial(child.material);

@@ -7,6 +7,7 @@ import type JoltTypes from "jolt-physics/wasm";
 import {
   getPlayerData,
   getPlayerMesh,
+  isMobile,
   PLAYER_HEIGHT,
   PLAYER_RADIUS,
   resetPlayerVelRot,
@@ -14,37 +15,37 @@ import {
 
 const { default: initJolt } = await import("jolt-physics/wasm");
 
-let Jolt: typeof initJolt;
-let joltInterface: JoltTypes.JoltInterface;
-let initPromise: Promise<void> | null = null;
+let Jolt: typeof initJolt,
+  joltInterface: JoltTypes.JoltInterface,
+  initPromise: Promise<void> | null = null;
 
-const dynamicObjects: THREE.Mesh[] = [];
-const LAYER_STATIC = 0;
-const LAYER_DYNAMIC = 1;
-const NUM_OBJECT_LAYERS = 2;
-const NUM_BROAD_PHASE_LAYERS = 2;
+const dynamicObjects: THREE.Mesh[] = [],
+  LAYER_STATIC = 0,
+  LAYER_DYNAMIC = 1,
+  NUM_OBJECT_LAYERS = 2,
+  NUM_BROAD_PHASE_LAYERS = 2;
 
 const debugGroup = new THREE.Group();
 debugGroup.visible = false;
 
 export let playerRotDelta = 0;
-let playerChar: JoltTypes.CharacterVirtual | undefined;
-let movingBPFilter: JoltTypes.DefaultBroadPhaseLayerFilter | undefined;
-let movingLayerFilter: JoltTypes.DefaultObjectLayerFilter | undefined;
-let bodyFilter: JoltTypes.BodyFilter | undefined;
-let shapeFilter: JoltTypes.ShapeFilter | undefined;
-let updateSettings: JoltTypes.ExtendedUpdateSettings | undefined;
+let playerChar: JoltTypes.CharacterVirtual | undefined,
+  movingBPFilter: JoltTypes.DefaultBroadPhaseLayerFilter | undefined,
+  movingLayerFilter: JoltTypes.DefaultObjectLayerFilter | undefined,
+  bodyFilter: JoltTypes.BodyFilter | undefined,
+  shapeFilter: JoltTypes.ShapeFilter | undefined,
+  updateSettings: JoltTypes.ExtendedUpdateSettings | undefined;
 
-const FIXED_DELTA = 1 / 30;
-const MAX_STEPS_PER_FRAME = 5;
-const DEATH_HEIGHT = -50;
-const RESPAWN_HEIGHT = 5;
+const FIXED_DELTA = isMobile() ? 1 / 15 : 1 / 30,
+  MAX_STEPS_PER_FRAME = 5,
+  DEATH_HEIGHT = -50,
+  RESPAWN_HEIGHT = 5;
 
-let gravity: JoltTypes.Vec3;
-let tempVec3: JoltTypes.Vec3;
-let tempQuat: JoltTypes.Quat;
-let respawnPos: JoltTypes.RVec3;
-let zeroVel: JoltTypes.Vec3;
+let gravity: JoltTypes.Vec3,
+  tempVec3: JoltTypes.Vec3,
+  tempQuat: JoltTypes.Quat,
+  respawnPos: JoltTypes.RVec3,
+  zeroVel: JoltTypes.Vec3;
 
 function joltToVec3(
   v: JoltTypes.RVec3 | JoltTypes.Vec3,
@@ -105,8 +106,8 @@ export async function addPhysicsToObject(
     shape = new Jolt.CapsuleShape(PLAYER_HEIGHT / 2, PLAYER_RADIUS);
   } else {
     obj.updateMatrixWorld(true);
-    const posAttr = obj.geometry.attributes.position;
-    const vertices = new Jolt.ArrayVec3();
+    const posAttr = obj.geometry.attributes.position,
+      vertices = new Jolt.ArrayVec3();
 
     for (let i = 0; i < posAttr.count; i++) {
       const pt = new Jolt.Vec3(
@@ -127,10 +128,10 @@ export async function addPhysicsToObject(
     Jolt.destroy(shapeSettings);
   }
 
-  const p = obj.parent.position;
-  const q = obj.parent.quaternion;
-  const pos = new Jolt.RVec3(p.x, p.y, p.z);
-  const rot = new Jolt.Quat(q.x, q.y, q.z, q.w);
+  const p = obj.parent.position,
+    q = obj.parent.quaternion,
+    pos = new Jolt.RVec3(p.x, p.y, p.z),
+    rot = new Jolt.Quat(q.x, q.y, q.z, q.w);
 
   if (!obj.parent.userData.prevPos) {
     obj.parent.userData.prevPos = new THREE.Vector3(p.x, p.y, p.z);
@@ -223,9 +224,9 @@ export function togglePhysicsDebug(isPlayer = false) {
 }
 
 function createDebugMesh(shape: JoltTypes.Shape, isPlayer = false): THREE.Mesh {
-  const scale = new Jolt.Vec3(1, 1, 1);
-  const identity = new Jolt.Quat(0, 0, 0, 1);
-  const center = shape.GetCenterOfMass();
+  const scale = new Jolt.Vec3(1, 1, 1),
+    identity = new Jolt.Quat(0, 0, 0, 1),
+    center = shape.GetCenterOfMass();
 
   const triContext = new Jolt.ShapeGetTriangles(
     shape,
@@ -344,8 +345,8 @@ function doPhysicsStep(delta: number) {
   )
     return;
 
-  const playerData = getPlayerData();
-  const currentVel = playerChar.GetLinearVelocity();
+  const playerData = getPlayerData(),
+    currentVel = playerChar.GetLinearVelocity();
 
   let velPosY = playerData.velPosY;
 
@@ -382,8 +383,8 @@ function doPhysicsStep(delta: number) {
     joltInterface.GetTempAllocator(),
   );
 
-  let charPos = playerChar.GetPosition();
-  let charRot = playerChar.GetRotation();
+  let charPos = playerChar.GetPosition(),
+    charRot = playerChar.GetRotation();
   const playerWasReset = charPos.GetY() < DEATH_HEIGHT;
 
   if (playerWasReset) {
@@ -432,9 +433,8 @@ function setupCollisionFiltering(settings: JoltTypes.JoltSettings) {
   objectFilter.EnableCollision(LAYER_STATIC, LAYER_DYNAMIC);
   objectFilter.EnableCollision(LAYER_DYNAMIC, LAYER_DYNAMIC);
 
-  const BP_LAYER_STATIC = new Jolt.BroadPhaseLayer(0);
-  const BP_LAYER_DYNAMIC = new Jolt.BroadPhaseLayer(1);
-
+  const BP_LAYER_STATIC = new Jolt.BroadPhaseLayer(0),
+    BP_LAYER_DYNAMIC = new Jolt.BroadPhaseLayer(1);
   const bpInterface = new Jolt.BroadPhaseLayerInterfaceTable(
     NUM_OBJECT_LAYERS,
     NUM_BROAD_PHASE_LAYERS,
