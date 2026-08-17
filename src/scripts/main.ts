@@ -6,6 +6,14 @@ import { addPhysicsToObject, initPhysics, togglePhysicsDebug } from "./physics";
 import { initInput, onActionPressed } from "./input";
 import { getPlayerMesh, initPlayer } from "./player";
 
+document.addEventListener(
+  "wheel",
+  (e) => {
+    e.preventDefault();
+  },
+  { passive: false },
+);
+
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
   75,

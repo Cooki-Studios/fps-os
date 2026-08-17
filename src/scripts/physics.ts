@@ -89,6 +89,10 @@ export async function initPhysics(scene: THREE.Scene): Promise<void> {
   return initPromise;
 }
 
+export function getGravityY() {
+  return joltInterface.GetPhysicsSystem().GetGravity().GetY();
+}
+
 export async function addPhysicsToObject(
   obj: THREE.Mesh,
   dynamic = false,
@@ -269,7 +273,7 @@ export function updatePhysics(delta: number) {
   if (accumulator > maxAccum) accumulator = maxAccum;
 
   while (accumulator >= FIXED_DELTA) {
-    document.dispatchEvent(new CustomEvent("physics"));
+    document.dispatchEvent(new CustomEvent("physics", { detail: delta }));
     doPhysicsStep(FIXED_DELTA);
     accumulator -= FIXED_DELTA;
   }
@@ -345,20 +349,9 @@ function doPhysicsStep(delta: number) {
   )
     return;
 
-  const playerData = getPlayerData(),
-    currentVel = playerChar.GetLinearVelocity();
+  const playerData = getPlayerData();
 
-  let velPosY = playerData.velPosY;
-
-  if (velPosY === 0) {
-    if (isPlayerGrounded()) velPosY = 0;
-    else velPosY = currentVel.GetY() + gravity.GetY() * delta;
-  }
-
-  tempVec3.Set(playerData.velPosX, velPosY, playerData.velPosZ);
-
-  Jolt.destroy(currentVel);
-
+  tempVec3.Set(playerData.velPosX, playerData.velPosY, playerData.velPosZ);
   playerChar.SetLinearVelocity(tempVec3);
 
   if (playerData.velRotY !== 0) {

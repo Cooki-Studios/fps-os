@@ -9,7 +9,7 @@ import {
   onActionPressed,
   onActionReleased,
 } from "./input";
-import { isPlayerGrounded } from "./physics";
+import { getGravityY, isPlayerGrounded } from "./physics";
 import { lerp } from "three/src/math/MathUtils.js";
 
 export type PlayerData = {
@@ -36,7 +36,7 @@ export const PLAYER_RADIUS = 1,
   PLAYER_HEIGHT = 2,
   SPEED = 5,
   SPEED_SPRINT = 7,
-  JUMP_VELOCITY = 7,
+  JUMP_VELOCITY = 4.5,
   MOUSE_SENS = isMobile() ? 1 : 0.5;
 
 let speed = SPEED,
@@ -79,7 +79,7 @@ const deg = Math.PI / 180,
     Math.max(min, Math.min(max, num));
 
 export function isMobile() {
-  return !document.body.requestPointerLock;
+  return /Mobi/i.test(window.navigator.userAgent);
 }
 
 export function initPlayer(
@@ -153,14 +153,18 @@ export function initPlayer(
   };
 
   // https://github.com/godotengine/godot/blob/master/modules/gdscript/editor/script_templates/CharacterBody3D/basic_movement.gd
-  document.addEventListener("physics", () => {
+  document.addEventListener("physics", (e) => {
     if (!playerMesh.parent) return;
 
     if (sourceMovement) {
     } else {
       if (isActionPressed("jump") && isPlayerGrounded()) {
         playerData.velPosY = JUMP_VELOCITY;
-      } else playerData.velPosY = 0;
+      } else if (!isPlayerGrounded()) {
+        playerData.velPosY += getGravityY() * (e as CustomEvent).detail;
+      } else {
+        playerData.velPosY = 0;
+      }
 
       var inputDir = isMobile()
         ? getJoystickVector()
@@ -169,14 +173,12 @@ export function initPlayer(
         .applyQuaternion(playerMesh.parent.quaternion)
         .normalize();
 
-      if (direction) {
-        if (inputDir.x !== 0 || inputDir.y !== 0) {
-          playerData.velPosX = direction.x * speed;
-          playerData.velPosZ = direction.z * speed;
-        } else {
-          playerData.velPosX = lerp(playerData.velPosX, 0, 0.8);
-          playerData.velPosZ = lerp(playerData.velPosZ, 0, 0.8);
-        }
+      if (inputDir.x !== 0 || inputDir.y !== 0) {
+        playerData.velPosX = direction.x * speed;
+        playerData.velPosZ = direction.z * speed;
+      } else {
+        playerData.velPosX = lerp(playerData.velPosX, 0, 0.8);
+        playerData.velPosZ = lerp(playerData.velPosZ, 0, 0.8);
       }
     }
   });
