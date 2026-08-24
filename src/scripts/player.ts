@@ -10,6 +10,7 @@ import {
   onActionReleased,
 } from "./input";
 import { getGravityY, isPlayerGrounded } from "./physics";
+import { sourcePhysicsProcess } from "./source-movement";
 import { lerp } from "three/src/math/MathUtils.js";
 
 export type PlayerData = {
@@ -152,16 +153,22 @@ export function initPlayer(
     }
   };
 
-  // https://github.com/godotengine/godot/blob/master/modules/gdscript/editor/script_templates/CharacterBody3D/basic_movement.gd
   document.addEventListener("physics", (e) => {
     if (!playerMesh.parent) return;
 
     if (sourceMovement) {
+      sourcePhysicsProcess(
+        (e as CustomEvent).detail as number,
+        playerData,
+        playerMesh,
+      );
     } else {
+      // https://github.com/godotengine/godot/blob/master/modules/gdscript/editor/script_templates/CharacterBody3D/basic_movement.gd
       if (isActionPressed("jump") && isPlayerGrounded()) {
         playerData.velPosY = JUMP_VELOCITY;
       } else if (!isPlayerGrounded()) {
-        playerData.velPosY += getGravityY() * (e as CustomEvent).detail;
+        playerData.velPosY += (getGravityY() *
+          (e as CustomEvent).detail) as number;
       } else {
         playerData.velPosY = 0;
       }

@@ -106,6 +106,16 @@ export function getInputVector(
   return { x, y };
 }
 
+export function getInputAxis(
+  negativeAction: Action,
+  positiveAction: Action,
+): number {
+  return (
+    Number(isActionPressed(positiveAction)) -
+    Number(isActionPressed(negativeAction))
+  );
+}
+
 export function onActionPressed(action: Action, callback: (e: Event) => void) {
   document.addEventListener(`${action}:pressed`, callback);
   return () => document.removeEventListener(`${action}:pressed`, callback);
