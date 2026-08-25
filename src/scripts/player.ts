@@ -41,7 +41,7 @@ export const PLAYER_RADIUS = 1,
   MOUSE_SENS = isMobile() ? 1 : 0.5;
 
 let speed = SPEED,
-  sourceMovement = false,
+  sourceMovement = true,
   sens = MOUSE_SENS,
   lastPointerX = 0,
   lastPointerY = 0,
@@ -176,9 +176,11 @@ export function initPlayer(
       var inputDir = isMobile()
         ? getJoystickVector()
         : getInputVector("left", "right", "forward", "back");
-      const direction = new THREE.Vector3(inputDir.x, 0, inputDir.y)
-        .applyQuaternion(playerMesh.parent.quaternion)
-        .normalize();
+      const direction = new THREE.Vector3(
+        inputDir.x,
+        0,
+        inputDir.y,
+      ).normalize();
 
       if (inputDir.x !== 0 || inputDir.y !== 0) {
         playerData.velPosX = direction.x * speed;

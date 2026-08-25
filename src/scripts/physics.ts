@@ -273,8 +273,8 @@ export function updatePhysics(delta: number) {
   if (accumulator > maxAccum) accumulator = maxAccum;
 
   while (accumulator >= FIXED_DELTA) {
-    document.dispatchEvent(new CustomEvent("physics", { detail: delta }));
     doPhysicsStep(FIXED_DELTA);
+    document.dispatchEvent(new CustomEvent("physics", { detail: FIXED_DELTA }));
     accumulator -= FIXED_DELTA;
   }
 
@@ -352,17 +352,22 @@ function doPhysicsStep(delta: number) {
   const playerData = getPlayerData();
 
   tempVec3.Set(playerData.velPosX, playerData.velPosY, playerData.velPosZ);
-  playerChar.SetLinearVelocity(tempVec3);
+
+  const rot = playerChar.GetRotation();
+  const matrix = Jolt.Mat44.prototype.sRotation(rot);
+  playerChar.SetLinearVelocity(matrix.Multiply3x3(tempVec3));
 
   if (playerData.velRotY !== 0) {
-    playerObj.parent.rotateY(playerData.velRotY);
-    const q = playerObj.parent.quaternion;
-    tempQuat.Set(q.x, q.y, q.z, q.w);
+    const deltaQ = Jolt.Quat.prototype.sRotation(
+      new Jolt.Vec3(0, 1, 0),
+      playerData.velRotY,
+    );
+    const q = rot.MulQuat(deltaQ);
+    tempQuat.Set(q.GetX(), q.GetY(), q.GetZ(), q.GetW());
 
     playerChar.SetRotation(tempQuat);
-    if (playerObj.userData.debugMesh) {
-      playerObj.userData.debugMesh.quaternion.copy(q);
-    }
+
+    playerObj.userData.debugMesh?.quaternion.copy(q);
   }
 
   playerChar.ExtendedUpdate(

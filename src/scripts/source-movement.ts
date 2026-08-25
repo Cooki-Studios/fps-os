@@ -1,8 +1,10 @@
-// https://raw.githubusercontent.com/AceSpectre/Quakelike-Controller/refs/heads/main/QuakelikeController/playerMovement.gd
+// Modified from:
+// https://github.com/AceSpectre/Quakelike-Controller/blob/main/QuakelikeController/playerMovement.gd
 
 import * as THREE from "three";
 import {
   getInputAxis,
+  // isActionPressed,
   // getInputVector,
   // getJoystickVector,
   // isActionPressed,
@@ -14,6 +16,7 @@ import {
 } from "./player";
 import {
   getGravityY,
+  isPlayerGrounded,
   // isPlayerGrounded
 } from "./physics";
 import { lerp } from "three/src/math/MathUtils.js";
@@ -53,20 +56,21 @@ function move(
 
   direction = new THREE.Vector3(hInput, 0, fInput)
     .applyAxisAngle(new THREE.Vector3(0, 1, 0), hRot)
-    .applyQuaternion(playerMesh.parent.quaternion)
     .normalize();
 
   const wishVel = direction.multiplyScalar(speed);
 
   if (direction.length() > 0) {
     playerData.velPosX = lerp(playerData.velPosX, wishVel.x, accel * delta);
-    playerData.velPosY = lerp(playerData.velPosY, wishVel.y, accel * delta);
     playerData.velPosZ = lerp(playerData.velPosZ, wishVel.z, accel * delta);
   } else {
     playerData.velPosX = lerp(playerData.velPosX, wishVel.x, drag * delta);
-    playerData.velPosY = lerp(playerData.velPosY, wishVel.y, drag * delta);
     playerData.velPosZ = lerp(playerData.velPosZ, wishVel.z, drag * delta);
   }
 
-  playerData.velPosY += getGravityY() * delta;
+  if (!isPlayerGrounded()) {
+    playerData.velPosY += getGravityY() * delta;
+  } else {
+    playerData.velPosY = 0;
+  }
 }
