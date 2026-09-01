@@ -6,12 +6,8 @@ import {
   getJoystickVector,
   isActionPressed,
   isInputEnabled,
-  onActionPressed,
-  onActionReleased,
 } from "./input";
 import { getGravityY, isPlayerGrounded } from "./physics";
-import { sourcePhysicsProcess } from "./source-movement";
-import { lerp } from "three/src/math/MathUtils.js";
 
 export type PlayerData = {
   velRotY: number;
@@ -35,28 +31,17 @@ export function resetPlayerVelRot() {
 
 export const PLAYER_RADIUS = 1,
   PLAYER_HEIGHT = 2,
-  SPEED = 5,
-  SPEED_SPRINT = 7,
+  SPEED = 7,
+  SPEED_SPRINT = 10,
   JUMP_VELOCITY = 4.5,
-  MOUSE_SENS = isMobile() ? 1 : 0.5;
+  MOUSE_SENS = isMobile() ? 0.5 : 0.25;
 
-let speed = SPEED,
-  sourceMovement = true,
+let velocity = new THREE.Vector3(),
   sens = MOUSE_SENS,
   lastPointerX = 0,
   lastPointerY = 0,
   dragging = false,
   activePointerId: number | null = null;
-
-onActionPressed("sprint", () => {
-  speed = SPEED_SPRINT;
-});
-onActionReleased("sprint", () => {
-  speed = SPEED;
-});
-onActionPressed("sourceMovement", () => {
-  sourceMovement = !sourceMovement;
-});
 
 const playerGeo = new THREE.CapsuleGeometry(
   PLAYER_RADIUS,
@@ -155,40 +140,49 @@ export function initPlayer(
 
   document.addEventListener("physics", (e) => {
     if (!playerMesh.parent) return;
+    const delta = (e as CustomEvent<number>).detail;
+    const grounded = isPlayerGrounded();
 
-    if (sourceMovement) {
-      sourcePhysicsProcess(
-        (e as CustomEvent).detail as number,
-        playerData,
-        playerMesh,
-      );
+    // https://github.com/godotengine/godot/blob/master/modules/gdscript/editor/script_templates/CharacterBody3D/basic_movement.gd
+    if (isActionPressed("jump") && isPlayerGrounded()) {
+      playerData.velPosY = JUMP_VELOCITY;
+    } else if (!isPlayerGrounded()) {
+      playerData.velPosY += getGravityY() * delta;
     } else {
-      // https://github.com/godotengine/godot/blob/master/modules/gdscript/editor/script_templates/CharacterBody3D/basic_movement.gd
-      if (isActionPressed("jump") && isPlayerGrounded()) {
-        playerData.velPosY = JUMP_VELOCITY;
-      } else if (!isPlayerGrounded()) {
-        playerData.velPosY += (getGravityY() *
-          (e as CustomEvent).detail) as number;
-      } else {
-        playerData.velPosY = 0;
-      }
-
-      var inputDir = isMobile()
-        ? getJoystickVector()
-        : getInputVector("left", "right", "forward", "back");
-      const direction = new THREE.Vector3(
-        inputDir.x,
-        0,
-        inputDir.y,
-      ).normalize();
-
-      if (inputDir.x !== 0 || inputDir.y !== 0) {
-        playerData.velPosX = direction.x * speed;
-        playerData.velPosZ = direction.z * speed;
-      } else {
-        playerData.velPosX = lerp(playerData.velPosX, 0, 0.8);
-        playerData.velPosZ = lerp(playerData.velPosZ, 0, 0.8);
-      }
+      playerData.velPosY = 0;
     }
+
+    // https://github.com/AceSpectre/Quakelike-Controller/blob/main/QuakelikeController/playerMovement.gd
+    const inputDir = isMobile()
+      ? getJoystickVector()
+      : getInputVector("left", "right", "forward", "back");
+
+    const wishDir = new THREE.Vector3(inputDir.x, 0, inputDir.y)
+      .applyQuaternion(playerMesh.parent.quaternion)
+      .normalize();
+
+    const accel = grounded ? 5 : 10;
+    const maxSpeed = grounded ? 10 : 2.5;
+    const friction = grounded ? 6 : 0;
+
+    const speed = Math.hypot(velocity.x, velocity.z);
+    if (speed > 0 && friction > 0) {
+      const scale = Math.max(0, speed - speed * friction * delta) / speed;
+      velocity.x *= scale;
+      velocity.z *= scale;
+    }
+
+    if (wishDir.lengthSq() > 0) {
+      const proj = velocity.x * wishDir.x + velocity.z * wishDir.z;
+      const addSpeed = Math.min(
+        Math.max(maxSpeed - proj, 0),
+        accel * delta * maxSpeed,
+      );
+      velocity.x += wishDir.x * addSpeed;
+      velocity.z += wishDir.z * addSpeed;
+    }
+
+    playerData.velPosX = velocity.x;
+    playerData.velPosZ = velocity.z;
   });
 }

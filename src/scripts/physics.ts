@@ -352,18 +352,12 @@ function doPhysicsStep(delta: number) {
   const playerData = getPlayerData();
 
   tempVec3.Set(playerData.velPosX, playerData.velPosY, playerData.velPosZ);
-
-  const rot = playerChar.GetRotation();
-  const matrix = Jolt.Mat44.prototype.sRotation(rot);
-  playerChar.SetLinearVelocity(matrix.Multiply3x3(tempVec3));
+  playerChar.SetLinearVelocity(tempVec3);
 
   if (playerData.velRotY !== 0) {
-    const deltaQ = Jolt.Quat.prototype.sRotation(
-      new Jolt.Vec3(0, 1, 0),
-      playerData.velRotY,
-    );
-    const q = rot.MulQuat(deltaQ);
-    tempQuat.Set(q.GetX(), q.GetY(), q.GetZ(), q.GetW());
+    playerObj.parent.rotateY(playerData.velRotY);
+    const q = playerObj.parent.quaternion;
+    tempQuat.Set(q.x, q.y, q.z, q.w);
 
     playerChar.SetRotation(tempQuat);
 

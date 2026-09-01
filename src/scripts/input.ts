@@ -10,8 +10,6 @@ const actions = {
   left: "a",
   right: "d",
   jump: " ",
-  sprint: "shift",
-  sourceMovement: "r",
 
   // Debug
   debug: "`",
@@ -71,6 +69,7 @@ export function initInput() {
     }
 
     if (!enabled) return;
+    e.preventDefault();
 
     if (!keys[key]) {
       const event = pressEvents[key];
@@ -81,6 +80,7 @@ export function initInput() {
 
   document.onkeyup = (e) => {
     if (!enabled) return;
+    e.preventDefault();
 
     const key = e.key.toLowerCase();
     keys[key] = false;
@@ -199,4 +199,11 @@ if (isMobile()) {
 
 export function getJoystickVector(): { x: number; y: number } {
   return { x: joystickX, y: joystickY };
+}
+
+export function getJoystickX(): number {
+  return joystickX;
+}
+export function getJoystickY(): number {
+  return joystickY;
 }
