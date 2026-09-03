@@ -37,7 +37,7 @@ export function resetPlayerVelRot() {
 export const PLAYER_RADIUS = 1,
   PLAYER_HEIGHT = 2,
   CROUCH_RATIO = 0.65,
-  CROUCH_SPEED = 0.15,
+  CROUCH_SPEED = 0.25,
   CAM_Y = 1.8;
 
 const MOUSE_SENS = isMobile() ? 0.5 : 0.25;
