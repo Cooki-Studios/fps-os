@@ -7,7 +7,12 @@ import {
   isActionPressed,
   isInputEnabled,
 } from "./input";
-import { crouchPlayer, getGravityY, isPlayerGrounded } from "./physics";
+import {
+  applyWallDrag,
+  crouchPlayer,
+  getGravityY,
+  isPlayerGrounded,
+} from "./physics";
 
 export type PlayerData = {
   velRotY: number;
@@ -43,7 +48,7 @@ const GROUND_ACCEL = 5,
   AIR_MAX_SPEED = 2.5,
   GROUND_FRICTION = 6,
   AIR_FRICTION = 0,
-  JUMP_VELOCITY = 4.5;
+  JUMP_VELOCITY = 6;
 
 let velocity = new THREE.Vector3(),
   sens = MOUSE_SENS,
@@ -200,6 +205,7 @@ export function initPlayer(
       velocity.z += wishDir.z * addSpeed;
     }
 
+    applyWallDrag(velocity);
     playerData.velPosX = velocity.x;
     playerData.velPosZ = velocity.z;
   });

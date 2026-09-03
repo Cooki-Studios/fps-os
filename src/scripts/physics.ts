@@ -76,6 +76,31 @@ export function isPlayerGrounded(): boolean {
     ? playerChar.GetGroundState() === Jolt.EGroundState_OnGround
     : false;
 }
+export function applyWallDrag(velocity: THREE.Vector3) {
+  if (!playerChar) return;
+  const contacts = playerChar.GetActiveContacts();
+
+  for (let i = 0; i < contacts.size(); i++) {
+    const contact = contacts.at(i);
+    const n = contact.mContactNormal;
+    const nx = n.GetX(),
+      nz = n.GetZ();
+
+    if (
+      joltInterface
+        .GetPhysicsSystem()
+        .GetBodyInterface()
+        .GetMotionType(contact.mBodyB) === Jolt.EMotionType_Dynamic
+    )
+      continue;
+
+    const dot = velocity.x * nx + velocity.z * nz;
+    if (dot < 0) {
+      velocity.x -= nx * dot;
+      velocity.z -= nz * dot;
+    }
+  }
+}
 
 let playerOffsetY = 0;
 function updatePlayerCrouchAnimation(delta: number) {
@@ -89,11 +114,16 @@ function updatePlayerCrouchAnimation(delta: number) {
     1 - Math.pow(1 - crouchProgress, 3),
   );
 
-  playerObj.scale.y = scale;
+  playerObj.geometry = new THREE.CapsuleGeometry(
+    PLAYER_RADIUS,
+    PLAYER_HEIGHT * scale,
+    16,
+    32,
+  );
   playerObj.userData.debugMesh.scale.y = scale;
 
   playerCam.position.y = CAM_Y * scale;
-  playerOffsetY = (PLAYER_HEIGHT - PLAYER_HEIGHT * scale) / 2;
+  playerOffsetY = (PLAYER_HEIGHT * crouchTarget - PLAYER_HEIGHT * scale) / 2;
 }
 
 const totalStandingHeight = PLAYER_HEIGHT + PLAYER_RADIUS * 2;
@@ -133,11 +163,24 @@ export function crouchPlayer(
     shapeFilter,
     joltInterface.GetTempAllocator(),
   );
-  if (!success) return false;
+  if (!success) {
+    playerChar.SetPosition(pos);
+    return false;
+  }
+
+  updatePrevPos(
+    obj.parent.userData,
+    playerChar.GetPosition(),
+    playerChar.GetRotation(),
+    true,
+  );
+  const startScale =
+    (obj.geometry as THREE.CapsuleGeometry).parameters.height / PLAYER_HEIGHT;
+  playerOffsetY = (PLAYER_HEIGHT * scale - PLAYER_HEIGHT * startScale) / 2;
 
   playerObj = obj;
   playerCam = camera;
-  crouchStartScale = obj.scale.y;
+  crouchStartScale = startScale;
   crouchTarget = scale;
   crouchProgress = 0;
 
@@ -368,8 +411,8 @@ export function updatePhysics(delta: number) {
     accumulator -= FIXED_DELTA;
   }
 
-  lerpPhysics(accumulator / FIXED_DELTA);
   updatePlayerCrouchAnimation(delta);
+  lerpPhysics(accumulator / FIXED_DELTA);
 }
 
 function updatePrevPos(
