@@ -12,6 +12,8 @@ const actions = {
   jump: " ",
   crouch: "c",
 
+  speedo: "r",
+
   // Debug
   debug: "`",
   debugPlayer: "~",

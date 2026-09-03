@@ -6,6 +6,7 @@ import {
   getJoystickVector,
   isActionPressed,
   isInputEnabled,
+  onActionPressed,
 } from "./input";
 import {
   applyWallDrag,
@@ -153,6 +154,14 @@ export function initPlayer(
   };
 
   let crouched = false;
+  let prevSpeed = 0;
+
+  const velEl = document.getElementById("vel") as HTMLHeadingElement;
+  onActionPressed("speedo", () => {
+    velEl.style.visibility =
+      velEl.style.visibility === "visible" ? "hidden" : "visible";
+  });
+
   document.addEventListener("physics", (e) => {
     if (!playerMesh.parent) return;
     const delta = (e as CustomEvent<number>).detail;
@@ -205,8 +214,22 @@ export function initPlayer(
       velocity.z += wishDir.z * addSpeed;
     }
 
+    const speedFixed = speed.toFixed(1);
+    const deltaSpeedFixed = (speed - prevSpeed).toFixed(1);
+
+    velEl.textContent = speedFixed;
+    if (Number(deltaSpeedFixed) > 0) {
+      velEl.className = "blu";
+    } else if (Number(deltaSpeedFixed) < 0) {
+      velEl.className = "red";
+    } else {
+      velEl.className = "";
+    }
+
     applyWallDrag(velocity);
     playerData.velPosX = velocity.x;
     playerData.velPosZ = velocity.z;
+
+    prevSpeed = speed;
   });
 }

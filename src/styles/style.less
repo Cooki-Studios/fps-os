@@ -12,6 +12,28 @@ body {
     -webkit-touch-callout: none;
 }
 
+#vel {
+    font-family: monospace;
+    color: white;
+    position: absolute;
+    z-index: 2;
+    display: grid;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    visibility: hidden;
+
+    &.red {
+        color: orangered;
+    }
+    &.blu {
+        color: dodgerblue;
+    }
+}
+
 canvas {
     position: absolute;
     top: 0;
