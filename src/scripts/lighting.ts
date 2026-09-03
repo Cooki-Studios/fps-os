@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { CSM } from "three/addons/csm/CSM.js";
 import { CSMHelper } from "three/addons/csm/CSMHelper.js";
+import { bootLog } from "./boot";
 
 let csm: CSM | undefined, csmHelper: CSMHelper | undefined;
 
@@ -33,6 +34,8 @@ export function initLighting(
     csmHelper.visible = true;
     scene.add(csmHelper);
   }
+
+  bootLog("Lighting initialised");
 }
 
 export function updateCSM() {

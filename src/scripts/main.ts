@@ -1,3 +1,5 @@
+import { bootLog, bootFinished } from "./boot";
+
 import * as THREE from "three";
 import { USDLoader } from "three/examples/jsm/loaders/USDLoader.js";
 import { initLighting, setupShadowMaterial } from "./lighting";
@@ -15,6 +17,7 @@ document.addEventListener(
 );
 
 const scene = new THREE.Scene();
+bootLog("Scene created");
 const camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
@@ -22,27 +25,44 @@ const camera = new THREE.PerspectiveCamera(
   1000,
 );
 camera.rotation.order = "YXZ";
+bootLog("Camera created");
 
+bootLog("Initialising lighting...");
 initLighting(scene, camera);
 const canvas = initRenderer(camera);
+bootLog("Initialising physics...");
 initPhysics(scene);
+bootLog("Initialising input...");
 initInput();
 
-const manager = new THREE.LoadingManager();
-manager.onLoad = () => {
+async function addPhysicsToObjects() {
   for (const mesh of meshes) {
     if (mesh.name.startsWith("D_")) {
       addPhysicsToObject(mesh, true, true, false, scene);
     } else addPhysicsToObject(mesh, false, true, false, scene);
   }
 
+  bootLog("Initialising player...");
   initPlayer(scene, camera, canvas);
   addPhysicsToObject(getPlayerMesh(), true, true, true, scene);
+}
 
-  compileRenderer(scene, camera);
-  enableRenderer(scene, camera);
+bootLog("Loading scene...");
+const manager = new THREE.LoadingManager();
+manager.onLoad = async () => {
+  addPhysicsToObjects().then(async () => {
+    bootLog("Compiling renderer...");
+    compileRenderer(scene, camera);
 
-  console.log("Loading complete!");
+    bootLog("Scene loaded");
+    bootLog("Loading, please wait...", true);
+
+    await bootFinished();
+
+    // https://stackoverflow.com/a/37764963
+    await new Promise((f) => setTimeout(f, 1000));
+    enableRenderer(scene, camera);
+  });
 };
 
 onActionPressed("debug", () => {
@@ -58,14 +78,17 @@ const loader = new USDLoader(manager),
 
 room.traverse((child) => {
   if (child instanceof THREE.Mesh) {
+    bootLog(`Preparing material for mesh: ${child.name}...`);
     child.material.dithering = true;
     setupShadowMaterial(child.material);
     meshes.push(child);
+    bootLog(`Prepared material for ${child.name}`);
   }
 });
 
 for (const mesh of meshes) {
   if (!mesh.parent) continue;
+  bootLog(`Loading mesh: ${mesh.name}...`);
 
   if (mesh.name === "D_Cube_001") {
     mesh.parent.rotation.x = Math.random() * Math.PI * 2;
@@ -77,4 +100,6 @@ for (const mesh of meshes) {
 
   mesh.receiveShadow = true;
   mesh.castShadow = true;
+
+  bootLog(`${mesh.name} loaded`);
 }

@@ -1,3 +1,4 @@
+import { bootLog } from "./boot";
 import { isMobile } from "./player";
 
 const actions = {
@@ -46,6 +47,7 @@ export function initInput() {
   for (const [action, key] of Object.entries(actions)) {
     pressEvents[key] = new CustomEvent(`${action}:pressed`);
     releaseEvents[key] = new CustomEvent(`${action}:released`);
+    bootLog(`Added input action: ${action} with key ${key}`);
   }
 
   window.addEventListener("blur", () => {
@@ -90,6 +92,8 @@ export function initInput() {
     const event = releaseEvents[key];
     if (event) document.dispatchEvent(event);
   };
+
+  bootLog("Input initialised");
 }
 
 export function isActionPressed(action: Action): boolean {

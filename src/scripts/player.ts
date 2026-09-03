@@ -14,6 +14,7 @@ import {
   getGravityY,
   isPlayerGrounded,
 } from "./physics";
+import { bootLog } from "./boot";
 
 export type PlayerData = {
   velRotY: number;
@@ -232,4 +233,6 @@ export function initPlayer(
 
     prevSpeed = speed;
   });
+
+  bootLog("Player initialised");
 }

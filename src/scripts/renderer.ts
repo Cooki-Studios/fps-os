@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { updatePhysics } from "./physics";
 import { updateCSM } from "./lighting";
+import { bootLog } from "./boot";
 
 let renderer: THREE.WebGLRenderer;
 export const timer = new THREE.Timer();
@@ -51,4 +52,5 @@ export function initRenderer(
 
 export function compileRenderer(scene: THREE.Scene, camera: THREE.Camera) {
   renderer.compile(scene, camera);
+  bootLog("Renderer compiled");
 }

@@ -16,6 +16,7 @@ import {
   resetPlayerVelRot,
 } from "./player";
 import { lerp } from "three/src/math/MathUtils.js";
+import { bootLog } from "./boot";
 
 const { default: initJolt } = await import("jolt-physics/wasm");
 
@@ -209,6 +210,8 @@ export async function initPhysics(scene: THREE.Scene): Promise<void> {
     tempQuat = new Jolt.Quat(0, 0, 0, 1);
 
     scene.add(debugGroup);
+
+    bootLog("Physics initialised");
   })();
 
   return initPromise;
@@ -227,6 +230,8 @@ export async function addPhysicsToObject(
 ) {
   if (initPromise) await initPromise;
   if (!obj.parent) return;
+
+  bootLog(`Adding physics to ${obj.name}...`);
 
   const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
   let shape: JoltTypes.Shape;
@@ -350,6 +355,8 @@ export async function addPhysicsToObject(
     }
     debugGroup.add(debugMesh);
   }
+
+  bootLog(`Added physics to ${obj.name}`);
 }
 
 export function togglePhysicsDebug(isPlayer = false) {

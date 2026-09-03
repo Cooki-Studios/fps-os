@@ -10,12 +10,11 @@ body {
     user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
+    font-family: monospace;
+    color: white;
 }
 
 #vel {
-    font-family: monospace;
-    color: white;
-    position: absolute;
     z-index: 2;
     display: grid;
     width: 100%;
@@ -34,9 +33,26 @@ body {
     }
 }
 
-canvas {
+canvas,
+#vel {
     position: absolute;
     top: 0;
+}
+
+#bootlog {
+    color: darkgrey;
+    display: flex;
+    flex-direction: column;
+    font-size: 1.25em;
+    max-height: 100%;
+    pointer-events: none;
+    scrollbar-width: 0;
+    overflow-y: scroll;
+    white-space: pre;
+
+    :last-child {
+        margin-bottom: 5em;
+    }
 }
 
 #joystick-cont {
