@@ -7,7 +7,7 @@ import {
   isActionPressed,
   isInputEnabled,
 } from "./input";
-import { getGravityY, isPlayerGrounded } from "./physics";
+import { crouchPlayer, getGravityY, isPlayerGrounded } from "./physics";
 
 export type PlayerData = {
   velRotY: number;
@@ -31,10 +31,19 @@ export function resetPlayerVelRot() {
 
 export const PLAYER_RADIUS = 1,
   PLAYER_HEIGHT = 2,
-  SPEED = 7,
-  SPEED_SPRINT = 10,
-  JUMP_VELOCITY = 4.5,
-  MOUSE_SENS = isMobile() ? 0.5 : 0.25;
+  CROUCH_RATIO = 0.65,
+  CROUCH_SPEED = 0.15,
+  CAM_Y = 1.8;
+
+const MOUSE_SENS = isMobile() ? 0.5 : 0.25;
+
+const GROUND_ACCEL = 5,
+  AIR_ACCEL = 10,
+  GROUND_MAX_SPEED = 10,
+  AIR_MAX_SPEED = 2.5,
+  GROUND_FRICTION = 6,
+  AIR_FRICTION = 0,
+  JUMP_VELOCITY = 4.5;
 
 let velocity = new THREE.Vector3(),
   sens = MOUSE_SENS,
@@ -79,7 +88,7 @@ export function initPlayer(
   player.position.set(0, 2, 0);
   player.add(playerMesh);
   player.add(camera);
-  camera.position.set(0, 1.8, 0);
+  camera.position.set(0, CAM_Y, 0);
 
   if (!isMobile()) {
     canvas.onclick = async () => {
@@ -138,6 +147,7 @@ export function initPlayer(
     }
   };
 
+  let crouched = false;
   document.addEventListener("physics", (e) => {
     if (!playerMesh.parent) return;
     const delta = (e as CustomEvent<number>).detail;
@@ -152,6 +162,14 @@ export function initPlayer(
       playerData.velPosY = 0;
     }
 
+    if (isActionPressed("crouch") && !crouched) {
+      crouched = true;
+      crouchPlayer(true, playerMesh, camera);
+    }
+    if (!isActionPressed("crouch") && crouched) {
+      if (crouchPlayer(false, playerMesh, camera)) crouched = false;
+    }
+
     // https://github.com/AceSpectre/Quakelike-Controller/blob/main/QuakelikeController/playerMovement.gd
     const inputDir = isMobile()
       ? getJoystickVector()
@@ -161,9 +179,9 @@ export function initPlayer(
       .applyQuaternion(playerMesh.parent.quaternion)
       .normalize();
 
-    const accel = grounded ? 5 : 10;
-    const maxSpeed = grounded ? 10 : 2.5;
-    const friction = grounded ? 6 : 0;
+    const accel = grounded ? GROUND_ACCEL : AIR_ACCEL,
+      maxSpeed = grounded ? GROUND_MAX_SPEED : AIR_MAX_SPEED,
+      friction = grounded ? GROUND_FRICTION : AIR_FRICTION;
 
     const speed = Math.hypot(velocity.x, velocity.z);
     if (speed > 0 && friction > 0) {

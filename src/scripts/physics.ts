@@ -5,6 +5,9 @@
 import * as THREE from "three";
 import type JoltTypes from "jolt-physics/wasm";
 import {
+  CAM_Y,
+  CROUCH_RATIO,
+  CROUCH_SPEED,
   getPlayerData,
   getPlayerMesh,
   isMobile,
@@ -12,6 +15,7 @@ import {
   PLAYER_RADIUS,
   resetPlayerVelRot,
 } from "./player";
+import { lerp } from "three/src/math/MathUtils.js";
 
 const { default: initJolt } = await import("jolt-physics/wasm");
 
@@ -35,6 +39,16 @@ let playerChar: JoltTypes.CharacterVirtual | undefined,
   bodyFilter: JoltTypes.BodyFilter | undefined,
   shapeFilter: JoltTypes.ShapeFilter | undefined,
   updateSettings: JoltTypes.ExtendedUpdateSettings | undefined;
+
+let standingShape: JoltTypes.Shape,
+  crouchingShape: JoltTypes.Shape,
+  isCrouched = false;
+
+let playerObj: THREE.Mesh | undefined,
+  playerCam: THREE.Camera | undefined,
+  crouchProgress = 1,
+  crouchTarget = 1,
+  crouchStartScale = 1;
 
 const FIXED_DELTA = isMobile() ? 1 / 15 : 1 / 30,
   MAX_STEPS_PER_FRAME = 5,
@@ -61,6 +75,74 @@ export function isPlayerGrounded(): boolean {
   return playerChar
     ? playerChar.GetGroundState() === Jolt.EGroundState_OnGround
     : false;
+}
+
+let playerOffsetY = 0;
+function updatePlayerCrouchAnimation(delta: number) {
+  if (!playerObj || !playerCam || crouchProgress >= 1) return;
+
+  crouchProgress = Math.min(1, crouchProgress + delta / CROUCH_SPEED);
+
+  const scale = lerp(
+    crouchStartScale,
+    crouchTarget,
+    1 - Math.pow(1 - crouchProgress, 3),
+  );
+
+  playerObj.scale.y = scale;
+  playerObj.userData.debugMesh.scale.y = scale;
+
+  playerCam.position.y = CAM_Y * scale;
+  playerOffsetY = (PLAYER_HEIGHT - PLAYER_HEIGHT * scale) / 2;
+}
+
+const totalStandingHeight = PLAYER_HEIGHT + PLAYER_RADIUS * 2;
+const totalCrouchHeight = PLAYER_HEIGHT * CROUCH_RATIO + PLAYER_RADIUS * 2;
+const HEIGHT_DELTA = totalStandingHeight - totalCrouchHeight;
+
+export function crouchPlayer(
+  crouch: boolean,
+  obj: THREE.Mesh,
+  camera: THREE.Camera,
+): boolean {
+  if (crouch === isCrouched) return false;
+  if (
+    !playerChar ||
+    !obj.parent ||
+    !movingBPFilter ||
+    !movingLayerFilter ||
+    !bodyFilter ||
+    !shapeFilter
+  )
+    return false;
+
+  const scale = crouch ? CROUCH_RATIO : 1;
+  const offsetY = crouch ? -HEIGHT_DELTA / 2 : HEIGHT_DELTA / 2;
+
+  const pos = playerChar.GetPosition();
+  playerChar.SetPosition(
+    new Jolt.RVec3(pos.GetX(), pos.GetY() + offsetY, pos.GetZ()),
+  );
+
+  const success = playerChar.SetShape(
+    crouch ? crouchingShape : standingShape,
+    0.1,
+    movingBPFilter,
+    movingLayerFilter,
+    bodyFilter,
+    shapeFilter,
+    joltInterface.GetTempAllocator(),
+  );
+  if (!success) return false;
+
+  playerObj = obj;
+  playerCam = camera;
+  crouchStartScale = obj.scale.y;
+  crouchTarget = scale;
+  crouchProgress = 0;
+
+  isCrouched = crouch;
+  return true;
 }
 
 export async function initPhysics(scene: THREE.Scene): Promise<void> {
@@ -107,7 +189,15 @@ export async function addPhysicsToObject(
   let shape: JoltTypes.Shape;
 
   if (isPlayer) {
-    shape = new Jolt.CapsuleShape(PLAYER_HEIGHT / 2, PLAYER_RADIUS);
+    standingShape = new Jolt.CapsuleShape(PLAYER_HEIGHT / 2, PLAYER_RADIUS);
+    crouchingShape = new Jolt.CapsuleShape(
+      (PLAYER_HEIGHT * CROUCH_RATIO) / 2,
+      PLAYER_RADIUS,
+    );
+    standingShape.AddRef();
+    crouchingShape.AddRef();
+
+    shape = standingShape;
   } else {
     obj.updateMatrixWorld(true);
     const posAttr = obj.geometry.attributes.position,
@@ -279,6 +369,7 @@ export function updatePhysics(delta: number) {
   }
 
   lerpPhysics(accumulator / FIXED_DELTA);
+  updatePlayerCrouchAnimation(delta);
 }
 
 function updatePrevPos(
@@ -409,6 +500,8 @@ function lerpPhysics(alpha: number) {
 
     obj.parent.position.lerpVectors(uData.prevPos, uData.currPos, alpha);
     obj.parent.quaternion.copy(uData.prevQuat).slerp(uData.currQuat, alpha);
+
+    if (obj == playerObj) obj.parent.position.y -= playerOffsetY;
 
     if (obj.userData.debugMesh) {
       obj.userData.debugMesh.position.copy(obj.parent.position);

@@ -10,6 +10,7 @@ const actions = {
   left: "a",
   right: "d",
   jump: " ",
+  crouch: "c",
 
   // Debug
   debug: "`",
