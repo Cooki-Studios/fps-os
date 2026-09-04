@@ -1,4 +1,4 @@
-import { bootLog, bootFinished } from "./boot";
+import { bootLog, bootFinished, createTitleScene } from "./boot";
 
 import * as THREE from "three";
 import { USDLoader } from "three/examples/jsm/loaders/USDLoader.js";
@@ -17,6 +17,10 @@ document.addEventListener(
 );
 
 const scene = new THREE.Scene();
+export function getMainScene() {
+  return scene;
+}
+
 bootLog("Scene created");
 const camera = new THREE.PerspectiveCamera(
   75,
@@ -25,11 +29,15 @@ const camera = new THREE.PerspectiveCamera(
   1000,
 );
 camera.rotation.order = "YXZ";
+export function getMainCam() {
+  return camera;
+}
+
 bootLog("Camera created");
 
 bootLog("Initialising lighting...");
 initLighting(scene, camera);
-const canvas = initRenderer(camera);
+const canvas = initRenderer();
 bootLog("Initialising physics...");
 initPhysics(scene);
 bootLog("Initialising input...");
@@ -55,13 +63,15 @@ manager.onLoad = async () => {
     compileRenderer(scene, camera);
 
     bootLog("Scene loaded");
-    bootLog("Loading, please wait...", true);
 
     await bootFinished();
 
     // https://stackoverflow.com/a/37764963
-    await new Promise((f) => setTimeout(f, 1000));
-    enableRenderer(scene, camera);
+    await new Promise((f) => setTimeout(f, 250));
+    // enableRenderer(scene, camera);
+
+    const { titleScene, titleCamera, titleTitle } = await createTitleScene();
+    enableRenderer(titleScene, titleCamera, titleTitle);
   });
 };
 
