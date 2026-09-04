@@ -128,7 +128,7 @@ export async function createTitleScene(): Promise<{
 
     const material = new THREE.MeshPhysicalMaterial({
       color: 0xffff00,
-      metalness: 0.75,
+      metalness: 0.65,
       roughness: 0.5,
     });
 
