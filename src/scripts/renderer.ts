@@ -9,6 +9,8 @@ let renderer: THREE.WebGLRenderer,
   camera: THREE.PerspectiveCamera,
   canEndAnim = true;
 
+const MAX_ANIM_DELTA = 1 / 15;
+
 export function enableRenderer(
   renderScene: THREE.Scene,
   renderCam: THREE.PerspectiveCamera,
@@ -22,7 +24,7 @@ export function enableRenderer(
     const delta = timer.getDelta();
 
     if (title) {
-      animateTitle(Math.min(delta, 0.1));
+      animateTitle(Math.min(delta, MAX_ANIM_DELTA));
 
       if (canEndAnim)
         if (title.userData.animDone) {
@@ -36,6 +38,8 @@ export function enableRenderer(
             if (logo) logo.style.display = "none";
             document.getElementsByTagName("canvas")[0].style.pointerEvents =
               "auto";
+
+            resizeRenderer();
           }, 1000);
         }
     } else {
@@ -58,6 +62,14 @@ export function enableRenderer(
   renderer.setAnimationLoop(animate);
 }
 
+export function resizeRenderer() {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  if (camera) {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+  }
+}
+
 export function initRenderer(): HTMLCanvasElement {
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -74,14 +86,7 @@ export function initRenderer(): HTMLCanvasElement {
   };
 
   document.body.appendChild(canvas);
-
-  window.onresize = () => {
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    if (camera) {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-    }
-  };
+  window.onresize = resizeRenderer;
 
   return canvas;
 }

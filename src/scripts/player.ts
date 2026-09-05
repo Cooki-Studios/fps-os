@@ -15,6 +15,7 @@ import {
   isPlayerGrounded,
 } from "./physics";
 import { bootLog } from "./boot";
+import { isMobile } from "./mobile";
 
 export type PlayerData = {
   velRotY: number;
@@ -42,7 +43,7 @@ export const PLAYER_RADIUS = 1,
   CROUCH_SPEED = 0.25,
   CAM_Y = 1.8;
 
-const MOUSE_SENS = isMobile() ? 0.5 : 0.25;
+const MOUSE_SENS = isMobile ? 0.5 : 0.25;
 
 const GROUND_ACCEL = 5,
   AIR_ACCEL = 10,
@@ -80,10 +81,6 @@ const deg = Math.PI / 180,
   clamp = (num: number, min: number, max: number) =>
     Math.max(min, Math.min(max, num));
 
-export function isMobile() {
-  return /Mobi/i.test(window.navigator.userAgent);
-}
-
 export function initPlayer(
   scene: THREE.Scene,
   camera: THREE.Camera,
@@ -97,7 +94,7 @@ export function initPlayer(
   player.add(camera);
   camera.position.set(0, CAM_Y, 0);
 
-  if (!isMobile()) {
+  if (!isMobile) {
     canvas.onclick = async () => {
       await canvas.requestPointerLock();
     };
@@ -129,12 +126,12 @@ export function initPlayer(
   }
 
   canvas.onpointermove = (e) => {
-    if (isMobile() && e.pointerId !== activePointerId) return;
-    if (isMobile() || isInputEnabled()) {
+    if (isMobile && e.pointerId !== activePointerId) return;
+    if (isMobile || isInputEnabled()) {
       e.preventDefault();
       let deltaX: number, deltaY: number;
 
-      if (isMobile()) {
+      if (isMobile) {
         if (!dragging) return;
         deltaX = e.clientX - lastPointerX;
         deltaY = e.clientY - lastPointerY;
@@ -186,7 +183,7 @@ export function initPlayer(
     }
 
     // https://github.com/AceSpectre/Quakelike-Controller/blob/main/QuakelikeController/playerMovement.gd
-    const inputDir = isMobile()
+    const inputDir = isMobile
       ? getJoystickVector()
       : getInputVector("left", "right", "forward", "back");
 

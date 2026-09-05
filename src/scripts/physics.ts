@@ -10,13 +10,13 @@ import {
   CROUCH_SPEED,
   getPlayerData,
   getPlayerMesh,
-  isMobile,
   PLAYER_HEIGHT,
   PLAYER_RADIUS,
   resetPlayerVelRot,
 } from "./player";
 import { lerp } from "three/src/math/MathUtils.js";
 import { bootLog } from "./boot";
+import { isMobile } from "./mobile";
 
 const { default: initJolt } = await import("jolt-physics/wasm");
 
@@ -51,7 +51,7 @@ let playerObj: THREE.Mesh | undefined,
   crouchTarget = 1,
   crouchStartScale = 1;
 
-const FIXED_DELTA = isMobile() ? 1 / 15 : 1 / 30,
+const FIXED_DELTA = isMobile ? 1 / 15 : 1 / 30,
   MAX_STEPS_PER_FRAME = 5,
   DEATH_HEIGHT = -50,
   RESPAWN_HEIGHT = 5;

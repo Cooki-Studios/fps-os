@@ -12,21 +12,53 @@ body {
     -webkit-touch-callout: none;
     font-family: monospace;
     color: white;
+
+    &.mobile {
+        #logo {
+            height: calc(50% - 1.25em);
+        }
+
+        @media screen and (orientation: portrait) {
+            #logo {
+                font-size: 1.25em;
+                height: 50%;
+            }
+        }
+
+        #bootlog {
+            font-size: 0.5em;
+        }
+    }
 }
 
 @font-face {
     font-family: Inter ExtraBold;
-    src: url(/fonts/inter.woff2);
+    src: url(/fonts/inter.woff2) format(woff2);
+    font-weight: 800;
+    font-feature-settings:
+        "liga" 1,
+        "calt" 1,
+        "case",
+        "ss01",
+        "ss02",
+        "cv01",
+        "cv06",
+        "cv11",
+        "cv12",
+        "cv13";
 }
 
 #title {
-    font-family: Inter ExtraBold;
-    visibility: hidden;
+    font-family:
+        Inter ExtraBold,
+        sans-serif;
     font-size: 16px;
 }
 
 #logo {
-    font-family: Inter ExtraBold;
+    font-family:
+        Inter ExtraBold,
+        sans-serif;
     z-index: 1;
     color: lightgrey;
     width: 100%;
@@ -39,6 +71,14 @@ body {
     text-align: left;
     white-space: pre;
     justify-content: center;
+    --swish: "";
+
+    &::after {
+        content: var(--swish);
+        position: absolute;
+        left: calc(50% + 3.4em);
+        /*top: 0.25em;*/
+    }
 }
 
 #vel {

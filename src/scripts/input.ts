@@ -1,5 +1,5 @@
 import { bootLog } from "./boot";
-import { isMobile } from "./player";
+import { isMobile } from "./mobile";
 
 const actions = {
   // General
@@ -146,7 +146,7 @@ let isDragging = false,
   joystickX = 0,
   joystickY = 0;
 
-if (isMobile()) {
+if (isMobile) {
   joystickCont.style.display = "grid";
 
   joystickCont.onpointerdown = (e) => {
@@ -194,6 +194,9 @@ if (isMobile()) {
     joystick.style.visibility = "hidden";
     joystick2.style.visibility = "hidden";
     joystick3.style.visibility = "hidden";
+
+    joystick.style.transform = "translate(-50%, -50%)";
+    joystick2.style.transform = "translate(-50%, -50%)";
 
     startX = 0;
     startY = 0;

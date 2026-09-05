@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { CSM } from "three/addons/csm/CSM.js";
 import { CSMHelper } from "three/addons/csm/CSMHelper.js";
 import { bootLog } from "./boot";
+import { isMobile } from "./mobile";
 
 let csm: CSM | undefined, csmHelper: CSMHelper | undefined;
 
@@ -17,7 +18,7 @@ export function initLighting(
     maxFar: 50,
     mode: "practical",
     parent: scene,
-    shadowMapSize: 2048,
+    shadowMapSize: isMobile ? 512 : 2048,
     lightDirection: new THREE.Vector3(-1, -2, -1).normalize(),
     lightIntensity: 2,
     camera: camera,
@@ -26,7 +27,7 @@ export function initLighting(
   csm.lights.forEach((light) => {
     light.shadow.radius = 2.5;
     light.shadow.intensity = 0.55;
-    light.shadow.normalBias = -0.04;
+    light.shadow.normalBias = isMobile ? -0.08 : -0.04;
   });
 
   if (debug) {

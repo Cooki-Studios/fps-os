@@ -64,10 +64,20 @@ import * as THREE from "three";
 import { FontLoader } from "three/addons/loaders/FontLoader.js";
 import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import { lerp } from "three/src/math/MathUtils.js";
+import { isMobile, isPortrait } from "./mobile";
 
-export const TITLE_DEPTH = 5;
+const TITLE_DEPTH = 5,
+  MOBILE_TITLE_SCALE_PORTRAIT = 0.75;
+let MOBILE_TITLE_SCALE = 2,
+  mobileTitleScale = MOBILE_TITLE_SCALE;
+
+if (isMobile && isPortrait()) {
+  mobileTitleScale = MOBILE_TITLE_SCALE_PORTRAIT;
+}
+
 let title = new THREE.Group(),
-  light: THREE.DirectionalLight;
+  light: THREE.DirectionalLight,
+  highlight: THREE.PointLight;
 
 const titleEl = document.getElementById("title") as HTMLHeadingElement;
 
@@ -90,10 +100,12 @@ export async function createTitleScene(): Promise<{
   scene.add(ambientLight);
 
   light = new THREE.DirectionalLight(0xffffff, 2);
-  light.position.set(0, -1.5, 5);
-  light.shadow.intensity = 0;
-  light.shadow.needsUpdate = true;
+  light.position.set(0, -1.5, TITLE_DEPTH);
   scene.add(light);
+
+  highlight = new THREE.PointLight(0xffffff, 0);
+  highlight.position.set(-10, -1.5, TITLE_DEPTH);
+  scene.add(highlight);
 
   scene.fog = new THREE.Fog(0x00000000, 0, 8);
 
@@ -114,14 +126,14 @@ export async function createTitleScene(): Promise<{
     const char = titleStr[i];
 
     if (char == " ") {
-      charPos += 0.25;
+      charPos += isMobile ? 0.25 * mobileTitleScale : 0.25;
       continue;
     }
 
     const charWidth = titleEl.children[i].getBoundingClientRect().width;
     const geometry = new TextGeometry(char, {
       font: font,
-      size: 1,
+      size: isMobile ? mobileTitleScale : 1,
       depth: TITLE_DEPTH,
       curveSegments: 12,
     });
@@ -135,15 +147,33 @@ export async function createTitleScene(): Promise<{
     const letter = new THREE.Mesh(geometry, material);
     letter.scale.z = 0;
     letter.position.x = charPos;
-    charPos += charWidth / 12;
+    letter.castShadow = true;
+    letter.receiveShadow = true;
+    charPos += (isMobile ? charWidth * mobileTitleScale : charWidth) / 12;
 
     title.add(letter);
   }
 
-  const box = new THREE.Box3().setFromObject(title);
-  const center = new THREE.Vector3();
-  box.getCenter(center);
-  title.position.sub(center);
+  function recenter() {
+    const box = new THREE.Box3().setFromObject(title);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+    title.position.x -= center.x;
+    title.position.y -= center.y;
+  }
+  recenter();
+
+  window.addEventListener("resize", () => {
+    if (!isMobile) return;
+    const targetScale = isPortrait()
+      ? MOBILE_TITLE_SCALE_PORTRAIT
+      : MOBILE_TITLE_SCALE;
+    const scale = targetScale / mobileTitleScale;
+
+    title.scale.x = scale;
+    title.scale.y = scale;
+    recenter();
+  });
 
   scene.add(title);
 
@@ -156,6 +186,7 @@ export async function createTitleScene(): Promise<{
 
 const logo = document.getElementById("logo") as HTMLHeadingElement;
 const logoText = "Cooki Studios";
+const swish = ["^", " `", " `", " '", " )", "."];
 let animStage = 1;
 
 for (let i = 0; i < logoText.length; i++) {
@@ -173,6 +204,16 @@ export function animateTitle(delta: number) {
         char.scale.z = lerp(char.scale.z, 1, delta * 10);
         char.position.z = lerp(char.position.z, TITLE_DEPTH / 2, delta * 10);
 
+        if (i == title.children.length - 1 && char.scale.z > 0.9) {
+          setTimeout(() => {
+            highlight.intensity = Math.max(
+              0,
+              2 - Math.abs(highlight.position.x) * 0.2,
+            );
+            highlight.position.x += 10 * delta;
+          }, 500);
+        }
+
         if (animStage < 2)
           if (i == title.children.length - 1 && char.scale.z > 0.9) {
             for (let i = 0; i < logoText.length; i++) {
@@ -181,10 +222,20 @@ export function animateTitle(delta: number) {
                   (logo.children[i] as HTMLSpanElement).style.visibility =
                     "visible";
 
-                  if (i == logo.children.length - 1)
+                  if (i == logo.children.length - 1) {
+                    for (let i = 0; i < swish.length; i++) {
+                      setTimeout(
+                        () => {
+                          logo.style.setProperty("--swish", `"${swish[i]}"`);
+                        },
+                        (i + 1) * 100,
+                      );
+                    }
+
                     setTimeout(() => {
                       title.userData.animDone = true;
-                    }, 1000);
+                    }, 1500);
+                  }
                 },
                 (i + 2) * 25,
               );
@@ -194,6 +245,4 @@ export function animateTitle(delta: number) {
       }, i * 50);
     });
   }
-
-  light.rotation.y += 1 * delta;
 }
