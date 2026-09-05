@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import { CSM } from "three/addons/csm/CSM.js";
 import { CSMHelper } from "three/addons/csm/CSMHelper.js";
-import { bootLog } from "./boot";
-import { isMobile } from "./mobile";
+import { bootLog } from "../boot";
+import { isMobile } from "../util/mobile";
 
 let csm: CSM | undefined, csmHelper: CSMHelper | undefined;
 

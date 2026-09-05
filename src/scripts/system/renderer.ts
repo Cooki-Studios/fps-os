@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import { updatePhysics } from "./physics";
 import { updateCSM } from "./lighting";
-import { animateTitle, bootLog } from "./boot";
-import { getMainCam, getMainScene } from "./main";
+import { animateTitle, bootLog } from "../boot";
+import { getMainCam, getMainScene } from "../util/scene";
 
 let renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,

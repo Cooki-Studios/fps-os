@@ -1,5 +1,5 @@
-import { bootLog } from "./boot";
-import { isMobile } from "./mobile";
+import { bootLog } from "../boot";
+import { isMobile } from "../util/mobile";
 
 const actions = {
   // General

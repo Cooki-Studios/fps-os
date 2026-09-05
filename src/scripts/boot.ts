@@ -64,7 +64,7 @@ import * as THREE from "three";
 import { FontLoader } from "three/addons/loaders/FontLoader.js";
 import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import { lerp } from "three/src/math/MathUtils.js";
-import { isMobile, isPortrait } from "./mobile";
+import { isMobile, isPortrait } from "./util/mobile";
 
 const TITLE_DEPTH = 5,
   MOBILE_TITLE_SCALE_PORTRAIT = 0.75;
@@ -99,7 +99,7 @@ export async function createTitleScene(): Promise<{
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
   scene.add(ambientLight);
 
-  light = new THREE.DirectionalLight(0xffffff, 2);
+  light = new THREE.DirectionalLight(0xffffff, 3);
   light.position.set(0, -1.5, TITLE_DEPTH);
   scene.add(light);
 
@@ -139,9 +139,9 @@ export async function createTitleScene(): Promise<{
     });
 
     const material = new THREE.MeshPhysicalMaterial({
-      color: 0xffff00,
+      color: 0xffa500,
       metalness: 0.65,
-      roughness: 0.5,
+      roughness: 0.6,
     });
 
     const letter = new THREE.Mesh(geometry, material);

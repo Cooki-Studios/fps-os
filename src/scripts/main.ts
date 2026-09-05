@@ -2,11 +2,20 @@ import { bootLog, bootFinished, createTitleScene } from "./boot";
 
 import * as THREE from "three";
 import { USDLoader } from "three/examples/jsm/loaders/USDLoader.js";
-import { initLighting, setupShadowMaterial } from "./lighting";
-import { compileRenderer, enableRenderer, initRenderer } from "./renderer";
-import { addPhysicsToObject, initPhysics, togglePhysicsDebug } from "./physics";
-import { initInput, onActionPressed } from "./input";
+import { initLighting, setupShadowMaterial } from "./system/lighting";
+import {
+  compileRenderer,
+  enableRenderer,
+  initRenderer,
+} from "./system/renderer";
+import {
+  addPhysicsToObject,
+  initPhysics,
+  togglePhysicsDebug,
+} from "./system/physics";
+import { initInput, onActionPressed } from "./system/input";
 import { getPlayerMesh, initPlayer } from "./player";
+import { setMainCam, setMainScene } from "./util/scene";
 
 document.addEventListener(
   "wheel",
@@ -17,9 +26,7 @@ document.addEventListener(
 );
 
 const scene = new THREE.Scene();
-export function getMainScene() {
-  return scene;
-}
+setMainScene(scene);
 
 bootLog("Scene created");
 const camera = new THREE.PerspectiveCamera(
@@ -29,9 +36,7 @@ const camera = new THREE.PerspectiveCamera(
   1000,
 );
 camera.rotation.order = "YXZ";
-export function getMainCam() {
-  return camera;
-}
+setMainCam(camera);
 
 bootLog("Camera created");
 

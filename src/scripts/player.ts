@@ -7,15 +7,15 @@ import {
   isActionPressed,
   isInputEnabled,
   onActionPressed,
-} from "./input";
+} from "./system/input";
 import {
   applyWallDrag,
   crouchPlayer,
   getGravityY,
   isPlayerGrounded,
-} from "./physics";
+} from "./system/physics";
 import { bootLog } from "./boot";
-import { isMobile } from "./mobile";
+import { isMobile } from "./util/mobile";
 
 export type PlayerData = {
   velRotY: number;

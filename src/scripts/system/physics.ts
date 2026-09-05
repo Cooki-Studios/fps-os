@@ -13,10 +13,10 @@ import {
   PLAYER_HEIGHT,
   PLAYER_RADIUS,
   resetPlayerVelRot,
-} from "./player";
+} from "../player";
 import { lerp } from "three/src/math/MathUtils.js";
-import { bootLog } from "./boot";
-import { isMobile } from "./mobile";
+import { bootLog } from "../boot";
+import { isMobile } from "../util/mobile";
 
 const { default: initJolt } = await import("jolt-physics/wasm");
 
