@@ -82,6 +82,8 @@ const loader = new USDLoader(manager),
   meshes: THREE.Mesh[] = [],
   keypadButtons: THREE.Mesh[] = [];
 
+const spinner = document.getElementById("spinner") as HTMLDivElement;
+
 loader.loadAsync("room.usdc").then((room) => {
   bootLog(`Preparing material for meshs`);
   room.traverse((child) => {
@@ -121,17 +123,24 @@ loader.loadAsync("room.usdc").then((room) => {
 
     await bootFinished();
 
-    // if (import.meta.env.DEV) {
-    //   createKeypad();
-    //   enableRenderer(scene, camera);
-    //   document.getElementsByTagName("canvas")[0].style.pointerEvents = "auto";
-    //   return;
-    // }
+    if (import.meta.env.DEV) {
+      createKeypad();
+      enableRenderer(scene, camera);
+      document.getElementsByTagName("canvas")[0].style.pointerEvents = "auto";
+      return;
+    }
 
     // https://stackoverflow.com/a/37764963
     await new Promise((f) => setTimeout(f, 250));
 
     const { titleScene, titleCamera, titleTitle } = await createTitleScene();
+
+    setTimeout(() => {
+      spinner.style.animation =
+        "spin 1s linear infinite, resize 2s ease-in infinite";
+      spinner.style.opacity = "1";
+    }, 200);
+
     enableRenderer(titleScene, titleCamera, titleTitle);
   });
 });

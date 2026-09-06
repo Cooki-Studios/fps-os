@@ -231,6 +231,11 @@ export function animateTitle(delta: number) {
                     setTimeout(() => {
                       title.userData.animDone = true;
                       document.body.style.opacity = "0";
+                      const spinner = document.getElementById("spinner");
+                      if (spinner) {
+                        spinner.style.transition = "opacity 500ms ease-in";
+                        spinner.style.opacity = "0";
+                      }
                     }, 2000);
                   }
                 },
