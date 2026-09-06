@@ -25,10 +25,8 @@ export function bootLog(msg: string, showTime = true, error = false) {
     if (showTime)
       msg = `[${(performance.now() - start).toFixed(1).padStart(7)}] ${msg}`;
 
-    if (error) {
-      span.textContent += `${msg}\n`;
-      logContent.appendChild(span);
-    } else logContent.textContent += `${msg}\n`;
+    span.textContent += `${msg}\n`;
+    logContent.appendChild(span);
 
     log.scrollTo({
       top: log.scrollHeight,
@@ -54,6 +52,7 @@ window.onerror = (_msg, _src, _ln, _col, e) => {
   bootLog(e.stack, true, true);
 };
 window.onunhandledrejection = (e) => {
+  if (e.reason.name == "SecurityError" && e.reason.code == 18) return;
   bootLog(`Unhandled (in promise) ${e.reason.stack}`, true, true);
 };
 
@@ -61,10 +60,10 @@ bootLog("Boot process started");
 
 // Loading scene
 import * as THREE from "three";
-import { FontLoader } from "three/addons/loaders/FontLoader.js";
 import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import { lerp } from "three/src/math/MathUtils.js";
 import { isMobile, isPortrait } from "./util/mobile";
+import { font } from "./util/fonts";
 
 const TITLE_DEPTH = 5,
   MOBILE_TITLE_SCALE_PORTRAIT = 0.75;
@@ -109,9 +108,6 @@ export async function createTitleScene(): Promise<{
 
   scene.fog = new THREE.Fog(0x00000000, 0, 8);
 
-  const loader = new FontLoader();
-  // https://gero3.github.io/facetype.js/
-  const font = await loader.loadAsync("fonts/inter.json");
   const titleStr = "FPS OS";
   let charPos = 0;
 
@@ -234,7 +230,8 @@ export function animateTitle(delta: number) {
 
                     setTimeout(() => {
                       title.userData.animDone = true;
-                    }, 1500);
+                      document.body.style.opacity = "0";
+                    }, 2000);
                   }
                 },
                 (i + 2) * 25,

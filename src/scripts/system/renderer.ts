@@ -30,17 +30,22 @@ export function enableRenderer(
         if (title.userData.animDone) {
           canEndAnim = false;
           setTimeout(() => {
+            document.dispatchEvent(new CustomEvent("createKeypad"));
+
             scene = getMainScene();
             camera = getMainCam();
             title = undefined;
 
             const logo = document.getElementById("logo");
             if (logo) logo.style.display = "none";
-            document.getElementsByTagName("canvas")[0].style.pointerEvents =
-              "auto";
+
+            const canvas = document.querySelector("canvas");
+            if (canvas) canvas.style.pointerEvents = "auto";
+
+            document.body.style.opacity = "1";
 
             resizeRenderer();
-          }, 1000);
+          }, 500);
         }
     } else {
       updatePhysics(delta);

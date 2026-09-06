@@ -12,6 +12,7 @@ import {
   applyWallDrag,
   crouchPlayer,
   getGravityY,
+  isPlayerCrouched,
   isPlayerGrounded,
 } from "./system/physics";
 import { bootLog } from "./boot";
@@ -41,7 +42,7 @@ export const PLAYER_RADIUS = 1,
   PLAYER_HEIGHT = 2,
   CROUCH_RATIO = 0.65,
   CROUCH_SPEED = 0.25,
-  CAM_Y = 1.8;
+  CAM_Y = 1.6;
 
 const MOUSE_SENS = isMobile ? 0.5 : 0.25;
 
@@ -68,6 +69,7 @@ const playerGeo = new THREE.CapsuleGeometry(
 );
 const playerMat = new THREE.MeshPhysicalMaterial({
   colorWrite: false,
+  shadowSide: THREE.DoubleSide,
 });
 const playerMesh = new THREE.Mesh(playerGeo, playerMat);
 playerMesh.name = "Player";
@@ -89,7 +91,7 @@ export function initPlayer(
   const player = new THREE.Group();
 
   scene.add(player);
-  player.position.set(0, 2, 0);
+  player.position.set(0, 2, 0.3);
   player.add(playerMesh);
   player.add(camera);
   camera.position.set(0, CAM_Y, 0);
@@ -167,7 +169,9 @@ export function initPlayer(
 
     // https://github.com/godotengine/godot/blob/master/modules/gdscript/editor/script_templates/CharacterBody3D/basic_movement.gd
     if (isActionPressed("jump") && isPlayerGrounded()) {
-      playerData.velPosY = JUMP_VELOCITY;
+      playerData.velPosY = isPlayerCrouched()
+        ? JUMP_VELOCITY * CROUCH_RATIO
+        : JUMP_VELOCITY;
     } else if (!isPlayerGrounded()) {
       playerData.velPosY += getGravityY() * delta;
     } else {
@@ -191,9 +195,14 @@ export function initPlayer(
       .applyQuaternion(playerMesh.parent.quaternion)
       .normalize();
 
-    const accel = grounded ? GROUND_ACCEL : AIR_ACCEL,
-      maxSpeed = grounded ? GROUND_MAX_SPEED : AIR_MAX_SPEED,
-      friction = grounded ? GROUND_FRICTION : AIR_FRICTION;
+    let accel = grounded ? GROUND_ACCEL : AIR_ACCEL,
+      maxSpeed = grounded ? GROUND_MAX_SPEED : AIR_MAX_SPEED;
+    if (isPlayerCrouched()) {
+      accel *= CROUCH_RATIO;
+      maxSpeed *= CROUCH_RATIO;
+    }
+
+    const friction = grounded ? GROUND_FRICTION : AIR_FRICTION;
 
     const speed = Math.hypot(velocity.x, velocity.z);
     if (speed > 0 && friction > 0) {

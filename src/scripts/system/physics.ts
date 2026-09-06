@@ -77,6 +77,10 @@ export function isPlayerGrounded(): boolean {
     ? playerChar.GetGroundState() === Jolt.EGroundState_OnGround
     : false;
 }
+export function isPlayerCrouched(): boolean {
+  return isCrouched;
+}
+
 export function applyWallDrag(velocity: THREE.Vector3) {
   if (!playerChar) return;
   const contacts = playerChar.GetActiveContacts();

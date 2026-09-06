@@ -11,7 +11,7 @@ export function initLighting(
   camera: THREE.PerspectiveCamera,
   debug = false,
 ) {
-  const ambientLight = new THREE.AmbientLight(0xffffff, 3);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 2);
   scene.add(ambientLight);
 
   csm = new CSM({
@@ -27,7 +27,6 @@ export function initLighting(
   csm.lights.forEach((light) => {
     light.shadow.radius = 2.5;
     light.shadow.intensity = 0.55;
-    light.shadow.normalBias = isMobile ? -0.08 : -0.04;
   });
 
   if (debug) {
