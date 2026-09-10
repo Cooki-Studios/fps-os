@@ -18,6 +18,12 @@ const actions = {
   // Debug
   debug: "`",
   debugPlayer: "~",
+
+  // Noclip
+  noclip: "/",
+  up: "q",
+  down: "e",
+  sprint: "shift",
 } as const;
 export type Action = keyof typeof actions;
 

@@ -3,6 +3,7 @@ import { updatePhysics } from "./physics";
 import { updateCSM } from "./lighting";
 import { animateTitle, bootLog } from "../boot";
 import { getMainCam, getMainScene } from "../util/scene";
+import { createKeypad, updateKeypad } from "../objects/keypad";
 
 let renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
@@ -18,6 +19,10 @@ export function enableRenderer(
 ) {
   scene = renderScene;
   camera = renderCam;
+  const canvas = document.querySelector("canvas") as HTMLCanvasElement;
+  resizeRenderer();
+
+  if (title) createKeypad(getMainScene(), getMainCam(), canvas);
 
   function animate(time: number) {
     timer.update(time);
@@ -30,8 +35,6 @@ export function enableRenderer(
         if (title.userData.animDone) {
           canEndAnim = false;
           setTimeout(() => {
-            document.dispatchEvent(new CustomEvent("createKeypad"));
-
             scene = getMainScene();
             camera = getMainCam();
             title = undefined;
@@ -39,16 +42,14 @@ export function enableRenderer(
             const logo = document.getElementById("logo");
             if (logo) logo.style.display = "none";
 
-            const canvas = document.querySelector("canvas");
-            if (canvas) canvas.style.pointerEvents = "auto";
+            canvas.style.pointerEvents = "auto";
 
             document.body.style.opacity = "1";
-
-            resizeRenderer();
           }, 500);
         }
     } else {
       updatePhysics(delta);
+      updateKeypad(delta);
       updateCSM();
     }
 

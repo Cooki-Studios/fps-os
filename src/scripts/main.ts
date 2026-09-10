@@ -14,11 +14,9 @@ import {
   togglePhysicsDebug,
 } from "./system/physics";
 import { initInput, onActionPressed } from "./system/input";
-import { getPlayerMesh, initPlayer } from "./player";
+import { getPlayerMesh, initPlayer } from "./objects/player";
 import { setMainCam, setMainScene } from "./util/scene";
-import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
-import { font } from "./util/fonts";
-import { SUBTRACTION, Brush, Evaluator } from "three-bvh-csg";
+import { createKeypad, keypadButtons, setDoor } from "./objects/keypad";
 
 document.addEventListener(
   "wheel",
@@ -66,21 +64,20 @@ async function addPhysicsToObjects() {
   for (const mesh of meshes) {
     if (mesh.name.startsWith("N_")) continue;
     if (mesh.name.startsWith("D_")) {
-      addPhysicsToObject(mesh, true, true, false, scene);
-    } else addPhysicsToObject(mesh, false, true, false, scene);
+      addPhysicsToObject(mesh, true, true, false);
+    } else addPhysicsToObject(mesh, false, true, false);
   }
 
   bootLog("Initialising player...");
-  initPlayer(scene, camera, canvas);
-  addPhysicsToObject(getPlayerMesh(), true, true, true, scene);
+  initPlayer(scene, camera);
+  addPhysicsToObject(getPlayerMesh(), true, true, true);
 }
 
 bootLog("Loading scene...");
 const manager = new THREE.LoadingManager();
 
 const loader = new USDLoader(manager),
-  meshes: THREE.Mesh[] = [],
-  keypadButtons: THREE.Mesh[] = [];
+  meshes: THREE.Mesh[] = [];
 
 const spinner = document.getElementById("spinner") as HTMLDivElement;
 
@@ -98,15 +95,10 @@ loader.loadAsync("room.usdc").then((room) => {
   for (const mesh of meshes) {
     if (!mesh.parent) continue;
 
-    if (mesh.name === "D_Cube_001") {
-      mesh.parent.rotation.x = Math.random() * Math.PI * 2;
-      mesh.parent.rotation.y = Math.random() * Math.PI * 2;
-      mesh.parent.rotation.z = Math.random() * Math.PI * 2;
-    }
-
     if (mesh.name == "N_button") {
       keypadButtons[Number(mesh.parent.name.split("_")[2])] = mesh;
     }
+    if (mesh.name == "Base") setDoor(mesh);
 
     scene.attach(mesh.parent);
 
@@ -124,7 +116,7 @@ loader.loadAsync("room.usdc").then((room) => {
     await bootFinished();
 
     if (import.meta.env.DEV) {
-      createKeypad();
+      createKeypad(scene, camera, canvas);
       enableRenderer(scene, camera);
       document.getElementsByTagName("canvas")[0].style.pointerEvents = "auto";
       return;
@@ -147,65 +139,8 @@ loader.loadAsync("room.usdc").then((room) => {
 
 onActionPressed("debug", () => {
   togglePhysicsDebug();
+  document.dispatchEvent(new CustomEvent("toggleDebug"));
 });
 onActionPressed("debugPlayer", () => {
   togglePhysicsDebug(true);
 });
-
-document.addEventListener("createKeypad", createKeypad);
-function createKeypad() {
-  const mesh = scene.getObjectByName("N_Keypad");
-  if (!mesh || !mesh.parent) return;
-  bootLog("Creating keypad...");
-
-  const symbols = "123456789*0C";
-
-  const buttonGroup = new THREE.Group();
-  buttonGroup.rotation.x = Math.PI / 2;
-  buttonGroup.position.y -= 1;
-  buttonGroup.position.z -= 3.5;
-
-  for (let i = 0; i < symbols.length; i++) {
-    const geometry = new TextGeometry(symbols[i], {
-      font: font,
-      size: 1,
-      depth: 0.8,
-      curveSegments: ["0", "6", "9", "C"].includes(symbols[i]) ? 2 : 1,
-    });
-
-    const num = new THREE.Mesh(geometry);
-    const button = keypadButtons[i];
-    const material = button.material;
-
-    const box = new THREE.Box3().setFromObject(num);
-    const center = new THREE.Vector3();
-    box.getCenter(center);
-
-    const brush1 = new Brush(button.geometry);
-    brush1.matrix.copy(button.parent!.matrix);
-    brush1.matrix.decompose(brush1.position, brush1.quaternion, brush1.scale);
-    brush1.updateMatrixWorld(true);
-
-    const brush2 = new Brush(num.geometry);
-    brush2.matrix.copy(button.parent!.matrix);
-    brush2.matrix.decompose(brush2.position, brush2.quaternion, brush2.scale);
-
-    brush2.position.x -= center.x * 0.065;
-    brush2.position.y -= center.y * 0.075;
-
-    brush2.updateMatrixWorld(true);
-
-    brush1.material = material;
-    brush2.material = new THREE.MeshStandardMaterial({ color: 0x080808 });
-
-    const evaluator = new Evaluator();
-    const result = evaluator.evaluate(brush1, brush2, SUBTRACTION);
-
-    button.removeFromParent();
-    buttonGroup.add(result);
-
-    delete keypadButtons[i];
-  }
-
-  mesh.parent.add(buttonGroup);
-}

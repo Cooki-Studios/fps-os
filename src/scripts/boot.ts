@@ -17,8 +17,7 @@ export function bootLog(msg: string, showTime = true, error = false) {
     if (error) {
       msg = msg
         .replace(/http?:\/\/[^/]+\/(?:[^/]+\/)*?/g, "")
-        .replace(/\?[^:\s)]+/g, "")
-        .replace(/:\d+:\d+/g, "");
+        .replace(/\?[^:\s)]+/g, "");
       span.classList.add("red");
     }
 

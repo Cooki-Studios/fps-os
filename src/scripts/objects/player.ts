@@ -2,30 +2,30 @@ import * as THREE from "three";
 import {
   disableInput,
   enableInput,
+  getInputAxis,
   getInputVector,
   getJoystickVector,
   isActionPressed,
   isInputEnabled,
   onActionPressed,
-} from "./system/input";
+} from "../system/input";
 import {
   applyWallDrag,
   crouchPlayer,
   getGravityY,
   isPlayerCrouched,
   isPlayerGrounded,
-} from "./system/physics";
-import { bootLog } from "./boot";
-import { isMobile } from "./util/mobile";
+  setPlayerCollision,
+} from "../system/physics";
+import { bootLog } from "../boot";
+import { isMobile } from "../util/mobile";
 
 export type PlayerData = {
-  velRotY: number;
   velPosX: number;
   velPosY: number;
   velPosZ: number;
 };
 export const playerData: PlayerData = {
-  velRotY: 0,
   velPosX: 0,
   velPosY: 0,
   velPosZ: 0,
@@ -33,9 +33,6 @@ export const playerData: PlayerData = {
 
 export function getPlayerData() {
   return playerData;
-}
-export function resetPlayerVelRot() {
-  playerData.velRotY = 0;
 }
 
 export const PLAYER_RADIUS = 1,
@@ -47,10 +44,13 @@ export const PLAYER_RADIUS = 1,
 const MOUSE_SENS = isMobile ? 0.5 : 0.25;
 
 const GROUND_ACCEL = 5,
-  AIR_ACCEL = 10,
   GROUND_MAX_SPEED = 10,
-  AIR_MAX_SPEED = 2.5,
   GROUND_FRICTION = 6,
+  NOCLIP_ACCEL = 2.5,
+  NOCLIP_MAX_SPEED = 10,
+  NOCLIP_FRICTION = 60,
+  AIR_ACCEL = 10,
+  AIR_MAX_SPEED = 2.5,
   AIR_FRICTION = 0,
   JUMP_VELOCITY = 6;
 
@@ -59,7 +59,8 @@ let velocity = new THREE.Vector3(),
   lastPointerX = 0,
   lastPointerY = 0,
   dragging = false,
-  activePointerId: number | null = null;
+  activePointerId: number | null = null,
+  noclip = false;
 
 const playerGeo = new THREE.CapsuleGeometry(
   PLAYER_RADIUS,
@@ -83,18 +84,32 @@ const deg = Math.PI / 180,
   clamp = (num: number, min: number, max: number) =>
     Math.max(min, Math.min(max, num));
 
-export function initPlayer(
-  scene: THREE.Scene,
-  camera: THREE.Camera,
-  canvas: HTMLCanvasElement,
-) {
-  const player = new THREE.Group();
+export function enablePlayerControl(canvas: HTMLCanvasElement) {
+  canvas.onpointermove = (e) => {
+    if (isMobile && e.pointerId !== activePointerId) return;
+    if (isMobile || isInputEnabled()) {
+      e.preventDefault();
+      let deltaX: number, deltaY: number;
 
-  scene.add(player);
-  player.position.set(0, 2, 0.3);
-  player.add(playerMesh);
-  player.add(camera);
-  camera.position.set(0, CAM_Y, 0);
+      if (isMobile) {
+        if (!dragging) return;
+        deltaX = e.clientX - lastPointerX;
+        deltaY = e.clientY - lastPointerY;
+        lastPointerX = e.clientX;
+        lastPointerY = e.clientY;
+      } else {
+        deltaX = e.movementX;
+        deltaY = e.movementY;
+      }
+
+      player.rotation.y -= deltaX * sens * deg;
+      camera.rotation.x = clamp(
+        camera.rotation.x - deltaY * sens * deg,
+        -90 * deg,
+        90 * deg,
+      );
+    }
+  };
 
   if (!isMobile) {
     canvas.onclick = async () => {
@@ -126,32 +141,22 @@ export function initPlayer(
     canvas.onpointerup = releasePointer;
     canvas.onpointercancel = releasePointer;
   }
+}
 
-  canvas.onpointermove = (e) => {
-    if (isMobile && e.pointerId !== activePointerId) return;
-    if (isMobile || isInputEnabled()) {
-      e.preventDefault();
-      let deltaX: number, deltaY: number;
+const player = new THREE.Group();
+let camera: THREE.PerspectiveCamera;
 
-      if (isMobile) {
-        if (!dragging) return;
-        deltaX = e.clientX - lastPointerX;
-        deltaY = e.clientY - lastPointerY;
-        lastPointerX = e.clientX;
-        lastPointerY = e.clientY;
-      } else {
-        deltaX = e.movementX;
-        deltaY = e.movementY;
-      }
+export function initPlayer(
+  scene: THREE.Scene,
+  sceneCam: THREE.PerspectiveCamera,
+) {
+  camera = sceneCam;
 
-      camera.rotation.x = clamp(
-        camera.rotation.x - deltaY * sens * deg,
-        -90 * deg,
-        90 * deg,
-      );
-      playerData.velRotY -= deltaX * sens * deg;
-    }
-  };
+  scene.add(player);
+  player.position.set(0, 2, 0.3);
+  player.add(playerMesh);
+  player.add(camera);
+  camera.position.set(0, CAM_Y, 0);
 
   let crouched = false;
   let prevSpeed = 0;
@@ -162,19 +167,32 @@ export function initPlayer(
       velEl.style.visibility === "visible" ? "hidden" : "visible";
   });
 
+  onActionPressed("noclip", () => {
+    setPlayerCollision(noclip);
+    playerMesh.castShadow = noclip;
+    noclip = !noclip;
+    velocity.y = 0;
+  });
+
+  const camWorldQuat = new THREE.Quaternion();
+
   document.addEventListener("physics", (e) => {
     if (!playerMesh.parent) return;
     const delta = (e as CustomEvent<number>).detail;
     const grounded = isPlayerGrounded();
 
     // https://github.com/godotengine/godot/blob/master/modules/gdscript/editor/script_templates/CharacterBody3D/basic_movement.gd
-    if (isActionPressed("jump") && isPlayerGrounded()) {
-      playerData.velPosY = isPlayerCrouched()
-        ? JUMP_VELOCITY * CROUCH_RATIO
-        : JUMP_VELOCITY;
-    } else if (!isPlayerGrounded()) {
-      playerData.velPosY += getGravityY() * delta;
-    } else {
+    if (!noclip)
+      if (isActionPressed("jump") && isPlayerGrounded()) {
+        playerData.velPosY = isPlayerCrouched()
+          ? JUMP_VELOCITY * CROUCH_RATIO
+          : JUMP_VELOCITY;
+      } else if (!isPlayerGrounded()) {
+        playerData.velPosY += getGravityY() * delta;
+      } else {
+        playerData.velPosY = 0;
+      }
+    else {
       playerData.velPosY = 0;
     }
 
@@ -191,34 +209,51 @@ export function initPlayer(
       ? getJoystickVector()
       : getInputVector("left", "right", "forward", "back");
 
-    const wishDir = new THREE.Vector3(inputDir.x, 0, inputDir.y)
-      .applyQuaternion(playerMesh.parent.quaternion)
-      .normalize();
+    const wishDir = new THREE.Vector3(inputDir.x, 0, inputDir.y);
+    if (noclip) {
+      wishDir.y = getInputAxis("down", "up");
+      camera.getWorldQuaternion(camWorldQuat);
+      wishDir.applyQuaternion(camWorldQuat);
+    } else wishDir.applyQuaternion(playerMesh.parent.quaternion);
+    wishDir.normalize();
 
     let accel = grounded ? GROUND_ACCEL : AIR_ACCEL,
-      maxSpeed = grounded ? GROUND_MAX_SPEED : AIR_MAX_SPEED;
+      maxSpeed = grounded ? GROUND_MAX_SPEED : AIR_MAX_SPEED,
+      friction = grounded ? GROUND_FRICTION : AIR_FRICTION;
+
+    if (noclip) {
+      const sprint = isActionPressed("sprint");
+      accel = sprint ? NOCLIP_ACCEL * 2 : NOCLIP_ACCEL;
+      maxSpeed = NOCLIP_MAX_SPEED;
+      friction = NOCLIP_FRICTION;
+    }
+
     if (isPlayerCrouched()) {
       accel *= CROUCH_RATIO;
       maxSpeed *= CROUCH_RATIO;
     }
 
-    const friction = grounded ? GROUND_FRICTION : AIR_FRICTION;
+    let speed = Math.hypot(velocity.x, velocity.z);
+    if (noclip) speed = Math.hypot(velocity.x, velocity.y, velocity.z);
 
-    const speed = Math.hypot(velocity.x, velocity.z);
     if (speed > 0 && friction > 0) {
       const scale = Math.max(0, speed - speed * friction * delta) / speed;
       velocity.x *= scale;
       velocity.z *= scale;
+      if (noclip) velocity.y *= scale;
     }
 
     if (wishDir.lengthSq() > 0) {
-      const proj = velocity.x * wishDir.x + velocity.z * wishDir.z;
+      let proj = velocity.x * wishDir.x + velocity.z * wishDir.z;
+      if (noclip) proj += velocity.y * wishDir.y;
+
       const addSpeed = Math.min(
         Math.max(maxSpeed - proj, 0),
         accel * delta * maxSpeed,
       );
       velocity.x += wishDir.x * addSpeed;
       velocity.z += wishDir.z * addSpeed;
+      if (noclip) velocity.y += wishDir.y * addSpeed;
     }
 
     const speedFixed = speed.toFixed(1);
@@ -233,9 +268,10 @@ export function initPlayer(
       velEl.className = "";
     }
 
-    applyWallDrag(velocity);
+    if (!noclip) applyWallDrag(velocity);
     playerData.velPosX = velocity.x;
     playerData.velPosZ = velocity.z;
+    if (noclip) playerData.velPosY = velocity.y;
 
     prevSpeed = speed;
   });

@@ -12,8 +12,7 @@ import {
   getPlayerMesh,
   PLAYER_HEIGHT,
   PLAYER_RADIUS,
-  resetPlayerVelRot,
-} from "../player";
+} from "../objects/player";
 import { lerp } from "three/src/math/MathUtils.js";
 import { bootLog } from "../boot";
 import { isMobile } from "../util/mobile";
@@ -27,6 +26,7 @@ let Jolt: typeof initJolt,
 const dynamicObjects: THREE.Mesh[] = [],
   LAYER_STATIC = 0,
   LAYER_DYNAMIC = 1,
+  LAYER_NOCLIP = 2,
   NUM_OBJECT_LAYERS = 2,
   NUM_BROAD_PHASE_LAYERS = 2;
 
@@ -45,8 +45,8 @@ let standingShape: JoltTypes.Shape,
   crouchingShape: JoltTypes.Shape,
   isCrouched = false;
 
-let playerObj: THREE.Mesh | undefined,
-  playerCam: THREE.Camera | undefined,
+const playerObj = getPlayerMesh();
+let playerCam: THREE.Camera | undefined,
   crouchProgress = 1,
   crouchTarget = 1,
   crouchStartScale = 1;
@@ -58,7 +58,6 @@ const FIXED_DELTA = isMobile ? 1 / 15 : 1 / 30,
 
 let gravity: JoltTypes.Vec3,
   tempVec3: JoltTypes.Vec3,
-  tempQuat: JoltTypes.Quat,
   respawnPos: JoltTypes.RVec3,
   zeroVel: JoltTypes.Vec3;
 
@@ -79,6 +78,76 @@ export function isPlayerGrounded(): boolean {
 }
 export function isPlayerCrouched(): boolean {
   return isCrouched;
+}
+
+export function rotatePhysicsObject(
+  body: JoltTypes.Body,
+  origin: THREE.Vector3,
+  amount: number,
+) {
+  const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
+
+  const axis = new Jolt.Vec3(0, 1, 0);
+  const deltaRot = Jolt.Quat.prototype.sRotation(axis, amount);
+  Jolt.destroy(axis);
+
+  const rotMat = Jolt.Mat44.prototype.sRotation(deltaRot);
+
+  const pos = body.GetPosition();
+  const originVec = new Jolt.Vec3(origin.x, origin.y, origin.z);
+  const posVec = new Jolt.Vec3(pos.GetX(), pos.GetY(), pos.GetZ());
+
+  const offset = posVec.Sub(originVec);
+  Jolt.destroy(posVec);
+
+  const rotatedOffset = rotMat.Multiply3x3(offset);
+  Jolt.destroy(rotMat);
+
+  const newPosVec = originVec.Add(rotatedOffset);
+  Jolt.destroy(originVec);
+  Jolt.destroy(rotatedOffset);
+
+  const newPos = new Jolt.RVec3(
+    newPosVec.GetX(),
+    newPosVec.GetY(),
+    newPosVec.GetZ(),
+  );
+  Jolt.destroy(newPosVec);
+
+  const rot = body.GetRotation();
+  const newRot = deltaRot.MulQuat(rot);
+  Jolt.destroy(deltaRot);
+
+  bodyInterface.SetPositionAndRotation(
+    body.GetID(),
+    newPos,
+    newRot,
+    Jolt.EActivation_Activate,
+  );
+
+  Jolt.destroy(newRot);
+}
+
+export function setPlayerCollision(enable: boolean) {
+  if (enable) {
+    movingBPFilter = new Jolt.DefaultBroadPhaseLayerFilter(
+      joltInterface.GetObjectVsBroadPhaseLayerFilter(),
+      LAYER_DYNAMIC,
+    );
+    movingLayerFilter = new Jolt.DefaultObjectLayerFilter(
+      joltInterface.GetObjectLayerPairFilter(),
+      LAYER_DYNAMIC,
+    );
+  } else {
+    movingBPFilter = new Jolt.DefaultBroadPhaseLayerFilter(
+      joltInterface.GetObjectVsBroadPhaseLayerFilter(),
+      LAYER_NOCLIP,
+    );
+    movingLayerFilter = new Jolt.DefaultObjectLayerFilter(
+      joltInterface.GetObjectLayerPairFilter(),
+      LAYER_NOCLIP,
+    );
+  }
 }
 
 export function applyWallDrag(velocity: THREE.Vector3) {
@@ -183,7 +252,6 @@ export function crouchPlayer(
     (obj.geometry as THREE.CapsuleGeometry).parameters.height / PLAYER_HEIGHT;
   playerOffsetY = (PLAYER_HEIGHT * scale - PLAYER_HEIGHT * startScale) / 2;
 
-  playerObj = obj;
   playerCam = camera;
   crouchStartScale = startScale;
   crouchTarget = scale;
@@ -211,7 +279,6 @@ export async function initPhysics(scene: THREE.Scene): Promise<void> {
     respawnPos = new Jolt.RVec3(0, RESPAWN_HEIGHT, 0);
     zeroVel = new Jolt.Vec3(0, 0, 0);
     tempVec3 = new Jolt.Vec3(0, 0, 0);
-    tempQuat = new Jolt.Quat(0, 0, 0, 1);
 
     scene.add(debugGroup);
 
@@ -230,10 +297,11 @@ export async function addPhysicsToObject(
   dynamic = false,
   showDebug = false,
   isPlayer = false,
-  scene?: THREE.Scene,
 ) {
   if (initPromise) await initPromise;
   if (!obj.parent) return;
+
+  console.log(obj.name);
 
   bootLog(`Adding physics to ${obj.name}...`);
 
@@ -350,7 +418,7 @@ export async function addPhysicsToObject(
   Jolt.destroy(pos);
   Jolt.destroy(rot);
 
-  if (showDebug && scene) {
+  if (showDebug) {
     const debugMesh = createDebugMesh(shape, isPlayer);
     obj.userData.debugMesh = debugMesh;
     if (isPlayer) {
@@ -482,7 +550,6 @@ function doPhysicsStep(delta: number) {
     Jolt.destroy(pos);
   }
 
-  const playerObj = getPlayerMesh();
   if (
     !playerChar ||
     !playerObj.parent ||
@@ -498,16 +565,6 @@ function doPhysicsStep(delta: number) {
 
   tempVec3.Set(playerData.velPosX, playerData.velPosY, playerData.velPosZ);
   playerChar.SetLinearVelocity(tempVec3);
-
-  if (playerData.velRotY !== 0) {
-    playerObj.parent.rotateY(playerData.velRotY);
-    const q = playerObj.parent.quaternion;
-    tempQuat.Set(q.x, q.y, q.z, q.w);
-
-    playerChar.SetRotation(tempQuat);
-
-    playerObj.userData.debugMesh?.quaternion.copy(q);
-  }
 
   playerChar.ExtendedUpdate(
     delta,
@@ -543,8 +600,6 @@ function doPhysicsStep(delta: number) {
       charPos.GetZ(),
     );
   }
-
-  resetPlayerVelRot();
 }
 
 function lerpPhysics(alpha: number) {
@@ -553,7 +608,8 @@ function lerpPhysics(alpha: number) {
     const uData = obj.parent.userData;
 
     obj.parent.position.lerpVectors(uData.prevPos, uData.currPos, alpha);
-    obj.parent.quaternion.copy(uData.prevQuat).slerp(uData.currQuat, alpha);
+    if (obj != playerObj)
+      obj.parent.quaternion.copy(uData.prevQuat).slerp(uData.currQuat, alpha);
 
     if (obj == playerObj) obj.parent.position.y -= playerOffsetY;
 
