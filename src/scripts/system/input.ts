@@ -21,8 +21,8 @@ const actions = {
 
   // Noclip
   noclip: "/",
-  up: "q",
-  down: "e",
+  up: "e",
+  down: "q",
   sprint: "shift",
 } as const;
 export type Action = keyof typeof actions;

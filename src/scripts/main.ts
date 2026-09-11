@@ -95,12 +95,30 @@ loader.loadAsync("room.usdc").then((room) => {
   for (const mesh of meshes) {
     if (!mesh.parent) continue;
 
-    if (mesh.name == "N_button") {
-      keypadButtons[Number(mesh.parent.name.split("_")[2])] = mesh;
+    switch (mesh.name) {
+      case "N_button":
+        keypadButtons[Number(mesh.parent.name.split("_")[2])] = mesh;
+        scene.attach(mesh.parent);
+        break;
+      case "Base":
+        setDoor(mesh, "base", scene);
+        scene.attach(mesh.parent);
+        break;
+      case "N_handle":
+        setDoor(mesh);
+        break;
+      case "N_Keypad":
+        setDoor(mesh, "keypad");
+        break;
+      case "N_Sticky1":
+        setDoor(mesh);
+        break;
+      default:
+        if (mesh.parent.parent && mesh.parent.parent.name == "Keypad") {
+          setDoor(mesh.parent);
+        } else scene.attach(mesh.parent);
+        break;
     }
-    if (mesh.name == "Base") setDoor(mesh);
-
-    scene.attach(mesh.parent);
 
     mesh.receiveShadow = true;
     mesh.castShadow = true;

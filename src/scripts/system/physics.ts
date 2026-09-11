@@ -301,8 +301,6 @@ export async function addPhysicsToObject(
   if (initPromise) await initPromise;
   if (!obj.parent) return;
 
-  console.log(obj.name);
-
   bootLog(`Adding physics to ${obj.name}...`);
 
   const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
@@ -419,7 +417,14 @@ export async function addPhysicsToObject(
   Jolt.destroy(rot);
 
   if (showDebug) {
-    const debugMesh = createDebugMesh(shape, isPlayer);
+    const mat = (
+      Array.isArray(obj.material) ? obj.material[0] : obj.material
+    ) as THREE.MeshBasicMaterial;
+
+    const debugMesh = createDebugMesh(
+      shape,
+      mat.color.clone().multiplyScalar(10),
+    );
     obj.userData.debugMesh = debugMesh;
     if (isPlayer) {
       debugMesh.name = "playerDebug";
@@ -439,7 +444,10 @@ export function togglePhysicsDebug(isPlayer = false) {
   } else debugGroup.visible = !debugGroup.visible;
 }
 
-function createDebugMesh(shape: JoltTypes.Shape, isPlayer = false): THREE.Mesh {
+function createDebugMesh(
+  shape: JoltTypes.Shape,
+  color: THREE.Color,
+): THREE.Mesh {
   const scale = new Jolt.Vec3(1, 1, 1),
     identity = new Jolt.Quat(0, 0, 0, 1),
     center = shape.GetCenterOfMass();
@@ -470,7 +478,7 @@ function createDebugMesh(shape: JoltTypes.Shape, isPlayer = false): THREE.Mesh {
   return new THREE.Mesh(
     geometry,
     new THREE.MeshBasicMaterial({
-      color: isPlayer ? 0xf000ff : 0x00f0ff,
+      color: color,
       wireframe: true,
     }),
   );
@@ -492,6 +500,7 @@ export function updatePhysics(delta: number) {
 
   updatePlayerCrouchAnimation(delta);
   lerpPhysics(accumulator / FIXED_DELTA);
+  document.dispatchEvent(new CustomEvent("physicsLerped"));
 }
 
 function updatePrevPos(

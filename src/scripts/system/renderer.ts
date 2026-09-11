@@ -49,7 +49,7 @@ export function enableRenderer(
         }
     } else {
       updatePhysics(delta);
-      updateKeypad(delta);
+      updateKeypad(delta, canvas);
       updateCSM();
     }
 

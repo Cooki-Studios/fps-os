@@ -39,7 +39,8 @@ export const PLAYER_RADIUS = 1,
   PLAYER_HEIGHT = 2,
   CROUCH_RATIO = 0.65,
   CROUCH_SPEED = 0.25,
-  CAM_Y = 1.6;
+  CAM_Y = 1.6,
+  PLAYER_WORLD_CONTROL = new THREE.Vector2();
 
 const MOUSE_SENS = isMobile ? 0.5 : 0.25;
 
@@ -146,6 +147,10 @@ export function enablePlayerControl(canvas: HTMLCanvasElement) {
 const player = new THREE.Group();
 let camera: THREE.PerspectiveCamera;
 
+export function getPlayerPosition() {
+  return player.position;
+}
+
 export function initPlayer(
   scene: THREE.Scene,
   sceneCam: THREE.PerspectiveCamera,
@@ -209,7 +214,11 @@ export function initPlayer(
       ? getJoystickVector()
       : getInputVector("left", "right", "forward", "back");
 
-    const wishDir = new THREE.Vector3(inputDir.x, 0, inputDir.y);
+    const wishDir = new THREE.Vector3(
+      inputDir.x + PLAYER_WORLD_CONTROL.x,
+      0,
+      inputDir.y + PLAYER_WORLD_CONTROL.y,
+    );
     if (noclip) {
       wishDir.y = getInputAxis("down", "up");
       camera.getWorldQuaternion(camWorldQuat);
