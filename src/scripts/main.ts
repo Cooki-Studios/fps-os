@@ -31,16 +31,6 @@ setMainScene(scene);
 
 bootLog("Scene created");
 
-const textureLoader = new THREE.TextureLoader();
-const envMap = await textureLoader.loadAsync(
-  "textures/IndoorEnvironmentHDRI001_1K_TONEMAPPED.jpg",
-);
-envMap.mapping = THREE.EquirectangularReflectionMapping;
-envMap.colorSpace = THREE.SRGBColorSpace;
-scene.environment = envMap;
-
-bootLog("HDRI loaded");
-
 const camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,

@@ -5,6 +5,7 @@ import { animateTitle, bootLog } from "../boot";
 import { getMainCam, getMainScene } from "../util/scene";
 import { createKeypad, updateKeypad } from "../objects/keypad";
 import { onMobileRotate } from "../util/mobile";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
 let renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
@@ -24,6 +25,11 @@ export function enableRenderer(
   resizeRenderer();
 
   if (title) createKeypad(getMainScene(), getMainCam(), canvas);
+
+  const pmremGenerator = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmremGenerator.fromScene(new RoomEnvironment()).texture;
+  scene.environmentIntensity = 0.2;
+  bootLog("Environment loaded");
 
   function animate(time: number) {
     timer.update(time);
