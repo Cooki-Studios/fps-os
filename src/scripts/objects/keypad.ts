@@ -10,7 +10,6 @@ import {
 } from "./player";
 import { lerp } from "three/src/math/MathUtils.js";
 import { rotatePhysicsObject } from "../system/physics";
-import { isMobile } from "../util/mobile";
 
 export const keypadButtons: THREE.Mesh[] = [];
 
