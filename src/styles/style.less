@@ -18,15 +18,29 @@ body {
             height: calc(50% - 1.25em);
         }
 
+        #bootlog {
+            font-size: 0.5em;
+        }
+
+        #spinner {
+            width: 2.5em;
+            top: calc(65% + 3.5em);
+        }
+
         @media screen and (orientation: portrait) {
             #logo {
                 font-size: 1.25em;
                 height: 50%;
             }
-        }
 
-        #bootlog {
-            font-size: 0.5em;
+            #spinner {
+                top: calc(65% - 4em);
+            }
+
+            #joystick-cont {
+                width: 25vmax;
+                aspect-ratio: 1 / 2;
+            }
         }
     }
 }
@@ -81,7 +95,6 @@ body {
         content: var(--swish);
         position: absolute;
         left: calc(50% + 3.4em);
-        /*top: 0.25em;*/
     }
 }
 

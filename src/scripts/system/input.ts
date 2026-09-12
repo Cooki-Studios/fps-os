@@ -1,5 +1,4 @@
 import { bootLog } from "../boot";
-import { isMobile } from "../util/mobile";
 
 const actions = {
   // General
@@ -152,7 +151,7 @@ let isDragging = false,
   joystickX = 0,
   joystickY = 0;
 
-if (isMobile) {
+export function initJoystick() {
   joystickCont.style.display = "grid";
 
   joystickCont.onpointerdown = (e) => {

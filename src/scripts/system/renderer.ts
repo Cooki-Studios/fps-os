@@ -4,6 +4,7 @@ import { updateCSM } from "./lighting";
 import { animateTitle, bootLog } from "../boot";
 import { getMainCam, getMainScene } from "../util/scene";
 import { createKeypad, updateKeypad } from "../objects/keypad";
+import { onMobileRotate } from "../util/mobile";
 
 let renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
@@ -38,6 +39,7 @@ export function enableRenderer(
             scene = getMainScene();
             camera = getMainCam();
             title = undefined;
+            resizeRenderer();
 
             const logo = document.getElementById("logo");
             if (logo) logo.style.display = "none";
@@ -69,9 +71,15 @@ export function enableRenderer(
 }
 
 export function resizeRenderer() {
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  if (!renderer) return;
+
+  const width = document.documentElement.clientWidth || window.innerWidth;
+  const height = document.documentElement.clientHeight || window.innerHeight;
+
+  renderer.setSize(width, height);
+
   if (camera) {
-    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.aspect = width / height;
     camera.updateProjectionMatrix();
   }
 }
@@ -93,6 +101,7 @@ export function initRenderer(): HTMLCanvasElement {
 
   document.body.appendChild(canvas);
   window.onresize = resizeRenderer;
+  onMobileRotate(resizeRenderer);
 
   return canvas;
 }

@@ -5,6 +5,7 @@ import {
   getInputAxis,
   getInputVector,
   getJoystickVector,
+  initJoystick,
   isActionPressed,
   isInputEnabled,
   onActionPressed,
@@ -94,10 +95,15 @@ export function enablePlayerControl(canvas: HTMLCanvasElement) {
 
       if (isMobile) {
         if (!dragging) return;
-        deltaX = e.clientX - lastPointerX;
-        deltaY = e.clientY - lastPointerY;
-        lastPointerX = e.clientX;
-        lastPointerY = e.clientY;
+        const events = e.getCoalescedEvents?.() ?? [e];
+        deltaX = 0;
+        deltaY = 0;
+        for (const ev of events) {
+          deltaX += ev.clientX - lastPointerX;
+          deltaY += ev.clientY - lastPointerY;
+          lastPointerX = ev.clientX;
+          lastPointerY = ev.clientY;
+        }
       } else {
         deltaX = e.movementX;
         deltaY = e.movementY;
@@ -141,6 +147,8 @@ export function enablePlayerControl(canvas: HTMLCanvasElement) {
     };
     canvas.onpointerup = releasePointer;
     canvas.onpointercancel = releasePointer;
+
+    initJoystick();
   }
 }
 

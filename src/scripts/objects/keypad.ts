@@ -10,6 +10,7 @@ import {
 } from "./player";
 import { lerp } from "three/src/math/MathUtils.js";
 import { rotatePhysicsObject } from "../system/physics";
+import { isMobile } from "../util/mobile";
 
 export const keypadButtons: THREE.Mesh[] = [];
 
@@ -87,6 +88,8 @@ export function updateKeypad(delta: number, canvas: HTMLCanvasElement) {
     } else {
       if (door.parent!.rotation.z > 0) {
         rotatePhysicsObject(door.userData.body, doorWorldPos, -delta * exp * 2);
+      } else if (doorGroup.parent) {
+        doorGroup.parent.remove(doorGroup);
       }
     }
   }
@@ -182,7 +185,6 @@ export function createKeypad(
       (e.clientX / window.innerWidth) * 2 - 1,
       -(e.clientY / window.innerHeight) * 2 + 1,
     );
-
     raycaster.far = 2;
     raycaster.setFromCamera(mouse, camera);
 
@@ -198,8 +200,14 @@ export function createKeypad(
     else canvas.style.cursor = "default";
   };
 
-  canvas.onpointerdown = () => {
+  canvas.onpointerdown = (e) => {
     if (!raycaster) return;
+
+    const mouse = new THREE.Vector2(
+      (e.clientX / window.innerWidth) * 2 - 1,
+      -(e.clientY / window.innerHeight) * 2 + 1,
+    );
+    raycaster.setFromCamera(mouse, camera);
 
     const intersects = raycaster.intersectObject(buttonGroup);
     if (intersects.length == 0) return;

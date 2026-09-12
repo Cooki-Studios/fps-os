@@ -61,7 +61,7 @@ bootLog("Boot process started");
 import * as THREE from "three";
 import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import { lerp } from "three/src/math/MathUtils.js";
-import { isMobile, isPortrait } from "./util/mobile";
+import { isMobile, isPortrait, onMobileRotate } from "./util/mobile";
 import { font } from "./util/fonts";
 
 const TITLE_DEPTH = 5,
@@ -158,9 +158,9 @@ export async function createTitleScene(): Promise<{
   }
   recenter();
 
-  window.addEventListener("resize", () => {
+  onMobileRotate((portrait) => {
     if (!isMobile) return;
-    const targetScale = isPortrait()
+    const targetScale = portrait
       ? MOBILE_TITLE_SCALE_PORTRAIT
       : MOBILE_TITLE_SCALE;
     const scale = targetScale / mobileTitleScale;

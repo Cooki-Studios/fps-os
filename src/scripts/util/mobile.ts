@@ -1,9 +1,18 @@
 export const isMobile = /Mobi/i.test(navigator.userAgent);
+
 export function isPortrait() {
   return (
     screen.orientation.type == "portrait-primary" ||
     screen.orientation.type == "portrait-secondary"
   );
+}
+export function onMobileRotate(func: (arg0: boolean) => void) {
+  screen.orientation.addEventListener("change", () => {
+    func(
+      screen.orientation.type == "portrait-primary" ||
+        screen.orientation.type == "portrait-secondary",
+    );
+  });
 }
 
 if (isMobile) document.body.classList.add("mobile");
