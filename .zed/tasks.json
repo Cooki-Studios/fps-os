@@ -5,4 +5,10 @@
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
   },
+  {
+    "label": "Run Dev (Host)",
+    "command": "bun run dev --host",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+  },
 ]

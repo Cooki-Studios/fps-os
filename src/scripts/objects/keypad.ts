@@ -177,13 +177,21 @@ export function createKeypad(
 
   let raycaster: THREE.Raycaster | undefined = new THREE.Raycaster();
 
+  function getMousePos(e: PointerEvent) {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    return new THREE.Vector2(
+      (x / rect.width) * 2 - 1,
+      -(y / rect.height) * 2 + 1,
+    );
+  }
+
   canvas.onpointermove = (e) => {
     if (!raycaster) return;
 
-    const mouse = new THREE.Vector2(
-      (e.clientX / window.innerWidth) * 2 - 1,
-      -(e.clientY / window.innerHeight) * 2 + 1,
-    );
+    const mouse = getMousePos(e);
     raycaster.far = 2;
     raycaster.setFromCamera(mouse, camera);
 
@@ -202,10 +210,7 @@ export function createKeypad(
   canvas.onpointerdown = (e) => {
     if (!raycaster) return;
 
-    const mouse = new THREE.Vector2(
-      (e.clientX / window.innerWidth) * 2 - 1,
-      -(e.clientY / window.innerHeight) * 2 + 1,
-    );
+    const mouse = getMousePos(e);
     raycaster.setFromCamera(mouse, camera);
 
     const intersects = raycaster.intersectObject(buttonGroup);
