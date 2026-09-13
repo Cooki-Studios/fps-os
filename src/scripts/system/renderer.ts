@@ -24,7 +24,7 @@ export function enableRenderer(
   const canvas = document.querySelector("canvas") as HTMLCanvasElement;
   resizeRenderer();
 
-  if (title) createKeypad(getMainScene(), getMainCam(), canvas);
+  if (title) createKeypad(getMainCam(), canvas);
 
   const pmremGenerator = new THREE.PMREMGenerator(renderer);
   scene.environment = pmremGenerator.fromScene(new RoomEnvironment()).texture;

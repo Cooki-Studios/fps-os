@@ -16,7 +16,7 @@ import {
 import { initInput, onActionPressed } from "./system/input";
 import { getPlayerMesh, initPlayer } from "./objects/player";
 import { setMainCam, setMainScene } from "./util/scene";
-import { createKeypad, keypadButtons, setDoor } from "./objects/keypad";
+import { createKeypad, keypadButtons, setKeypad } from "./objects/keypad";
 
 document.addEventListener(
   "wheel",
@@ -73,6 +73,7 @@ const spinner = document.getElementById("spinner") as HTMLDivElement;
 
 loader.loadAsync("room.usdc").then((room) => {
   bootLog(`Preparing material for meshs`);
+  scene.attach(room);
   room.traverse((child) => {
     if (child instanceof THREE.Mesh) {
       child.material.dithering = true;
@@ -90,23 +91,11 @@ loader.loadAsync("room.usdc").then((room) => {
         keypadButtons[Number(mesh.parent.name.split("_")[2])] = mesh;
         scene.attach(mesh.parent);
         break;
-      case "Base":
-        setDoor(mesh, "base", scene);
-        scene.attach(mesh.parent);
-        break;
-      case "N_handle":
-        setDoor(mesh);
-        break;
       case "N_Keypad":
-        setDoor(mesh, "keypad");
-        break;
-      case "N_Sticky1":
-        setDoor(mesh);
+        setKeypad(mesh, scene);
         break;
       default:
-        if (mesh.parent.parent && mesh.parent.parent.name == "Keypad") {
-          setDoor(mesh.parent);
-        } else scene.attach(mesh.parent);
+        if (!mesh.name.startsWith("N_")) scene.attach(mesh.parent);
         break;
     }
 
@@ -124,7 +113,7 @@ loader.loadAsync("room.usdc").then((room) => {
     await bootFinished();
 
     if (import.meta.env.DEV) {
-      createKeypad(scene, camera, canvas);
+      createKeypad(camera, canvas);
       enableRenderer(scene, camera);
       document.getElementsByTagName("canvas")[0].style.pointerEvents = "auto";
       return;

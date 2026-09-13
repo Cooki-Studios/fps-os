@@ -3,13 +3,14 @@ import { font } from "../util/fonts";
 import { SUBTRACTION, Brush, Evaluator } from "three-bvh-csg";
 import { bootLog } from "../boot";
 import * as THREE from "three";
+import { lerp } from "three/src/math/MathUtils.js";
 import {
   enablePlayerControl,
   getPlayerPosition,
   PLAYER_WORLD_CONTROL,
+  setCutscene,
 } from "./player";
-import { lerp } from "three/src/math/MathUtils.js";
-import { rotatePhysicsObject } from "../system/physics";
+import { setPlayerCollision } from "../system/physics";
 
 export const keypadButtons: THREE.Mesh[] = [];
 
@@ -18,44 +19,30 @@ buttonGroup.rotation.x = Math.PI / 2;
 buttonGroup.position.y -= 1;
 buttonGroup.position.z -= 3.5;
 
+const doorGroup = new THREE.Group();
+doorGroup.rotation.x = Math.PI / 2;
+doorGroup.position.x -= 1.1;
+doorGroup.position.z -= 1.2;
+
 let buttonPressed: THREE.Object3D | null = null,
   codeInput = "",
-  door: THREE.Mesh,
-  doorWorldPos = new THREE.Vector3(),
-  doorOpen = false,
+  doorStage = 0,
   anchorPoint: number,
-  keypad: THREE.Mesh;
+  keypad: THREE.Mesh,
+  mainDoorGroup: THREE.Object3D,
+  doorRot = 0;
 
-export function setDoor(
-  mesh: THREE.Mesh | THREE.Object3D,
-  part?: "base" | "keypad",
-  scene?: THREE.Scene,
-) {
-  if (part == "base" && scene) {
-    mesh.getWorldPosition(doorWorldPos);
-    doorWorldPos.add(DOOR_PIVOT);
-    door = mesh as THREE.Mesh;
+export function setKeypad(mesh: THREE.Mesh, scene: THREE.Scene) {
+  keypad = mesh;
 
-    anchorPoint = addDebugPoint(scene);
-    debugPoints[anchorPoint].position.copy(doorWorldPos);
-  } else if (part == "keypad") {
-    keypad = mesh as THREE.Mesh;
-    if (mesh.parent) doorGroup.add(mesh.parent);
-  } else if (mesh.parent) {
-    doorGroup.add(mesh.parent);
-  }
+  mainDoorGroup = mesh.parent!.parent!;
+  doorGroup.attach(mesh);
+  scene.attach(doorGroup);
+
+  anchorPoint = addDebugPoint(scene);
+  debugPoints[anchorPoint].position.copy(doorGroup.position);
 }
 
-const DOOR_PIVOT = new THREE.Vector3(-1.1, 0, 0),
-  doorGroup = new THREE.Group();
-doorGroup.rotateX(-Math.PI / 2);
-
-document.addEventListener(
-  "physicsLerped",
-  () => (doorGroup.rotation.z = door.parent!.rotation.z),
-);
-
-let canUpdateKeypad = true;
 export function updateKeypad(delta: number, canvas: HTMLCanvasElement) {
   if (keypadButtons.length == 0) return;
 
@@ -67,30 +54,38 @@ export function updateKeypad(delta: number, canvas: HTMLCanvasElement) {
     }
   }
 
-  if (doorOpen && door.userData.body) {
-    const exp = 1 + door.parent!.rotation.z / 1.75;
-
-    if (canUpdateKeypad) {
-      if (door.parent!.rotation.z < 2.5) {
-        rotatePhysicsObject(door.userData.body, doorWorldPos, delta * exp * 2);
-      }
-      if (door.parent!.rotation.z > 1.5) {
+  if (doorStage == 3) return;
+  const exp = 2 + doorRot / 2;
+  if (getPlayerPosition().z < -5) {
+    PLAYER_WORLD_CONTROL.y = 0;
+    setCutscene(false);
+    setPlayerCollision(true);
+    enablePlayerControl(canvas);
+  }
+  switch (doorStage) {
+    case 1:
+      if (doorRot < -1.5) {
         PLAYER_WORLD_CONTROL.y = -1;
-
-        if (getPlayerPosition().z < -5) {
-          canUpdateKeypad = false;
-          PLAYER_WORLD_CONTROL.y = 0;
-          canvas.style.cursor = "pointer";
-          enablePlayerControl(canvas);
-        }
       }
-    } else {
-      if (door.parent!.rotation.z > 0) {
-        rotatePhysicsObject(door.userData.body, doorWorldPos, -delta * exp * 2);
-      } else if (doorGroup.parent) {
+      if (doorRot > -2.5) {
+        doorRot -= delta * exp;
+        doorGroup.rotation.z = doorRot;
+        mainDoorGroup.rotation.z = -doorRot;
+      } else doorStage = 2;
+      break;
+    case 2:
+      if (doorRot < 0) {
+        doorRot += delta * exp;
+        doorGroup.rotation.z = doorRot;
+        mainDoorGroup.rotation.z = -doorRot;
+      } else if (doorGroup.parent && mainDoorGroup.parent) {
+        doorGroup.rotation.z = 0;
+        mainDoorGroup.rotation.z = 0;
         doorGroup.parent.remove(doorGroup);
+        setPlayerCollision(true);
+        doorStage = 3;
       }
-    }
+      break;
   }
 }
 
@@ -115,17 +110,11 @@ function addDebugPoint(scene: THREE.Scene): number {
 }
 
 export function createKeypad(
-  scene: THREE.Scene,
   camera: THREE.PerspectiveCamera,
   canvas: HTMLCanvasElement,
 ) {
   if (!keypad || !keypad.parent) return;
   bootLog("Creating keypad...");
-
-  doorGroup.position.copy(DOOR_PIVOT);
-  doorGroup.position.z = -1.1;
-  debugPoints[addDebugPoint(scene)].position.copy(doorGroup.position);
-  scene.add(doorGroup);
 
   const symbols = "123456789*0C";
 
@@ -173,7 +162,7 @@ export function createKeypad(
     delete keypadButtons[i];
   }
 
-  keypad.parent.add(buttonGroup);
+  keypad.add(buttonGroup);
 
   let raycaster: THREE.Raycaster | undefined = new THREE.Raycaster();
 
@@ -229,10 +218,11 @@ export function createKeypad(
     buttonPressed = null;
 
     if (codeInput == "0000") {
+      codeInput = "";
       raycaster = undefined;
       canvas.style.cursor = "default";
 
-      setTimeout(() => (doorOpen = true), 150);
+      setTimeout(() => (doorStage = 1), 150);
     }
   };
 }

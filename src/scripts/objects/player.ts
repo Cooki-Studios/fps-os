@@ -62,7 +62,12 @@ let velocity = new THREE.Vector3(),
   lastPointerY = 0,
   dragging = false,
   activePointerId: number | null = null,
-  noclip = false;
+  noclip = false,
+  cutscene = true;
+
+export function setCutscene(enabled = false) {
+  cutscene = enabled;
+}
 
 const playerGeo = new THREE.CapsuleGeometry(
   PLAYER_RADIUS,
@@ -119,6 +124,7 @@ export function enablePlayerControl(canvas: HTMLCanvasElement) {
   };
 
   if (!isMobile) {
+    canvas.style.cursor = "pointer";
     canvas.onclick = async () => {
       await canvas.requestPointerLock();
     };
@@ -200,7 +206,7 @@ export function initPlayer(
         playerData.velPosY = isPlayerCrouched()
           ? JUMP_VELOCITY * CROUCH_RATIO
           : JUMP_VELOCITY;
-      } else if (!isPlayerGrounded()) {
+      } else if (!isPlayerGrounded() && !cutscene) {
         playerData.velPosY += getGravityY() * delta;
       } else {
         playerData.velPosY = 0;
@@ -243,6 +249,12 @@ export function initPlayer(
       accel = sprint ? NOCLIP_ACCEL * 2 : NOCLIP_ACCEL;
       maxSpeed = NOCLIP_MAX_SPEED;
       friction = NOCLIP_FRICTION;
+    }
+
+    if (cutscene) {
+      accel = GROUND_ACCEL;
+      maxSpeed = GROUND_MAX_SPEED;
+      friction = GROUND_FRICTION;
     }
 
     if (isPlayerCrouched()) {

@@ -80,54 +80,6 @@ export function isPlayerCrouched(): boolean {
   return isCrouched;
 }
 
-export function rotatePhysicsObject(
-  body: JoltTypes.Body,
-  origin: THREE.Vector3,
-  amount: number,
-) {
-  const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
-
-  const axis = new Jolt.Vec3(0, 1, 0);
-  const deltaRot = Jolt.Quat.prototype.sRotation(axis, amount);
-  Jolt.destroy(axis);
-
-  const rotMat = Jolt.Mat44.prototype.sRotation(deltaRot);
-
-  const pos = body.GetPosition();
-  const originVec = new Jolt.Vec3(origin.x, origin.y, origin.z);
-  const posVec = new Jolt.Vec3(pos.GetX(), pos.GetY(), pos.GetZ());
-
-  const offset = posVec.Sub(originVec);
-  Jolt.destroy(posVec);
-
-  const rotatedOffset = rotMat.Multiply3x3(offset);
-  Jolt.destroy(rotMat);
-
-  const newPosVec = originVec.Add(rotatedOffset);
-  Jolt.destroy(originVec);
-  Jolt.destroy(rotatedOffset);
-
-  const newPos = new Jolt.RVec3(
-    newPosVec.GetX(),
-    newPosVec.GetY(),
-    newPosVec.GetZ(),
-  );
-  Jolt.destroy(newPosVec);
-
-  const rot = body.GetRotation();
-  const newRot = deltaRot.MulQuat(rot);
-  Jolt.destroy(deltaRot);
-
-  bodyInterface.SetPositionAndRotation(
-    body.GetID(),
-    newPos,
-    newRot,
-    Jolt.EActivation_Activate,
-  );
-
-  Jolt.destroy(newRot);
-}
-
 export function setPlayerCollision(enable: boolean) {
   if (enable) {
     movingBPFilter = new Jolt.DefaultBroadPhaseLayerFilter(
@@ -276,7 +228,7 @@ export async function initPhysics(scene: THREE.Scene): Promise<void> {
     Jolt.destroy(settings);
 
     gravity = joltInterface.GetPhysicsSystem().GetGravity();
-    respawnPos = new Jolt.RVec3(0, RESPAWN_HEIGHT, 0);
+    respawnPos = new Jolt.RVec3(0, RESPAWN_HEIGHT, -8);
     zeroVel = new Jolt.Vec3(0, 0, 0);
     tempVec3 = new Jolt.Vec3(0, 0, 0);
 
@@ -374,11 +326,11 @@ export async function addPhysicsToObject(
 
     movingBPFilter = new Jolt.DefaultBroadPhaseLayerFilter(
       joltInterface.GetObjectVsBroadPhaseLayerFilter(),
-      LAYER_DYNAMIC,
+      LAYER_NOCLIP,
     );
     movingLayerFilter = new Jolt.DefaultObjectLayerFilter(
       joltInterface.GetObjectLayerPairFilter(),
-      LAYER_DYNAMIC,
+      LAYER_NOCLIP,
     );
     bodyFilter = new Jolt.BodyFilter();
     shapeFilter = new Jolt.ShapeFilter();
@@ -500,7 +452,6 @@ export function updatePhysics(delta: number) {
 
   updatePlayerCrouchAnimation(delta);
   lerpPhysics(accumulator / FIXED_DELTA);
-  document.dispatchEvent(new CustomEvent("physicsLerped"));
 }
 
 function updatePrevPos(
