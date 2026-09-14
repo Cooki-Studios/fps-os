@@ -246,7 +246,7 @@ export function initPlayer(
 
     if (noclip) {
       const sprint = isActionPressed("sprint");
-      accel = sprint ? NOCLIP_ACCEL * 2 : NOCLIP_ACCEL;
+      accel = sprint ? NOCLIP_ACCEL * 10 : NOCLIP_ACCEL;
       maxSpeed = NOCLIP_MAX_SPEED;
       friction = NOCLIP_FRICTION;
     }
@@ -288,13 +288,18 @@ export function initPlayer(
     const speedFixed = speed.toFixed(1);
     const deltaSpeedFixed = (speed - prevSpeed).toFixed(1);
 
-    velEl.textContent = speedFixed;
-    if (Number(deltaSpeedFixed) > 0) {
-      velEl.className = "blu";
-    } else if (Number(deltaSpeedFixed) < 0) {
-      velEl.className = "red";
-    } else {
-      velEl.className = "";
+    if (
+      velEl.style.visibility == "visible" &&
+      velEl.textContent != speedFixed
+    ) {
+      velEl.textContent = speedFixed;
+      if (Number(deltaSpeedFixed) > 0) {
+        velEl.className = "blu";
+      } else if (Number(deltaSpeedFixed) < 0) {
+        velEl.className = "red";
+      } else {
+        velEl.className = "";
+      }
     }
 
     if (!noclip) applyWallDrag(velocity);

@@ -64,6 +64,7 @@ body {
         "cv11",
         "cv12",
         "cv13";
+    font-display: swap;
 }
 
 #title {
@@ -168,9 +169,24 @@ body {
     }
 }
 
-canvas,
+#cross {
+    z-index: 2;
+    display: grid;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    visibility: hidden;
+    mix-blend-mode: difference;
+    font-weight: normal;
+}
+
+canvas[data-engine],
 #vel,
-#title {
+#title,
+#cross {
     position: absolute;
     pointer-events: none;
     top: 0;

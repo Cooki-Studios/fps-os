@@ -81,7 +81,11 @@ export function updateKeypad(delta: number, canvas: HTMLCanvasElement) {
       } else if (doorGroup.parent && mainDoorGroup.parent) {
         doorGroup.rotation.z = 0;
         mainDoorGroup.rotation.z = 0;
+
         doorGroup.parent.remove(doorGroup);
+        for (const doorPart of mainDoorGroup.children)
+          if (doorPart.name != "Base") mainDoorGroup.remove(doorPart);
+
         setPlayerCollision(true);
         doorStage = 3;
       }
@@ -117,6 +121,7 @@ export function createKeypad(
   bootLog("Creating keypad...");
 
   const symbols = "123456789*0C";
+  const evaluator = new Evaluator();
 
   for (let i = 0; i < symbols.length; i++) {
     const geometry = new TextGeometry(symbols[i], {
@@ -152,13 +157,14 @@ export function createKeypad(
     brush1.material = material;
     brush2.material = new THREE.MeshStandardMaterial({ color: 0x202020 });
 
-    const evaluator = new Evaluator();
     const result = evaluator.evaluate(brush1, brush2, SUBTRACTION);
     result.name = symbols[i];
 
     button.removeFromParent();
     buttonGroup.add(result);
 
+    button.geometry.dispose();
+    num.geometry.dispose();
     delete keypadButtons[i];
   }
 
@@ -166,15 +172,15 @@ export function createKeypad(
 
   let raycaster: THREE.Raycaster | undefined = new THREE.Raycaster();
 
+  const mousePos = new THREE.Vector2();
   function getMousePos(e: PointerEvent) {
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    return new THREE.Vector2(
-      (x / rect.width) * 2 - 1,
-      -(y / rect.height) * 2 + 1,
-    );
+    mousePos.set((x / rect.width) * 2 - 1, -(y / rect.height) * 2 + 1);
+
+    return mousePos;
   }
 
   canvas.onpointermove = (e) => {

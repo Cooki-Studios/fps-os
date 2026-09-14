@@ -3,6 +3,7 @@ import { CSM } from "three/addons/csm/CSM.js";
 import { CSMHelper } from "three/addons/csm/CSMHelper.js";
 import { bootLog } from "../boot";
 import { isMobile } from "../util/mobile";
+import { setSkyOffset } from "./renderer";
 
 let csm: CSM | undefined, csmHelper: CSMHelper | undefined;
 
@@ -11,7 +12,7 @@ export function initLighting(
   camera: THREE.PerspectiveCamera,
   debug = false,
 ) {
-  const ambientLight = new THREE.AmbientLight(0xffffff, 2);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
   scene.add(ambientLight);
 
   csm = new CSM({
@@ -19,7 +20,7 @@ export function initLighting(
     mode: "practical",
     parent: scene,
     shadowMapSize: isMobile ? 512 : 2048,
-    lightDirection: new THREE.Vector3(-1, -2, -1).normalize(),
+    lightDirection: new THREE.Vector3(-1, -1, -1).normalize(),
     lightIntensity: 2,
     camera: camera,
   });
@@ -38,8 +39,19 @@ export function initLighting(
   bootLog("Lighting initialised");
 }
 
-export function updateCSM() {
-  if (csm) csm.update();
+let angle = 0;
+const phaseOffset = -Math.PI / 1.5;
+
+export function updateCSM(delta: number) {
+  if (csm) {
+    angle += delta * 0.001;
+
+    csm.lightDirection
+      .set(Math.cos(-angle + phaseOffset), -1, Math.sin(-angle + phaseOffset))
+      .normalize();
+    setSkyOffset(angle - 0.7);
+    csm.update();
+  }
   if (csmHelper) csmHelper.update();
 }
 

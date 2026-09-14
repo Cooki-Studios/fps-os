@@ -115,7 +115,9 @@ loader.loadAsync("room.usdc").then((room) => {
     if (import.meta.env.DEV) {
       createKeypad(camera, canvas);
       enableRenderer(scene, camera);
-      document.getElementsByTagName("canvas")[0].style.pointerEvents = "auto";
+      (
+        document.querySelector("canvas[data-engine]") as HTMLCanvasElement
+      ).style.pointerEvents = "auto";
       return;
     }
 

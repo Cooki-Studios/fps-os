@@ -6,6 +6,9 @@ import { getMainCam, getMainScene } from "../util/scene";
 import { createKeypad, updateKeypad } from "../objects/keypad";
 import { onMobileRotate } from "../util/mobile";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import Stats from "stats.js";
+import { onActionPressed } from "./input";
+import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 
 let renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
@@ -14,14 +17,32 @@ let renderer: THREE.WebGLRenderer,
 
 const MAX_ANIM_DELTA = 1 / 15;
 
-export function enableRenderer(
+var stats = new Stats();
+
+onActionPressed("debug", () => {
+  if (!document.body.contains(stats.dom)) {
+    document.body.appendChild(stats.dom);
+    stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+  }
+
+  stats.dom.style.visibility =
+    stats.dom.style.visibility === "visible" ? "hidden" : "visible";
+});
+
+export function setSkyOffset(offset: number) {
+  scene.backgroundRotation.y = offset;
+}
+
+export async function enableRenderer(
   renderScene: THREE.Scene,
   renderCam: THREE.PerspectiveCamera,
   title?: THREE.Group,
 ) {
   scene = renderScene;
   camera = renderCam;
-  const canvas = document.querySelector("canvas") as HTMLCanvasElement;
+  const canvas = document.querySelector(
+    "canvas[data-engine]",
+  ) as HTMLCanvasElement;
   resizeRenderer();
 
   if (title) createKeypad(getMainCam(), canvas);
@@ -30,6 +51,16 @@ export function enableRenderer(
   scene.environment = pmremGenerator.fromScene(new RoomEnvironment()).texture;
   scene.environmentIntensity = 0.2;
   bootLog("Environment loaded");
+
+  const textureLoader = new EXRLoader();
+  const texture = await textureLoader.loadAsync(
+    "textures/DaySkyHDRI069B_1K_HDR.exr",
+  );
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+
+  scene.background = texture;
+  scene.backgroundIntensity = 2;
+  bootLog("Background loaded");
 
   function animate(time: number) {
     timer.update(time);
@@ -51,17 +82,18 @@ export function enableRenderer(
             if (logo) logo.style.display = "none";
 
             canvas.style.pointerEvents = "auto";
-
             document.body.style.opacity = "1";
           }, 500);
         }
     } else {
       updatePhysics(delta);
       updateKeypad(delta, canvas);
-      updateCSM();
+      updateCSM(delta);
     }
 
+    stats.begin();
     renderer.render(scene, camera);
+    stats.end();
   }
 
   const timer = new THREE.Timer();

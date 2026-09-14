@@ -1,4 +1,5 @@
 import { bootLog } from "../boot";
+import { isMobile } from "../util/mobile";
 
 const actions = {
   // General
@@ -26,16 +27,25 @@ const actions = {
 } as const;
 export type Action = keyof typeof actions;
 
+const globalActions: Action[] = ["debug", "debugPlayer"];
+const globalKeys = new Set<string>(
+  globalActions.map((action) => actions[action]),
+);
+
 const keys: Record<string, boolean> = {},
   pressEvents: Record<string, CustomEvent> = {},
   releaseEvents: Record<string, CustomEvent> = {};
 export let enabled = false;
 
+const cross = document.getElementById("cross") as HTMLHeadingElement;
+
 export function enableInput() {
   enabled = true;
+  if (!isMobile) cross.style.visibility = "visible";
 }
 export function disableInput() {
   enabled = false;
+  if (!isMobile) cross.style.visibility = "hidden";
   resetKeys();
 }
 export function isInputEnabled() {
@@ -78,7 +88,7 @@ export function initInput() {
       else document.exitFullscreen().catch(() => {});
     }
 
-    if (!enabled) return;
+    if (!enabled && !globalKeys.has(key)) return;
     e.preventDefault();
 
     if (!keys[key]) {
@@ -89,10 +99,11 @@ export function initInput() {
   };
 
   document.onkeyup = (e) => {
-    if (!enabled) return;
+    const key = e.key.toLowerCase();
+
+    if (!enabled && !globalKeys.has(key)) return;
     e.preventDefault();
 
-    const key = e.key.toLowerCase();
     keys[key] = false;
     const event = releaseEvents[key];
     if (event) document.dispatchEvent(event);
