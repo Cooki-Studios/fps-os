@@ -7,6 +7,7 @@ import {
   compileRenderer,
   enableRenderer,
   initRenderer,
+  setupSky,
 } from "./system/renderer";
 import {
   addPhysicsToObject,
@@ -44,7 +45,10 @@ bootLog("Camera created");
 
 bootLog("Initialising lighting...");
 initLighting(scene, camera);
-const canvas = initRenderer();
+bootLog("Initialising Renderer...");
+const { canvas, renderer } = initRenderer();
+bootLog("Initialising sky...");
+setupSky(scene, renderer);
 bootLog("Initialising physics...");
 initPhysics(scene);
 bootLog("Initialising input...");
@@ -112,6 +116,7 @@ loader.loadAsync("room.usdc").then((room) => {
 
     await bootFinished();
 
+    // DEVMODE
     if (import.meta.env.DEV) {
       createKeypad(camera, canvas);
       enableRenderer(scene, camera);

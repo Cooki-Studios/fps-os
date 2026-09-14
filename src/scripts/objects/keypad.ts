@@ -128,7 +128,7 @@ export function createKeypad(
       font: font,
       size: 1,
       depth: 1,
-      curveSegments: ["0", "6", "9", "C"].includes(symbols[i]) ? 2 : 1,
+      curveSegments: symbols[i] == "0" ? 2 : 1,
     });
 
     const num = new THREE.Mesh(geometry);
@@ -150,7 +150,7 @@ export function createKeypad(
 
     brush2.position.x -= center.x * 0.065;
     brush2.position.y -= center.y * 0.075;
-    brush2.position.z += 0.04;
+    brush2.position.z += 0.03;
 
     brush2.updateMatrixWorld(true);
 

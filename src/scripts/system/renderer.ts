@@ -33,6 +33,26 @@ export function setSkyOffset(offset: number) {
   scene.backgroundRotation.y = offset;
 }
 
+export async function setupSky(
+  scene: THREE.Scene,
+  renderer: THREE.WebGLRenderer,
+) {
+  const pmremGenerator = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmremGenerator.fromScene(new RoomEnvironment()).texture;
+  scene.environmentIntensity = 0.2;
+
+  const textureLoader = new EXRLoader();
+  const texture = await textureLoader.loadAsync(
+    "textures/DaySkyHDRI069B_1K_HDR.exr",
+  );
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+
+  scene.background = texture;
+  scene.backgroundIntensity = 2;
+
+  bootLog("Sky initialised");
+}
+
 export async function enableRenderer(
   renderScene: THREE.Scene,
   renderCam: THREE.PerspectiveCamera,
@@ -47,21 +67,6 @@ export async function enableRenderer(
 
   if (title) createKeypad(getMainCam(), canvas);
 
-  const pmremGenerator = new THREE.PMREMGenerator(renderer);
-  scene.environment = pmremGenerator.fromScene(new RoomEnvironment()).texture;
-  scene.environmentIntensity = 0.2;
-  bootLog("Environment loaded");
-
-  const textureLoader = new EXRLoader();
-  const texture = await textureLoader.loadAsync(
-    "textures/DaySkyHDRI069B_1K_HDR.exr",
-  );
-  texture.mapping = THREE.EquirectangularReflectionMapping;
-
-  scene.background = texture;
-  scene.backgroundIntensity = 2;
-  bootLog("Background loaded");
-
   function animate(time: number) {
     timer.update(time);
     const delta = timer.getDelta();
@@ -72,7 +77,7 @@ export async function enableRenderer(
       if (canEndAnim)
         if (title.userData.animDone) {
           canEndAnim = false;
-          setTimeout(() => {
+          setTimeout(async () => {
             scene = getMainScene();
             camera = getMainCam();
             title = undefined;
@@ -122,7 +127,10 @@ export function resizeRenderer() {
   }
 }
 
-export function initRenderer(): HTMLCanvasElement {
+export function initRenderer(): {
+  canvas: HTMLCanvasElement;
+  renderer: THREE.WebGLRenderer;
+} {
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -141,7 +149,9 @@ export function initRenderer(): HTMLCanvasElement {
   window.onresize = resizeRenderer;
   onMobileRotate(resizeRenderer);
 
-  return canvas;
+  bootLog("Renderer initialised");
+
+  return { canvas, renderer };
 }
 
 export function compileRenderer(
