@@ -54,7 +54,7 @@ export function isInputEnabled() {
 
 function resetKeys() {
   for (const key of Object.keys(keys)) {
-    keys[key] = false;
+    delete keys[key];
   }
 }
 
@@ -104,7 +104,7 @@ export function initInput() {
     if (!enabled && !globalKeys.has(key)) return;
     e.preventDefault();
 
-    keys[key] = false;
+    delete keys[key];
     const event = releaseEvents[key];
     if (event) document.dispatchEvent(event);
   };
@@ -233,3 +233,22 @@ export function getJoystickX(): number {
 export function getJoystickY(): number {
   return joystickY;
 }
+
+const jump = document.getElementById("jump") as HTMLDivElement;
+jump.onpointerdown = () => {
+  keys[actions["jump"]] = true;
+};
+jump.onpointerup = () => {
+  delete keys[actions["jump"]];
+};
+
+const crouch = document.getElementById("crouch") as HTMLDivElement;
+crouch.onclick = () => {
+  if (keys[actions["crouch"]]) {
+    crouch.classList.remove("pressed");
+    delete keys[actions["crouch"]];
+  } else {
+    crouch.classList.add("pressed");
+    keys[actions["crouch"]] = true;
+  }
+};

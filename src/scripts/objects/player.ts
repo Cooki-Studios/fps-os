@@ -161,6 +161,10 @@ export function enablePlayerControl(canvas: HTMLCanvasElement) {
     canvas.onpointercancel = releasePointer;
 
     initJoystick();
+
+    const mobile = document.getElementById("mobile") as HTMLDivElement;
+    mobile.style.display = "block";
+    mobile.style.opacity = "1";
   }
 }
 

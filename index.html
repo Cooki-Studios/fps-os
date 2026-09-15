@@ -11,6 +11,7 @@
         <title>FPS OS</title>
     </head>
     <body>
+        <!--Intro-->
         <h1 id="title"></h1>
         <h1 id="logo"></h1>
         <div id="spinner"></div>
@@ -18,16 +19,26 @@
             <span id="bootlog-content"></span>
             <span id="blink">_</span>
         </code>
+
+        <!--Misc-->
         <h1 id="vel">0.0</h1>
+
+        <!--PC-->
         <h1 id="cross">+</h1>
-        <div id="joystick-cont">
-            <div id="joystick-pos">
-                <div id="joystick"></div>
-                <div id="joystick2"></div>
-                <div id="joystick3"></div>
-            </div>
-        </div>
         <h1 id="pc-info">Click to play</h1>
+
+        <!--Mobile-->
+        <div id="mobile">
+            <div id="joystick-cont">
+                <div id="joystick-pos">
+                    <div id="joystick"></div>
+                    <div id="joystick2"></div>
+                    <div id="joystick3"></div>
+                </div>
+            </div>
+            <div id="jump"></div>
+            <div id="crouch"></div>
+        </div>
         <script type="module" src="/src/scripts/main.ts"></script>
     </body>
 </html>

@@ -106,13 +106,16 @@ export function createKeypad(
     if (intersects.length == 0) return;
 
     const button = intersects[0].object.parent;
-    if (!button || button.position.y >= -0.18) return;
 
-    buttonPressed = button;
-    const key = buttonPressed.name.replace("key_", "");
+    if (!button) return;
 
+    const key = button.name.replace("key_", "");
     if (key == "C") codeInput = "";
     else codeInput += key;
+
+    if (button.position.y >= -0.18) return;
+
+    buttonPressed = button;
   };
 
   canvas.onpointerup = () => {

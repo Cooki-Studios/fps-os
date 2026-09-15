@@ -1,0 +1,111 @@
+html.mobile,
+body.mobile {
+    #logo {
+        height: calc(50% - 1.25em);
+    }
+
+    #bootlog {
+        font-size: 0.5em;
+    }
+
+    #spinner {
+        width: 2.5em;
+        top: calc(65% + 3.5em);
+    }
+
+    @media screen and (orientation: portrait) {
+        #logo {
+            font-size: 1.25em;
+            height: 50%;
+        }
+
+        #spinner {
+            top: calc(65% - 4em);
+        }
+
+        #joystick-cont {
+            width: 25vmax;
+            aspect-ratio: 1 / 2;
+        }
+    }
+}
+
+#joystick-cont {
+    position: absolute;
+    bottom: 0;
+
+    width: 30vmax;
+    aspect-ratio: 1 / 1;
+    z-index: 1;
+    display: none;
+    border-radius: 0 1vmax 0 0;
+
+    #joystick-pos {
+        position: relative;
+        pointer-events: none;
+
+        #joystick,
+        #joystick2,
+        #joystick3 {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(15, 15, 15, 0.5);
+            width: 10vmax;
+            aspect-ratio: 1 / 1;
+            border-radius: 15vmax;
+            visibility: hidden;
+            pointer-events: none;
+            z-index: 3;
+            transform: translate(-50%, -50%);
+        }
+
+        #joystick2 {
+            width: 5vmax;
+            z-index: 2;
+            opacity: 0.5;
+        }
+
+        #joystick3 {
+            width: 3vmax;
+            z-index: 1;
+            opacity: 0.25;
+        }
+    }
+}
+
+#mobile {
+    display: none;
+    opacity: 0;
+    transition: opacity 1s;
+}
+
+#jump,
+#crouch {
+    position: absolute;
+    z-index: 2;
+
+    &:active,
+    &.pressed {
+        opacity: 0.5;
+    }
+}
+
+#jump {
+    width: 10vmax;
+    aspect-ratio: 1;
+    background: url("/textures/jump.svg") 50% center no-repeat;
+    right: 7em;
+    bottom: 3em;
+    padding: 1em;
+}
+
+#crouch {
+    width: 4vmax;
+    aspect-ratio: 1;
+    background: url("/textures/jump.svg") 50% center / contain no-repeat;
+    right: 3em;
+    bottom: 2em;
+    padding: 1em;
+    transform: scaleY(-1);
+}
