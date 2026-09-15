@@ -12,12 +12,11 @@
     "@types/three": "^0.185.4",
     "less": "^4.9.1",
     "typescript": "~6.0.3",
-    "vite": "^8.2.2"
+    "vite": "^8.3.0"
   },
   "dependencies": {
     "jolt-physics": "^1.1.0",
     "stats.js": "^0.17.0",
-    "three": "^0.185.1",
-    "three-bvh-csg": "^0.0.18"
+    "three": "^0.185.1"
   }
 }

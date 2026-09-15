@@ -9,6 +9,7 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 import Stats from "stats.js";
 import { onActionPressed } from "./input";
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
+import { updateAnimation } from "./animation";
 
 let renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
@@ -91,6 +92,7 @@ export async function enableRenderer(
           }, 500);
         }
     } else {
+      updateAnimation(delta);
       updatePhysics(delta);
       updateKeypad(delta, canvas);
       updateCSM(delta);

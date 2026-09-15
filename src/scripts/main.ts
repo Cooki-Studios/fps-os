@@ -17,7 +17,8 @@ import {
 import { initInput, onActionPressed } from "./system/input";
 import { getPlayerMesh, initPlayer } from "./objects/player";
 import { setMainCam, setMainScene } from "./util/scene";
-import { createKeypad, keypadButtons, setKeypad } from "./objects/keypad";
+import { createKeypad, setDoor, setKeypad } from "./objects/keypad";
+import { setupAnimation } from "./system/animation";
 
 document.addEventListener(
   "wheel",
@@ -56,7 +57,8 @@ initInput();
 
 async function addPhysicsToObjects() {
   for (const mesh of meshes) {
-    if (mesh.name.startsWith("N_")) continue;
+    if (mesh.parent) scene.attach(mesh.parent);
+
     if (mesh.name.startsWith("D_")) {
       addPhysicsToObject(mesh, true, true, false);
     } else addPhysicsToObject(mesh, false, true, false);
@@ -76,37 +78,32 @@ const loader = new USDLoader(manager),
 const spinner = document.getElementById("spinner") as HTMLDivElement;
 
 loader.loadAsync("room.usdc").then((room) => {
-  bootLog(`Preparing material for meshs`);
+  bootLog(`Preparing meshes...`);
   scene.attach(room);
-  room.traverse((child) => {
-    if (child instanceof THREE.Mesh) {
-      child.material.dithering = true;
-      setupShadowMaterial(child.material);
-      meshes.push(child);
+
+  room.traverse((mesh) => {
+    if (mesh instanceof THREE.Mesh) {
+      mesh.material.dithering = true;
+      mesh.receiveShadow = true;
+      mesh.castShadow = true;
+      setupShadowMaterial(mesh.material);
+
+      if (mesh.parent) {
+        if (mesh.parent.name.startsWith("key_")) setKeypad(mesh.parent);
+
+        if (mesh.parent.parent && mesh.parent.name == "Base") {
+          setDoor(mesh.parent.parent);
+        }
+      }
+
+      if (!mesh.name.startsWith("N_")) {
+        meshes.push(mesh);
+      }
     }
   });
-  bootLog(`Prepared material for meshes`);
-
-  for (const mesh of meshes) {
-    if (!mesh.parent) continue;
-
-    switch (mesh.name) {
-      case "N_button":
-        keypadButtons[Number(mesh.parent.name.split("_")[2])] = mesh;
-        scene.attach(mesh.parent);
-        break;
-      case "N_Keypad":
-        setKeypad(mesh, scene);
-        break;
-      default:
-        if (!mesh.name.startsWith("N_")) scene.attach(mesh.parent);
-        break;
-    }
-
-    mesh.receiveShadow = true;
-    mesh.castShadow = true;
-  }
   bootLog(`Meshes loaded`);
+
+  setupAnimation(room, room.animations[0]);
 
   addPhysicsToObjects().then(async () => {
     bootLog("Compiling renderer...");

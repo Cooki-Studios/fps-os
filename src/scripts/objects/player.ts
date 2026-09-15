@@ -91,6 +91,8 @@ const deg = Math.PI / 180,
   clamp = (num: number, min: number, max: number) =>
     Math.max(min, Math.min(max, num));
 
+const pcInfo = document.getElementById("pc-info") as HTMLHeadingElement;
+
 export function enablePlayerControl(canvas: HTMLCanvasElement) {
   canvas.onpointermove = (e) => {
     if (isMobile && e.pointerId !== activePointerId) return;
@@ -127,6 +129,10 @@ export function enablePlayerControl(canvas: HTMLCanvasElement) {
     canvas.style.cursor = "pointer";
     canvas.onclick = async () => {
       await canvas.requestPointerLock();
+      if (pcInfo) {
+        pcInfo.style.transition = "none";
+        pcInfo.style.opacity = "0";
+      }
     };
     document.onpointerlockchange = () => {
       if (document.pointerLockElement == canvas) enableInput();
