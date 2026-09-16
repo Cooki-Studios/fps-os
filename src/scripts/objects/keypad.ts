@@ -8,7 +8,7 @@ import {
   setCutscene,
 } from "./player";
 import { setPlayerCollision } from "../system/physics";
-import { playAnimation } from "../system/animation";
+import { playAnimation, stopAnimation } from "../system/animation";
 import { isMobile } from "../util/mobile";
 
 let buttonPressed: THREE.Object3D | null = null,
@@ -38,11 +38,12 @@ export function updateKeypad(delta: number, canvas: HTMLCanvasElement) {
 
   if (!door || doorStage == 2) return;
 
-  if (door.rotation.z > 0.3) {
+  if (door.rotation.z > 0.4) {
     PLAYER_WORLD_CONTROL.y = -1;
   }
 
   if (getPlayerPosition().z < -5) {
+    stopAnimation();
     PLAYER_WORLD_CONTROL.y = 0;
     setCutscene(false);
     setPlayerCollision(true);

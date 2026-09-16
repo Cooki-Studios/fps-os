@@ -10,7 +10,7 @@ export function setupAnimation(
   const mixer = new THREE.AnimationMixer(mesh);
   const action = mixer.clipAction(clip);
   action.loop = THREE.LoopOnce;
-  action.clampWhenFinished = false;
+  action.clampWhenFinished = true;
 
   mixers.push(mixer);
   actions.push(action);
@@ -18,6 +18,10 @@ export function setupAnimation(
 
 export function playAnimation(id = 0) {
   actions[id].play();
+}
+
+export function stopAnimation(id = 0) {
+  actions[id].stop();
 }
 
 export function updateAnimation(delta: number) {

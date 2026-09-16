@@ -18,6 +18,7 @@ const actions = {
   // Debug
   debug: "`",
   debugPlayer: "~",
+  wallpaper: "k",
 
   // Noclip
   noclip: "/",

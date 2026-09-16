@@ -295,7 +295,18 @@ export function initPlayer(
       if (noclip) velocity.y += wishDir.y * addSpeed;
     }
 
-    const speedFixed = speed.toFixed(1);
+    if (!noclip) applyWallDrag(velocity);
+    playerData.velPosX = velocity.x;
+    playerData.velPosZ = velocity.z;
+    if (noclip) playerData.velPosY = velocity.y;
+
+    const speedFixed = (
+      new THREE.Vector3(
+        playerData.velPosX,
+        playerData.velPosY,
+        playerData.velPosZ,
+      ).lengthSq() / 10
+    ).toFixed(1);
     const deltaSpeedFixed = (speed - prevSpeed).toFixed(1);
 
     if (
@@ -311,11 +322,6 @@ export function initPlayer(
         velEl.className = "";
       }
     }
-
-    if (!noclip) applyWallDrag(velocity);
-    playerData.velPosX = velocity.x;
-    playerData.velPosZ = velocity.z;
-    if (noclip) playerData.velPosY = velocity.y;
 
     prevSpeed = speed;
   });

@@ -19,6 +19,7 @@ import { getPlayerMesh, initPlayer } from "./objects/player";
 import { setMainCam, setMainScene } from "./util/scene";
 import { createKeypad, setDoor, setKeypad } from "./objects/keypad";
 import { setupAnimation } from "./system/animation";
+import { initWallpaper, toggleWallpaper } from "./objects/wallpaper";
 
 document.addEventListener(
   "wheel",
@@ -81,6 +82,9 @@ loader.loadAsync("room.usdc").then((room) => {
   bootLog(`Preparing meshes...`);
   scene.attach(room);
 
+  bootLog("Initialising wallpaper...");
+  initWallpaper(room.getObjectByName("Walls"));
+
   room.traverse((mesh) => {
     if (mesh instanceof THREE.Mesh) {
       mesh.material.dithering = true;
@@ -91,14 +95,11 @@ loader.loadAsync("room.usdc").then((room) => {
       if (mesh.parent) {
         if (mesh.parent.name.startsWith("key_")) setKeypad(mesh.parent);
 
-        if (mesh.parent.parent && mesh.parent.name == "Base") {
+        if (mesh.parent.parent && mesh.parent.name == "Base")
           setDoor(mesh.parent.parent);
-        }
       }
 
-      if (!mesh.name.startsWith("N_")) {
-        meshes.push(mesh);
-      }
+      if (!mesh.name.startsWith("N_")) meshes.push(mesh);
     }
   });
   bootLog(`Meshes loaded`);
@@ -144,4 +145,7 @@ onActionPressed("debug", () => {
 });
 onActionPressed("debugPlayer", () => {
   togglePhysicsDebug(true);
+});
+onActionPressed("wallpaper", () => {
+  toggleWallpaper();
 });
