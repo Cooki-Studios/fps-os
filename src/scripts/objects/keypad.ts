@@ -46,6 +46,12 @@ export function updateKeypad(delta: number, canvas: HTMLCanvasElement) {
     stopAnimation();
     PLAYER_WORLD_CONTROL.y = 0;
     setCutscene(false);
+
+    for (let i = door.children.length - 1; i >= 0; i--) {
+      const doorPart = door.children[i];
+      if (doorPart.name !== "Base") door.remove(doorPart);
+    }
+
     setPlayerCollision(true);
     enablePlayerControl(canvas);
     if (!isMobile) pcInfo.style.opacity = "1";

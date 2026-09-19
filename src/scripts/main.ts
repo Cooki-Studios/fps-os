@@ -20,6 +20,8 @@ import { setMainCam, setMainScene } from "./util/scene";
 import { createKeypad, setDoor, setKeypad } from "./objects/keypad";
 import { setupAnimation } from "./system/animation";
 import { initWallpaper, toggleWallpaper } from "./objects/wallpaper";
+import { initMonitor, setMonitor } from "./objects/pc";
+import { setupMainLight } from "./objects/mainLight";
 
 document.addEventListener(
   "wheel",
@@ -97,14 +99,19 @@ loader.loadAsync("room.usdc").then((room) => {
 
         if (mesh.parent.parent && mesh.parent.name == "Base")
           setDoor(mesh.parent.parent);
+
+        if (mesh.parent.name == "PC") setMonitor(mesh.parent);
       }
 
       if (!mesh.name.startsWith("N_")) meshes.push(mesh);
-    }
+    } else if (mesh instanceof THREE.PointLight)
+      if (mesh.name == "MainLight") setupMainLight(mesh, scene);
   });
   bootLog(`Meshes loaded`);
 
   setupAnimation(room, room.animations[0]);
+
+  initMonitor(scene);
 
   addPhysicsToObjects().then(async () => {
     bootLog("Compiling renderer...");
@@ -142,10 +149,9 @@ loader.loadAsync("room.usdc").then((room) => {
 onActionPressed("debug", () => {
   togglePhysicsDebug();
   document.dispatchEvent(new CustomEvent("toggleDebug"));
+
+  toggleWallpaper();
 });
 onActionPressed("debugPlayer", () => {
   togglePhysicsDebug(true);
-});
-onActionPressed("wallpaper", () => {
-  toggleWallpaper();
 });

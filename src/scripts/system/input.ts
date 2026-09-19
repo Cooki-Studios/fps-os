@@ -11,14 +11,13 @@ const actions = {
   left: "a",
   right: "d",
   jump: " ",
-  crouch: "c",
+  crouch: "shift",
 
   speedo: "r",
 
   // Debug
   debug: "`",
   debugPlayer: "~",
-  wallpaper: "k",
 
   // Noclip
   noclip: "/",

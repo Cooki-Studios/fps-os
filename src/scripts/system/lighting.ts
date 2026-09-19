@@ -15,6 +15,9 @@ export function initLighting(
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
   scene.add(ambientLight);
 
+  const hemisphereLight = new THREE.HemisphereLight(0x87ceeb, 0xffa500, 0.5);
+  scene.add(hemisphereLight);
+
   csm = new CSM({
     maxFar: 50,
     mode: "practical",

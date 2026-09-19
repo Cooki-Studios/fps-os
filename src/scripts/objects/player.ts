@@ -225,13 +225,12 @@ export function initPlayer(
       playerData.velPosY = 0;
     }
 
-    if (isActionPressed("crouch") && !crouched) {
+    if (isActionPressed("crouch") && !crouched && !noclip) {
       crouched = true;
       crouchPlayer(true, playerMesh, camera);
     }
-    if (!isActionPressed("crouch") && crouched) {
+    if (crouched && !isActionPressed("crouch"))
       if (crouchPlayer(false, playerMesh, camera)) crouched = false;
-    }
 
     // https://github.com/AceSpectre/Quakelike-Controller/blob/main/QuakelikeController/playerMovement.gd
     const inputDir = isMobile

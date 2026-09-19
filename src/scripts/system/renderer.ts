@@ -10,6 +10,7 @@ import Stats from "stats.js";
 import { onActionPressed } from "./input";
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 import { updateAnimation } from "./animation";
+import { resizeMonitor, updateMonitor } from "../objects/pc";
 
 let renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
@@ -65,6 +66,7 @@ export async function enableRenderer(
     "canvas[data-engine]",
   ) as HTMLCanvasElement;
   resizeRenderer();
+  resizeMonitor();
 
   if (title) createKeypad(getMainCam(), canvas);
 
@@ -83,6 +85,7 @@ export async function enableRenderer(
             camera = getMainCam();
             title = undefined;
             resizeRenderer();
+            resizeMonitor();
 
             const logo = document.getElementById("logo");
             if (logo) logo.style.display = "none";
@@ -95,6 +98,7 @@ export async function enableRenderer(
       updateAnimation(delta);
       updatePhysics(delta);
       updateKeypad(delta, canvas);
+      updateMonitor(scene, camera);
       updateCSM(delta);
     }
 
@@ -148,8 +152,14 @@ export function initRenderer(): {
   };
 
   document.body.appendChild(canvas);
-  window.onresize = resizeRenderer;
-  onMobileRotate(resizeRenderer);
+
+  const onresize = () => {
+    resizeRenderer();
+    resizeMonitor();
+  };
+
+  window.onresize = onresize;
+  onMobileRotate(onresize);
 
   bootLog("Renderer initialised");
 
