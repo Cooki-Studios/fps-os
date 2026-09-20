@@ -20,6 +20,7 @@ import {
 } from "../system/physics";
 import { bootLog } from "../boot";
 import { isMobile } from "../util/mobile";
+import { contextPlayer, interactPlayer } from "../system/interact";
 
 export type PlayerData = {
   velPosX: number;
@@ -93,7 +94,10 @@ const deg = Math.PI / 180,
 
 const pcInfo = document.getElementById("pc-info") as HTMLHeadingElement;
 
-export function enablePlayerControl(canvas: HTMLCanvasElement) {
+export function enablePlayerControl(
+  canvas: HTMLCanvasElement,
+  scene: THREE.Scene,
+) {
   canvas.onpointermove = (e) => {
     if (isMobile && e.pointerId !== activePointerId) return;
     if (isMobile || isInputEnabled()) {
@@ -122,17 +126,34 @@ export function enablePlayerControl(canvas: HTMLCanvasElement) {
         -90 * deg,
         90 * deg,
       );
+
+      interactPlayer(camera, scene, false);
     }
   };
 
   if (!isMobile) {
     canvas.style.cursor = "pointer";
-    canvas.onclick = async () => {
-      await canvas.requestPointerLock();
-      if (pcInfo) {
-        pcInfo.style.transition = "none";
-        pcInfo.style.opacity = "0";
+    canvas.onclick = async (e) => {
+      if (document.pointerLockElement == canvas) {
+        switch (e.button) {
+          case 0:
+            interactPlayer(camera, scene);
+            break;
+          case 2:
+            contextPlayer(camera, scene);
+            break;
+        }
+      } else {
+        await canvas.requestPointerLock();
+        if (pcInfo) {
+          pcInfo.style.transition = "none";
+          pcInfo.style.opacity = "0";
+        }
       }
+    };
+    canvas.onpointerdown = (e) => {
+      if (document.pointerLockElement == canvas && e.button == 0)
+        interactPlayer(camera, scene, true, false);
     };
     document.onpointerlockchange = () => {
       if (document.pointerLockElement == canvas) enableInput();

@@ -9,6 +9,10 @@ export function bootFinished(): Promise<void> {
   return queue;
 }
 
+export function hideBootLog() {
+  log.style.display = "none";
+}
+
 export function bootLog(msg: string, showTime = true, error = false) {
   queue = queue.then(async () => {
     if (blink) clearTimeout(blink);
@@ -48,10 +52,12 @@ function restartBlink() {
 
 window.onerror = (_msg, _src, _ln, _col, e) => {
   if (!e || !e.stack) return;
+  log.style.display = "flex";
   bootLog(e.stack, true, true);
 };
 window.onunhandledrejection = (e) => {
   if (e.reason.name == "SecurityError" && e.reason.code == 18) return;
+  log.style.display = "flex";
   bootLog(`Unhandled (in promise) ${e.reason.stack}`, true, true);
 };
 

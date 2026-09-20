@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { updatePhysics } from "./physics";
 import { updateCSM } from "./lighting";
-import { animateTitle, bootLog } from "../boot";
+import { animateTitle, bootLog, hideBootLog } from "../boot";
 import { getMainCam, getMainScene } from "../util/scene";
 import { createKeypad, updateKeypad } from "../objects/keypad";
 import { onMobileRotate } from "../util/mobile";
@@ -10,7 +10,8 @@ import Stats from "stats.js";
 import { onActionPressed } from "./input";
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 import { updateAnimation } from "./animation";
-import { resizeMonitor, updateMonitor } from "../objects/pc";
+import { resize3DUI, update3DUI } from "../system/3dui";
+import { updateMenu } from "./interact";
 
 let renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
@@ -66,7 +67,7 @@ export async function enableRenderer(
     "canvas[data-engine]",
   ) as HTMLCanvasElement;
   resizeRenderer();
-  resizeMonitor();
+  resize3DUI();
 
   if (title) createKeypad(getMainCam(), canvas);
 
@@ -84,8 +85,9 @@ export async function enableRenderer(
             scene = getMainScene();
             camera = getMainCam();
             title = undefined;
+            hideBootLog();
             resizeRenderer();
-            resizeMonitor();
+            resize3DUI();
 
             const logo = document.getElementById("logo");
             if (logo) logo.style.display = "none";
@@ -97,8 +99,9 @@ export async function enableRenderer(
     } else {
       updateAnimation(delta);
       updatePhysics(delta);
-      updateKeypad(delta, canvas);
-      updateMonitor(scene, camera);
+      updateKeypad(delta, canvas, scene);
+      update3DUI(scene, camera);
+      updateMenu(camera);
       updateCSM(delta);
     }
 
@@ -155,7 +158,7 @@ export function initRenderer(): {
 
   const onresize = () => {
     resizeRenderer();
-    resizeMonitor();
+    resize3DUI();
   };
 
   window.onresize = onresize;

@@ -1,4 +1,4 @@
-import { bootLog, bootFinished, createTitleScene } from "./boot";
+import { bootLog, bootFinished, createTitleScene, hideBootLog } from "./boot";
 
 import * as THREE from "three";
 import { USDLoader } from "three/examples/jsm/loaders/USDLoader.js";
@@ -30,6 +30,7 @@ document.addEventListener(
   },
   { passive: false },
 );
+document.oncontextmenu = (e) => e.preventDefault();
 
 const scene = new THREE.Scene();
 setMainScene(scene);
@@ -125,6 +126,7 @@ loader.loadAsync("room.usdc").then((room) => {
     if (import.meta.env.DEV) {
       createKeypad(camera, canvas);
       enableRenderer(scene, camera);
+      hideBootLog();
       (
         document.querySelector("canvas[data-engine]") as HTMLCanvasElement
       ).style.pointerEvents = "auto";

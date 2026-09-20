@@ -10,6 +10,7 @@ import {
 import { setPlayerCollision } from "../system/physics";
 import { playAnimation, stopAnimation } from "../system/animation";
 import { isMobile } from "../util/mobile";
+import { setupContextMenu } from "../system/interact";
 
 let buttonPressed: THREE.Object3D | null = null,
   codeInput = "",
@@ -26,7 +27,11 @@ export function setDoor(obj: THREE.Object3D) {
 
 const pcInfo = document.getElementById("pc-info") as HTMLHeadingElement;
 
-export function updateKeypad(delta: number, canvas: HTMLCanvasElement) {
+export function updateKeypad(
+  delta: number,
+  canvas: HTMLCanvasElement,
+  scene: THREE.Scene,
+) {
   if (buttons.length == 0) return;
   for (const button of buttons) {
     if (buttonPressed != button)
@@ -45,6 +50,10 @@ export function updateKeypad(delta: number, canvas: HTMLCanvasElement) {
   if (getPlayerPosition().z < -5) {
     stopAnimation();
     PLAYER_WORLD_CONTROL.y = 0;
+
+    setupContextMenu(scene);
+
+    setPlayerCollision(true);
     setCutscene(false);
 
     for (let i = door.children.length - 1; i >= 0; i--) {
@@ -52,8 +61,7 @@ export function updateKeypad(delta: number, canvas: HTMLCanvasElement) {
       if (doorPart.name !== "Base") door.remove(doorPart);
     }
 
-    setPlayerCollision(true);
-    enablePlayerControl(canvas);
+    enablePlayerControl(canvas, scene);
     if (!isMobile) pcInfo.style.opacity = "1";
     doorStage = 2;
   }

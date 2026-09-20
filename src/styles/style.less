@@ -17,6 +17,55 @@ body {
 
 body {
     transition: opacity 500ms;
+
+    iframe {
+        border: 0;
+    }
+
+    #context {
+        width: 10em;
+        max-height: 20em;
+        display: flex;
+        flex-direction: column;
+        background-color: #151515;
+        padding: 4px 0 0 0;
+        border: 1px white solid;
+        font-family: monospace;
+
+        #ctx-name {
+            margin-left: 4px;
+            margin-bottom: 3px;
+            font-size: 10px;
+        }
+
+        #ctx-buttons {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 4px;
+
+            button {
+                padding: 2px 0 2px 4px;
+                font-family: monospace;
+                border: none;
+                font-size: 10px;
+                color: white;
+                background-color: #151515;
+
+                text-align: left;
+
+                &.hover {
+                    background-color: #353535;
+                }
+
+                &.active {
+                    background-color: #404040;
+                }
+            }
+        }
+    }
+    > #context {
+        visibility: hidden;
+    }
 }
 
 @font-face {
@@ -48,6 +97,9 @@ body {
     overflow-y: scroll;
     white-space: pre;
     pointer-events: all;
+    background-color: black;
+    backdrop-filter: blur(0.5em);
+    z-index: 10;
 
     :last-child {
         margin-bottom: 5em;
@@ -67,7 +119,8 @@ body {
 @import "title";
 
 canvas[data-engine],
-#pc-info {
+#pc-info,
+#cross {
     position: absolute;
     pointer-events: none;
     top: 0;
@@ -88,6 +141,20 @@ canvas[data-engine],
     font-family:
         Inter ExtraBold,
         sans-serif;
+}
+
+#cross {
+    z-index: 3;
+    display: grid;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    visibility: hidden;
+    mix-blend-mode: difference;
+    font-weight: normal;
 }
 
 @import "mobile";
