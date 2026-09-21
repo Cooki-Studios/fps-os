@@ -64,3 +64,8 @@ export function toggleLight() {
     lighting = !lighting;
   }, 100);
 }
+
+export function disableLight() {
+  spotLight.parent?.remove(spotLight);
+  lightHelper.parent?.remove(lightHelper);
+}

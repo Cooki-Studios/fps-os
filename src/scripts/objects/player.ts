@@ -327,7 +327,7 @@ export function initPlayer(
         playerData.velPosZ,
       ).lengthSq() / 10
     ).toFixed(1);
-    const deltaSpeedFixed = (speed - prevSpeed).toFixed(1);
+    const deltaSpeedFixed = (Number(speedFixed) - prevSpeed).toFixed(1);
 
     if (
       velEl.style.visibility == "visible" &&
@@ -343,7 +343,7 @@ export function initPlayer(
       }
     }
 
-    prevSpeed = speed;
+    prevSpeed = Number(speedFixed);
   });
 
   bootLog("Player initialised");

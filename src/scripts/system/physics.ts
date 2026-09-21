@@ -388,6 +388,13 @@ export async function addPhysicsToObject(
   bootLog(`Added physics to ${obj.name}`);
 }
 
+export async function removePhysicsFromObject(body: JoltTypes.Body) {
+  const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
+  const id = body.GetID();
+  bodyInterface.RemoveBody(id);
+  bodyInterface.DestroyBody(id);
+}
+
 export function togglePhysicsDebug(isPlayer = false) {
   if (isPlayer) {
     const playerMesh = debugGroup.getObjectByName("playerDebug");

@@ -9,7 +9,9 @@ export function setMonitor(obj: THREE.Object3D) {
 }
 
 const rotation = new THREE.Euler(-Math.PI / 36, -Math.PI / 2, 0, "YXZ"),
-  offset = new THREE.Vector3(0.0515, 1.03325, 0);
+  offset = new THREE.Vector3(0.05, 1.03325, 0);
+
+let screenMesh: THREE.Mesh;
 
 export function initMonitor(scene: THREE.Scene) {
   const pos = new THREE.Vector3();
@@ -25,6 +27,7 @@ export function initMonitor(scene: THREE.Scene) {
 
   const { mesh, obj } = createUI(scene, iframe);
   if (!mesh) return;
+  screenMesh = mesh;
 
   mesh.position.copy(pos.add(offset));
   mesh.rotation.copy(rotation);
@@ -36,4 +39,8 @@ export function initMonitor(scene: THREE.Scene) {
   onActionPressed("debug", () => {
     mesh.visible = !mesh.visible;
   });
+}
+
+export function deletePC() {
+  screenMesh.parent!.remove(screenMesh);
 }

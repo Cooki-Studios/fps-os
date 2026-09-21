@@ -1,10 +1,12 @@
 import * as THREE from "three";
 import { createUI } from "./3dui";
 import type { CSS3DObject } from "three/examples/jsm/Addons.js";
-import { toggleLight } from "../objects/mainLight";
+import { disableLight, toggleLight } from "../objects/mainLight";
+import { removePhysicsFromObject } from "./physics";
+import { deletePC } from "../objects/pc";
 
 const raycaster = new THREE.Raycaster();
-raycaster.far = 5;
+raycaster.far = 8;
 
 function getObject(camera: THREE.PerspectiveCamera, scene: THREE.Scene) {
   raycaster.setFromCamera(new THREE.Vector2(), camera);
@@ -49,7 +51,11 @@ export function interactPlayer(
       el.classList.add("active");
     } else if (clickedEl) {
       clickedEl.classList.remove("active");
-      if (el == clickedEl) (clickedEl as HTMLElement).click();
+      if (el == clickedEl) {
+        (clickedEl as HTMLElement).click();
+        canShow = false;
+        contextObj.visible = false;
+      }
       clickedEl = undefined;
     } else {
       contextObj.visible = false;
@@ -91,14 +97,25 @@ export function contextPlayer(
     i = intersect.i;
   if (!obj) return;
 
-  menuName.textContent = obj.name.split("_")[0];
+  const name = obj.name.split("_")[0];
+  menuName.textContent = name;
 
   menuButtons.textContent = "";
-  for (let i = 0; i < 3; i++) {
-    const button = document.createElement("button");
-    button.textContent = `Option ${i}`;
-    menuButtons.appendChild(button);
-  }
+  const button = document.createElement("button");
+  button.textContent = "Delete";
+  button.onclick = () => {
+    const debugMesh: THREE.Mesh = obj.children[0].userData.debugMesh;
+    if (debugMesh) debugMesh.parent!.remove(debugMesh);
+
+    if (obj.children[0].userData.body)
+      removePhysicsFromObject(obj.children[0].userData.body);
+
+    if (name == "Light") disableLight();
+    else if (name == "PC") deletePC();
+
+    obj.parent!.remove(obj);
+  };
+  menuButtons.appendChild(button);
 
   point = i.point;
   canShow = true;
