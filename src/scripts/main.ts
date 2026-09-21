@@ -95,6 +95,11 @@ loader.loadAsync("room.usdc").then((room) => {
       mesh.castShadow = true;
       setupShadowMaterial(mesh.material);
 
+      if (mesh.name.startsWith("N_Blind")) {
+        (mesh.material as THREE.MeshPhysicalMaterial).opacity = 0.9;
+        (mesh.material as THREE.MeshPhysicalMaterial).transparent = true;
+      }
+
       if (mesh.parent) {
         if (mesh.parent.name.startsWith("key_")) setKeypad(mesh.parent);
 
@@ -111,7 +116,11 @@ loader.loadAsync("room.usdc").then((room) => {
   bootLog(`Meshes loaded`);
 
   setupAnimation(room, room.animations[0], "Door");
-  setupAnimation(room, room.animations[0], "Switch", 4 / 24);
+  setupAnimation(room, room.animations[0], "Switch", 1 / 6);
+  setupAnimation(room, room.animations[0], "Blind2", 0.5);
+  setupAnimation(room, room.animations[0], "Blind3", 0.5);
+  setupAnimation(room, room.animations[0], "Blind4", 0.5);
+  setupAnimation(room, room.animations[0], "Blind5", 0.5);
 
   initMonitor(scene);
 

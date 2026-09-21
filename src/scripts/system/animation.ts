@@ -41,6 +41,10 @@ export function stopAnimation(id = 0) {
   actions[id].stop();
 }
 
+export function getAnimationTime(id = 0) {
+  return actions[id].time;
+}
+
 export function updateAnimation(delta: number) {
   for (const mixer of mixers) mixer.update(delta);
 }

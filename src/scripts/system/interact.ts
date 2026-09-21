@@ -4,6 +4,13 @@ import type { CSS3DObject } from "three/examples/jsm/Addons.js";
 import { disableLight, toggleLight } from "../objects/mainLight";
 import { removePhysicsFromObject } from "./physics";
 import { deletePC } from "../objects/pc";
+import {
+  getAnimationTime,
+  playAnimation,
+  playAnimationReversed,
+  stopAnimation,
+} from "./animation";
+import { setLightLevel } from "./lighting";
 
 const raycaster = new THREE.Raycaster();
 raycaster.far = 8;
@@ -21,6 +28,7 @@ function getObject(camera: THREE.PerspectiveCamera, scene: THREE.Scene) {
 }
 
 let hoverEl: Element, clickedEl: Element | undefined;
+const blindsDown: boolean[] = [];
 
 export function interactPlayer(
   camera: THREE.PerspectiveCamera,
@@ -43,6 +51,25 @@ export function interactPlayer(
     if (released) {
       const name = obj.name.split("_")[0];
       if (name == "Switch") toggleLight();
+      if (name.startsWith("Blind")) {
+        const blindNum = Number(name.replace("Blind", ""));
+
+        const time = getAnimationTime(blindNum);
+        if (time > 0 && time < 0.5) return;
+
+        if (blindsDown[blindNum]) {
+          playAnimationReversed(blindNum);
+        } else {
+          stopAnimation(blindNum);
+          playAnimation(blindNum);
+        }
+        blindsDown[blindNum] = !blindsDown[blindNum];
+
+        setTimeout(() => {
+          const count = blindsDown.reduce((sum, val) => sum + (val ? 1 : 0), 0);
+          setLightLevel(1 - (count / 4) * 0.5);
+        }, 200);
+      }
     }
 
     if (!released && el && menu.contains(el)) {

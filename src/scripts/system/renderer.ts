@@ -56,6 +56,11 @@ export async function setupSky(
   bootLog("Sky initialised");
 }
 
+export function setSkyLightLevel(intensity = 1) {
+  scene.environmentIntensity = 0.2 * intensity;
+  scene.backgroundIntensity = 2 * intensity;
+}
+
 export async function enableRenderer(
   renderScene: THREE.Scene,
   renderCam: THREE.PerspectiveCamera,

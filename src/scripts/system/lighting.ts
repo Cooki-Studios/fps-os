@@ -3,19 +3,22 @@ import { CSM } from "three/addons/csm/CSM.js";
 import { CSMHelper } from "three/addons/csm/CSMHelper.js";
 import { bootLog } from "../boot";
 import { isMobile } from "../util/mobile";
-import { setSkyOffset } from "./renderer";
+import { setSkyLightLevel, setSkyOffset } from "./renderer";
 
-let csm: CSM | undefined, csmHelper: CSMHelper | undefined;
+let csm: CSM | undefined,
+  csmHelper: CSMHelper | undefined,
+  ambientLight: THREE.AmbientLight,
+  hemisphereLight: THREE.HemisphereLight;
 
 export function initLighting(
   scene: THREE.Scene,
   camera: THREE.PerspectiveCamera,
   debug = false,
 ) {
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+  ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
   scene.add(ambientLight);
 
-  const hemisphereLight = new THREE.HemisphereLight(0x87ceeb, 0xffa500, 0.5);
+  hemisphereLight = new THREE.HemisphereLight(0x87ceeb, 0xffa500, 0.5);
   scene.add(hemisphereLight);
 
   csm = new CSM({
@@ -40,6 +43,12 @@ export function initLighting(
   }
 
   bootLog("Lighting initialised");
+}
+
+export function setLightLevel(intensity = 1) {
+  ambientLight.intensity = 0.5 * intensity;
+  hemisphereLight.intensity = 0.5 * intensity;
+  setSkyLightLevel(intensity);
 }
 
 let angle = 0;

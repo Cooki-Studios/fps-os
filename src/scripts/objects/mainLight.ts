@@ -23,7 +23,7 @@ export function setupMainLight(light: THREE.PointLight, scene: THREE.Scene) {
   target.position.set(0, 0, -8.5);
   spotLight.target = target;
 
-  spotLight.angle = Math.PI / 3;
+  spotLight.angle = Math.PI / 2;
   spotLight.penumbra = 0.5;
 
   const parent = light.parent;
