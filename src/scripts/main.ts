@@ -110,7 +110,8 @@ loader.loadAsync("room.usdc").then((room) => {
   });
   bootLog(`Meshes loaded`);
 
-  setupAnimation(room, room.animations[0]);
+  setupAnimation(room, room.animations[0], "Door");
+  setupAnimation(room, room.animations[0], "Switch", 4 / 24);
 
   initMonitor(scene);
 

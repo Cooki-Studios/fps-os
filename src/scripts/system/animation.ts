@@ -6,9 +6,18 @@ const mixers: THREE.AnimationMixer[] = [],
 export function setupAnimation(
   mesh: THREE.Object3D,
   clip: THREE.AnimationClip,
+  name: string,
+  durationMul = 1,
 ) {
+  const tracks = clip.tracks.filter((track) => track.name.startsWith(name));
+  const splitClip = new THREE.AnimationClip(
+    name,
+    clip.duration * durationMul,
+    tracks,
+  );
+
   const mixer = new THREE.AnimationMixer(mesh);
-  const action = mixer.clipAction(clip);
+  const action = mixer.clipAction(splitClip);
   action.loop = THREE.LoopOnce;
   action.clampWhenFinished = true;
 
@@ -17,6 +26,14 @@ export function setupAnimation(
 }
 
 export function playAnimation(id = 0) {
+  actions[id].timeScale = 1;
+  actions[id].play();
+}
+
+export function playAnimationReversed(id = 0) {
+  actions[id].stop();
+  actions[id].time = actions[id].getClip().duration;
+  actions[id].timeScale = -1;
   actions[id].play();
 }
 

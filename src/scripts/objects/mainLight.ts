@@ -1,11 +1,21 @@
 import * as THREE from "three";
 import { isMobile } from "../util/mobile";
+import {
+  playAnimation,
+  playAnimationReversed,
+  stopAnimation,
+} from "../system/animation";
 import { onActionPressed } from "../system/input";
 
-export function setupMainLight(light: THREE.PointLight, scene: THREE.Scene) {
-  const intensity = light.intensity;
+let intensity: number,
+  spotLight: THREE.SpotLight,
+  mat: THREE.MeshPhysicalMaterial,
+  lightHelper: THREE.SpotLightHelper;
 
-  const spotLight = new THREE.SpotLight(light.color, 0);
+export function setupMainLight(light: THREE.PointLight, scene: THREE.Scene) {
+  intensity = light.intensity;
+
+  spotLight = new THREE.SpotLight(light.color, 0);
   spotLight.position.copy(light.position);
   spotLight.rotation.copy(light.rotation);
 
@@ -26,17 +36,31 @@ export function setupMainLight(light: THREE.PointLight, scene: THREE.Scene) {
   spotLight.castShadow = true;
 
   const mesh = parent.parent!.getObjectByName("N_Light") as THREE.Mesh;
-  const mat = mesh.material as THREE.MeshPhysicalMaterial;
+  mat = mesh.material as THREE.MeshPhysicalMaterial;
   mat.emissiveIntensity = 0;
 
-  const lightHelper = new THREE.SpotLightHelper(spotLight, 0.5);
+  lightHelper = new THREE.SpotLightHelper(spotLight, 0.5);
   lightHelper.visible = false;
   scene.add(lightHelper);
 
   onActionPressed("debug", () => {
+    lightHelper.visible = !lightHelper.visible;
+  });
+}
+
+let lighting = false;
+export function toggleLight() {
+  if (lighting) {
+    playAnimationReversed(1);
+  } else {
+    stopAnimation(1);
+    playAnimation(1);
+  }
+
+  setTimeout(() => {
     spotLight.intensity = spotLight.intensity == 0 ? intensity : 0;
     mat.emissiveIntensity = mat.emissiveIntensity == 0 ? 1 : 0;
 
-    lightHelper.visible = !lightHelper.visible;
-  });
+    lighting = !lighting;
+  }, 100);
 }

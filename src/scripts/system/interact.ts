@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { createUI } from "./3dui";
 import type { CSS3DObject } from "three/examples/jsm/Addons.js";
+import { toggleLight } from "../objects/mainLight";
 
 const raycaster = new THREE.Raycaster();
 raycaster.far = 5;
@@ -37,6 +38,11 @@ export function interactPlayer(
   );
 
   if (click) {
+    if (released) {
+      const name = obj.name.split("_")[0];
+      if (name == "Switch") toggleLight();
+    }
+
     if (!released && el && menu.contains(el)) {
       if (clickedEl && clickedEl !== el) clickedEl.classList.remove("active");
       clickedEl = el;
@@ -71,7 +77,8 @@ export function setupContextMenu(scene: THREE.Scene) {
 }
 
 const OFFSET_SCALE = 0.004;
-let point: THREE.Vector3 | undefined = new THREE.Vector3();
+let point: THREE.Vector3 | undefined = new THREE.Vector3(),
+  canShow = false;
 
 export function contextPlayer(
   camera: THREE.PerspectiveCamera,
@@ -84,7 +91,7 @@ export function contextPlayer(
     i = intersect.i;
   if (!obj) return;
 
-  menuName.textContent = obj.name;
+  menuName.textContent = obj.name.split("_")[0];
 
   menuButtons.textContent = "";
   for (let i = 0; i < 3; i++) {
@@ -94,6 +101,7 @@ export function contextPlayer(
   }
 
   point = i.point;
+  canShow = true;
 }
 
 export function updateMenu(camera: THREE.PerspectiveCamera) {
@@ -110,5 +118,5 @@ export function updateMenu(camera: THREE.PerspectiveCamera) {
   );
   contextObj.translateX(contextRect.width * OFFSET_SCALE);
 
-  if (!contextObj.visible) contextObj.visible = true;
+  if (!contextObj.visible && canShow) contextObj.visible = true;
 }
