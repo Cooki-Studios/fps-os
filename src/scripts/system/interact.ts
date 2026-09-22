@@ -3,7 +3,7 @@ import { createUI } from "./3dui";
 import type { CSS3DObject } from "three/examples/jsm/Addons.js";
 import { disableLight, toggleLight } from "../objects/mainLight";
 import { removePhysicsFromObject } from "./physics";
-import { deletePC } from "../objects/pc";
+import { deletePC, enablePC } from "../objects/pc";
 import {
   getAnimationTime,
   playAnimation,
@@ -92,6 +92,9 @@ export function interactPlayer(
           break;
         case "Door":
           lock(camera, canvas);
+          break;
+        case "PC":
+          enablePC(canvas, scene);
           break;
         default:
           if (name.startsWith("Blind")) {

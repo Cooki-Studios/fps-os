@@ -100,7 +100,7 @@ export async function createTitleScene(): Promise<{
   camera.rotation.order = "YXZ";
   camera.position.set(0, -0.5, 10);
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+  const ambientLight = new THREE.AmbientLight(0xffa500, 0.75);
   scene.add(ambientLight);
 
   light = new THREE.DirectionalLight(0xffffff, 3);

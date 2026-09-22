@@ -4,6 +4,8 @@ import {
   CSS3DRenderer,
 } from "three/examples/jsm/renderers/CSS3DRenderer.js";
 
+const SCALE = 0.001625;
+
 const cssRenderer = new CSS3DRenderer();
 cssRenderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -23,8 +25,6 @@ overlayDiv.style.zIndex = "2";
 document.body.appendChild(overlayDiv);
 
 const overlayScene = new THREE.Scene();
-
-const SCALE = 0.001625;
 
 export function createUI(
   parent: THREE.Object3D,

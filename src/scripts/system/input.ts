@@ -14,6 +14,7 @@ const actions = {
   crouch: "shift",
 
   speedo: "r",
+  exitPC: "escape",
 
   // Debug
   debug: "`",
@@ -27,7 +28,7 @@ const actions = {
 } as const;
 export type Action = keyof typeof actions;
 
-const globalActions: Action[] = ["debug", "debugPlayer"];
+const globalActions: Action[] = ["debug", "debugPlayer", "exitPC"];
 const globalKeys = new Set<string>(
   globalActions.map((action) => actions[action]),
 );

@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" type="image/png" href="/icon.png" />
         <link rel="stylesheet" href="/src/styles/style.less" />
         <meta
             name="viewport"
@@ -14,7 +14,7 @@
         <!--Intro-->
         <h1 id="title"></h1>
         <h1 id="logo"></h1>
-        <div id="spinner"></div>
+        <div id="spinner" class="spinner"></div>
         <code id="bootlog" tabindex="-1">
             <span id="bootlog-content"></span>
             <span id="blink">_</span>
@@ -30,6 +30,19 @@
         <!--PC-->
         <h1 id="cross">+</h1>
         <h1 id="pc-info">Click to play</h1>
+        <div id="screen">
+            <div id="navbar">
+                <span id="oses">
+                    Web OSes:
+                    <button class="os" id="fps"></button>
+                    <button class="os" id="tundra"></button>
+                </span>
+                <div id="spacer"></div>
+                <input id="url" type="text" placeholder="Search Google or type a URL" autocomplete="off" autocorrect="off" spellcheck="false"></input>
+            </div>
+            <div class="spinner"></div>
+            <div id="iframe-error">Sorry, that website isn't supported.</div>
+        </div>
 
         <!--Mobile-->
         <div id="mobile">
