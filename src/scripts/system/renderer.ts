@@ -99,6 +99,8 @@ export async function enableRenderer(
 
             canvas.style.pointerEvents = "auto";
             document.body.style.opacity = "1";
+
+            localStorage.setItem("booted", "true");
           }, 500);
         }
     } else {

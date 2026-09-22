@@ -2,12 +2,14 @@ import { bootLog } from "../boot";
 import * as THREE from "three";
 import { lerp } from "three/src/math/MathUtils.js";
 import {
+  disablePlayerControl,
   enablePlayerControl,
   getPlayerPosition,
   PLAYER_WORLD_CONTROL,
+  resetPlayer,
   setCutscene,
 } from "./player";
-import { setPlayerCollision } from "../system/physics";
+import { respawnPlayer, setPlayerCollision } from "../system/physics";
 import { playAnimation, stopAnimation } from "../system/animation";
 import { isMobile } from "../util/mobile";
 import { setupContextMenu } from "../system/interact";
@@ -26,6 +28,32 @@ export function setDoor(obj: THREE.Object3D) {
 }
 
 const pcInfo = document.getElementById("pc-info") as HTMLHeadingElement;
+let doorParts: THREE.Object3D[];
+
+export function lock(
+  camera: THREE.PerspectiveCamera,
+  canvas: HTMLCanvasElement,
+) {
+  for (const doorPart of doorParts) {
+    if (doorPart.name !== "Door") door.add(doorPart);
+  }
+
+  document.body.classList.add("lock");
+  document.body.style.opacity = "0";
+
+  setTimeout(() => {
+    setCutscene(true);
+    setPlayerCollision(false);
+    disablePlayerControl(canvas);
+    respawnPlayer();
+    resetPlayer();
+    createKeypad(camera, canvas);
+    doorStage = 0;
+    canvas.style.cursor = "default";
+    raycaster = new THREE.Raycaster();
+    setTimeout((document.body.style.opacity = "1"));
+  }, 250);
+}
 
 export function updateKeypad(
   delta: number,
@@ -56,13 +84,16 @@ export function updateKeypad(
     setPlayerCollision(true);
     setCutscene(false);
 
-    for (let i = door.children.length - 1; i >= 0; i--) {
-      const doorPart = door.children[i];
-      if (doorPart.name !== "Base") door.remove(doorPart);
+    doorParts = [...door.children];
+
+    for (let i = doorParts.length - 1; i >= 0; i--) {
+      const doorPart = doorParts[i];
+      if (doorPart.name !== "Door") door.remove(doorPart);
     }
 
     enablePlayerControl(canvas, scene);
-    if (!isMobile) pcInfo.style.opacity = "1";
+    if (!(isMobile || document.body.classList.contains("lock")))
+      pcInfo.style.opacity = "1";
     doorStage = 2;
   }
 
@@ -73,29 +104,29 @@ export function updateKeypad(
   }
 }
 
+let raycaster: THREE.Raycaster | undefined = new THREE.Raycaster();
+
+const mousePos = new THREE.Vector2();
+function getMousePos(e: PointerEvent, canvas: HTMLCanvasElement) {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  mousePos.set((x / rect.width) * 2 - 1, -(y / rect.height) * 2 + 1);
+
+  return mousePos;
+}
+
 export function createKeypad(
   camera: THREE.PerspectiveCamera,
   canvas: HTMLCanvasElement,
 ) {
   bootLog("Creating keypad...");
 
-  let raycaster: THREE.Raycaster | undefined = new THREE.Raycaster();
-
-  const mousePos = new THREE.Vector2();
-  function getMousePos(e: PointerEvent) {
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    mousePos.set((x / rect.width) * 2 - 1, -(y / rect.height) * 2 + 1);
-
-    return mousePos;
-  }
-
   canvas.onpointermove = (e) => {
     if (!raycaster) return;
 
-    const mouse = getMousePos(e);
+    const mouse = getMousePos(e, canvas);
     raycaster.far = 2;
     raycaster.setFromCamera(mouse, camera);
 
@@ -114,7 +145,7 @@ export function createKeypad(
   canvas.onpointerdown = (e) => {
     if (!raycaster) return;
 
-    const mouse = getMousePos(e);
+    const mouse = getMousePos(e, canvas);
     raycaster.setFromCamera(mouse, camera);
 
     const intersects = raycaster.intersectObjects(buttons);

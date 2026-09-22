@@ -15,16 +15,13 @@ let intensity: number,
 export function setupMainLight(light: THREE.PointLight, scene: THREE.Scene) {
   intensity = light.intensity;
 
-  spotLight = new THREE.SpotLight(light.color, 0);
+  spotLight = new THREE.SpotLight(light.color, 0, 0, Math.PI / 2.5, 0.25);
   spotLight.position.copy(light.position);
   spotLight.rotation.copy(light.rotation);
 
   const target = new THREE.Object3D();
   target.position.set(0, 0, -8.5);
   spotLight.target = target;
-
-  spotLight.angle = Math.PI / 2;
-  spotLight.penumbra = 0.5;
 
   const parent = light.parent;
   if (!parent) return;

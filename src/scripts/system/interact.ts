@@ -11,6 +11,7 @@ import {
   stopAnimation,
 } from "./animation";
 import { setLightLevel } from "./lighting";
+import { lock } from "../objects/keypad";
 
 const raycaster = new THREE.Raycaster();
 raycaster.far = 8;
@@ -30,17 +31,33 @@ function getObject(camera: THREE.PerspectiveCamera, scene: THREE.Scene) {
 let hoverEl: Element, clickedEl: Element | undefined;
 const blindsDown: boolean[] = [];
 
+const cross = document.getElementById("cross") as HTMLHeadingElement;
+
 export function interactPlayer(
   camera: THREE.PerspectiveCamera,
   scene: THREE.Scene,
+  canvas: HTMLCanvasElement,
   click = true,
   released = true,
 ) {
   const intersect = getObject(camera, scene);
-  if (!intersect) return;
+  if (!intersect) {
+    cross.classList.remove("active");
+    return;
+  }
 
   const obj = intersect.obj;
   if (!obj) return;
+
+  const name = obj.name.split("_")[0];
+  if (
+    name == "Switch" ||
+    name == "Door" ||
+    name == "PC" ||
+    name.startsWith("Blind")
+  )
+    cross.classList.add("active");
+  else cross.classList.remove("active");
 
   const el = document.elementFromPoint(
     window.innerWidth / 2,
@@ -48,30 +65,6 @@ export function interactPlayer(
   );
 
   if (click) {
-    if (released) {
-      const name = obj.name.split("_")[0];
-      if (name == "Switch") toggleLight();
-      if (name.startsWith("Blind")) {
-        const blindNum = Number(name.replace("Blind", ""));
-
-        const time = getAnimationTime(blindNum);
-        if (time > 0 && time < 0.5) return;
-
-        if (blindsDown[blindNum]) {
-          playAnimationReversed(blindNum);
-        } else {
-          stopAnimation(blindNum);
-          playAnimation(blindNum);
-        }
-        blindsDown[blindNum] = !blindsDown[blindNum];
-
-        setTimeout(() => {
-          const count = blindsDown.reduce((sum, val) => sum + (val ? 1 : 0), 0);
-          setLightLevel(1 - (count / 4) * 0.5);
-        }, 200);
-      }
-    }
-
     if (!released && el && menu.contains(el)) {
       if (clickedEl && clickedEl !== el) clickedEl.classList.remove("active");
       clickedEl = el;
@@ -79,14 +72,52 @@ export function interactPlayer(
     } else if (clickedEl) {
       clickedEl.classList.remove("active");
       if (el == clickedEl) {
-        (clickedEl as HTMLElement).click();
-        canShow = false;
-        contextObj.visible = false;
+        if (el instanceof HTMLButtonElement) {
+          (clickedEl as HTMLElement).click();
+          canShow = false;
+          contextObj.visible = false;
+        }
+        return;
       }
       clickedEl = undefined;
     } else {
       contextObj.visible = false;
       point = undefined;
+    }
+
+    if (released) {
+      switch (name) {
+        case "Switch":
+          toggleLight();
+          break;
+        case "Door":
+          lock(camera, canvas);
+          break;
+        default:
+          if (name.startsWith("Blind")) {
+            const blindNum = Number(name.replace("Blind", ""));
+
+            const time = getAnimationTime(blindNum);
+            if (time > 0 && time < 0.5) return;
+
+            if (blindsDown[blindNum]) {
+              playAnimationReversed(blindNum);
+            } else {
+              stopAnimation(blindNum);
+              playAnimation(blindNum);
+            }
+            blindsDown[blindNum] = !blindsDown[blindNum];
+
+            setTimeout(() => {
+              const count = blindsDown.reduce(
+                (sum, val) => sum + (val ? 1 : 0),
+                0,
+              );
+              setLightLevel(1 - (count / 4) * 0.5);
+            }, 200);
+          }
+          break;
+      }
     }
   } else if (el && menu.contains(el)) {
     if (hoverEl && hoverEl !== el) hoverEl.classList.remove("hover");

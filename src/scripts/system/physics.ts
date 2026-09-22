@@ -53,13 +53,17 @@ let playerCam: THREE.Camera | undefined,
 
 const FIXED_DELTA = isMobile ? 1 / 15 : 1 / 30,
   MAX_STEPS_PER_FRAME = 5,
-  DEATH_HEIGHT = -50,
-  RESPAWN_HEIGHT = 5;
+  DEATH_HEIGHT = -50;
 
 let gravity: JoltTypes.Vec3,
   tempVec3: JoltTypes.Vec3,
   respawnPos: JoltTypes.RVec3,
-  zeroVel: JoltTypes.Vec3;
+  zeroVel: JoltTypes.Vec3,
+  playerWasReset = false;
+
+export function respawnPlayer() {
+  playerWasReset = true;
+}
 
 function joltToVec3(
   v: JoltTypes.RVec3 | JoltTypes.Vec3,
@@ -194,12 +198,7 @@ export function crouchPlayer(
     return false;
   }
 
-  updatePrevPos(
-    obj.parent.userData,
-    playerChar.GetPosition(),
-    playerChar.GetRotation(),
-    true,
-  );
+  updatePrevPos(obj.parent.userData, playerChar.GetPosition(), true);
   const startScale =
     (obj.geometry as THREE.CapsuleGeometry).parameters.height / PLAYER_HEIGHT;
   playerOffsetY = (PLAYER_HEIGHT * scale - PLAYER_HEIGHT * startScale) / 2;
@@ -228,7 +227,7 @@ export async function initPhysics(scene: THREE.Scene): Promise<void> {
     Jolt.destroy(settings);
 
     gravity = joltInterface.GetPhysicsSystem().GetGravity();
-    respawnPos = new Jolt.RVec3(0, RESPAWN_HEIGHT, -8);
+    respawnPos = new Jolt.RVec3(0, 2, 0.3);
     zeroVel = new Jolt.Vec3(0, 0, 0);
     tempVec3 = new Jolt.Vec3(0, 0, 0);
 
@@ -464,18 +463,14 @@ export function updatePhysics(delta: number) {
 function updatePrevPos(
   data: any,
   pos: JoltTypes.RVec3 | JoltTypes.Vec3,
-  rot: JoltTypes.Quat,
   snap: boolean,
 ) {
   if (snap) {
     joltToVec3(pos, data.prevPos);
-    joltToQuat(rot, data.prevQuat);
   } else {
     data.prevPos.copy(data.currPos);
-    data.prevQuat.copy(data.currQuat);
   }
   joltToVec3(pos, data.currPos);
-  joltToQuat(rot, data.currQuat);
 }
 
 function doPhysicsStep(delta: number) {
@@ -506,7 +501,7 @@ function doPhysicsStep(delta: number) {
 
     const rot = bodyInterface.GetRotation(bodyId);
 
-    updatePrevPos(obj.parent.userData, pos, rot, wasReset);
+    updatePrevPos(obj.parent.userData, pos, wasReset);
 
     if (wasReset) {
       joltToVec3(pos, obj.parent.userData.prevPos);
@@ -544,29 +539,28 @@ function doPhysicsStep(delta: number) {
     joltInterface.GetTempAllocator(),
   );
 
-  let charPos = playerChar.GetPosition(),
-    charRot = playerChar.GetRotation();
-  const playerWasReset = charPos.GetY() < DEATH_HEIGHT;
+  let charPos = playerChar.GetPosition();
+  if (!playerWasReset) playerWasReset = charPos.GetY() < DEATH_HEIGHT;
 
   if (playerWasReset) {
     playerChar.SetPosition(respawnPos);
     playerChar.SetLinearVelocity(zeroVel);
 
     charPos = playerChar.GetPosition();
-    charRot = playerChar.GetRotation();
   }
 
-  updatePrevPos(playerObj.parent.userData, charPos, charRot, playerWasReset);
+  updatePrevPos(playerObj.parent.userData, charPos, playerWasReset);
 
   if (playerWasReset) {
     joltToVec3(charPos, playerObj.parent.userData.prevPos);
-    joltToQuat(charRot, playerObj.parent.userData.prevQuat);
     playerObj.parent.position.set(
       charPos.GetX(),
       charPos.GetY(),
       charPos.GetZ(),
     );
   }
+
+  playerWasReset = false;
 }
 
 function lerpPhysics(alpha: number) {

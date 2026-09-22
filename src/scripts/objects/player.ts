@@ -127,7 +127,7 @@ export function enablePlayerControl(
         90 * deg,
       );
 
-      interactPlayer(camera, scene, false);
+      interactPlayer(camera, scene, canvas, false);
     }
   };
 
@@ -137,7 +137,7 @@ export function enablePlayerControl(
       if (document.pointerLockElement == canvas) {
         switch (e.button) {
           case 0:
-            interactPlayer(camera, scene);
+            interactPlayer(camera, scene, canvas);
             break;
           case 2:
             contextPlayer(camera, scene);
@@ -153,7 +153,7 @@ export function enablePlayerControl(
     };
     canvas.onpointerdown = (e) => {
       if (document.pointerLockElement == canvas && e.button == 0)
-        interactPlayer(camera, scene, true, false);
+        interactPlayer(camera, scene, canvas, true, false);
     };
     document.onpointerlockchange = () => {
       if (document.pointerLockElement == canvas) enableInput();
@@ -189,11 +189,29 @@ export function enablePlayerControl(
   }
 }
 
+export function disablePlayerControl(canvas: HTMLCanvasElement) {
+  document.exitPointerLock();
+  canvas.onclick = null;
+  canvas.onpointermove = null;
+  canvas.onpointerdown = null;
+  canvas.onpointerup = null;
+  canvas.onpointercancel = null;
+}
+
 const player = new THREE.Group();
 let camera: THREE.PerspectiveCamera;
 
 export function getPlayerPosition() {
   return player.position;
+}
+
+export function resetPlayer() {
+  velocity.set(0, 0, 0);
+  playerData.velPosX = 0;
+  playerData.velPosY = 0;
+  playerData.velPosZ = 0;
+  player.rotation.set(0, 0, 0);
+  camera.rotation.set(0, 0, 0);
 }
 
 export function initPlayer(

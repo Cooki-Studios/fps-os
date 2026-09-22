@@ -103,7 +103,7 @@ loader.loadAsync("room.usdc").then((room) => {
       if (mesh.parent) {
         if (mesh.parent.name.startsWith("key_")) setKeypad(mesh.parent);
 
-        if (mesh.parent.parent && mesh.parent.name == "Base")
+        if (mesh.parent.parent && mesh.parent.name == "Door")
           setDoor(mesh.parent.parent);
 
         if (mesh.parent.name == "PC") setMonitor(mesh.parent);
@@ -115,7 +115,7 @@ loader.loadAsync("room.usdc").then((room) => {
   });
   bootLog(`Meshes loaded`);
 
-  setupAnimation(room, room.animations[0], "Door");
+  setupAnimation(room, room.animations[0], "DoorGroup");
   setupAnimation(room, room.animations[0], "Switch", 1 / 6);
   setupAnimation(room, room.animations[0], "Blind2", 0.5);
   setupAnimation(room, room.animations[0], "Blind3", 0.5);
@@ -132,8 +132,7 @@ loader.loadAsync("room.usdc").then((room) => {
 
     await bootFinished();
 
-    // DEVMODE
-    if (import.meta.env.DEV) {
+    if (localStorage.getItem("booted")) {
       createKeypad(camera, canvas);
       enableRenderer(scene, camera);
       hideBootLog();
