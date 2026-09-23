@@ -6,6 +6,7 @@ import {
   stopAnimation,
 } from "../system/animation";
 import { onActionPressed } from "../system/input";
+import { playAudio } from "../system/audio";
 
 let intensity: number,
   spotLight: THREE.SpotLight,
@@ -49,9 +50,11 @@ let lighting = false;
 export function toggleLight() {
   if (lighting) {
     playAnimationReversed(1);
+    playAudio("light-off", 200);
   } else {
     stopAnimation(1);
     playAnimation(1);
+    playAudio("light-on");
   }
 
   setTimeout(() => {

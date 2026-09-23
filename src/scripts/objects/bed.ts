@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { playAnimation, playAnimationReversed } from "../system/animation";
 import { disablePlayerControl, enablePlayerControl } from "./player";
 import { pause } from "../system/pause";
+import { removePhysicsFromObject } from "../system/physics";
 
 const html = document.querySelector("html")!;
 
@@ -34,4 +35,27 @@ export async function sleep(canvas: HTMLCanvasElement, scene: THREE.Scene) {
 
     playAnimationReversed(6);
   };
+}
+
+let bed: THREE.Object3D;
+const bedParts: THREE.Object3D[] = [];
+
+export function setBed(obj: THREE.Object3D, main = false) {
+  if (main) bed = obj;
+  else bedParts.push(obj);
+}
+
+export function deleteBed() {
+  for (let i = bedParts.length - 1; i >= 0; i--) {
+    const bedPart = bedParts[i];
+    bedPart.parent!.remove(bedPart);
+  }
+
+  const debugMesh: THREE.Mesh = bed.children[0].userData.debugMesh;
+  if (debugMesh) debugMesh.parent!.remove(debugMesh);
+
+  if (bed.children[0].userData.body)
+    removePhysicsFromObject(bed.children[0].userData.body);
+
+  bed.parent!.remove(bed);
 }

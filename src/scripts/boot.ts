@@ -11,6 +11,7 @@ export function bootFinished(): Promise<void> {
 
 export function hideBootLog() {
   log.style.display = "none";
+  enableAudioEl();
 }
 
 export function bootLog(msg: string, showTime = true, error = false) {
@@ -36,8 +37,7 @@ export function bootLog(msg: string, showTime = true, error = false) {
     });
     restartBlink();
 
-    // https://stackoverflow.com/a/37764963
-    await new Promise((f) => setTimeout(f, 0));
+    await pause();
   });
   return queue;
 }
@@ -69,6 +69,8 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import { lerp } from "three/src/math/MathUtils.js";
 import { isMobile, isPortrait, onMobileRotate } from "./util/mobile";
 import { font } from "./util/fonts";
+import { pause } from "./system/pause";
+import { enableAudioEl } from "./system/audio";
 
 const TITLE_DEPTH = 5,
   MOBILE_TITLE_SCALE_PORTRAIT = 0.75;

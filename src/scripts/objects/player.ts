@@ -17,11 +17,18 @@ import {
   getGravityY,
   isPlayerCrouched,
   isPlayerGrounded,
+  isPlayerHittingCeiling,
   setPlayerCollision,
 } from "../system/physics";
 import { bootLog } from "../boot";
 import { isMobile } from "../util/mobile";
-import { contextPlayer, interactPlayer } from "../system/interact";
+import {
+  closeContextMenu,
+  contextPlayer,
+  interactPlayer,
+} from "../system/interact";
+import { enableAudioEl } from "../system/audio";
+import { isInPC } from "./pc";
 
 export type PlayerData = {
   velPosX: number;
@@ -163,6 +170,7 @@ export function enablePlayerControl(
     document.onpointerlockchange = () => {
       if (document.pointerLockElement == canvas) enableInput();
       else {
+        if (!isInPC()) enableAudioEl();
         disableInput();
       }
     };
@@ -253,19 +261,19 @@ export function initPlayer(
   document.addEventListener("physics", (e) => {
     if (!playerMesh.parent) return;
     const delta = (e as CustomEvent<number>).detail;
-    const grounded = isPlayerGrounded();
+    const grounded = isPlayerGrounded(),
+      ceiling = isPlayerHittingCeiling();
 
     // https://github.com/godotengine/godot/blob/master/modules/gdscript/editor/script_templates/CharacterBody3D/basic_movement.gd
     if (!noclip)
-      if (isActionPressed("jump") && isPlayerGrounded()) {
+      if (ceiling && playerData.velPosY > 0) playerData.velPosY = 0;
+      else if (isActionPressed("jump") && grounded) {
         playerData.velPosY = isPlayerCrouched()
           ? JUMP_VELOCITY * CROUCH_RATIO
           : JUMP_VELOCITY;
-      } else if (!isPlayerGrounded() && !cutscene) {
+      } else if (!grounded && !cutscene)
         playerData.velPosY += getGravityY() * delta;
-      } else {
-        playerData.velPosY = 0;
-      }
+      else playerData.velPosY = 0;
     else {
       playerData.velPosY = 0;
     }
@@ -337,6 +345,8 @@ export function initPlayer(
       velocity.x += wishDir.x * addSpeed;
       velocity.z += wishDir.z * addSpeed;
       if (noclip) velocity.y += wishDir.y * addSpeed;
+
+      closeContextMenu();
     }
 
     if (!noclip) applyWallDrag(velocity);

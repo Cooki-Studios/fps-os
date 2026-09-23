@@ -1,5 +1,15 @@
+* {
+    touch-action: manipulation;
+}
+
 html.mobile,
 body.mobile {
+    #audio {
+        scale: 0.65;
+        top: 0;
+        right: 0;
+    }
+
     #logo {
         height: calc(50% - 1.25em);
     }
@@ -105,7 +115,7 @@ body.mobile {
     aspect-ratio: 1;
     background: url("/textures/jump.svg") 50% center / contain no-repeat;
     right: 3em;
-    bottom: 2em;
+    bottom: 10em;
     padding: 1em;
     transform: scaleY(-1);
 }

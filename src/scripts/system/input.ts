@@ -1,5 +1,6 @@
 import { bootLog } from "../boot";
 import { isMobile } from "../util/mobile";
+import { enableAudioEl } from "./audio";
 
 const actions = {
   // General
@@ -50,6 +51,7 @@ const cross = document.getElementById("cross") as HTMLHeadingElement;
 
 export function enableInput() {
   enabled = true;
+  enableAudioEl(false);
   if (!isMobile) cross.style.visibility = "visible";
 }
 export function disableInput() {

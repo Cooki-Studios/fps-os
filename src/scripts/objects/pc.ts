@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { createUI } from "../system/3dui";
 import { disablePlayerControl, enablePlayerControl } from "./player";
 import { onActionPressed } from "../system/input";
+import { enableAudioEl } from "../system/audio";
 
 let monitor: THREE.Object3D;
 
@@ -94,13 +95,22 @@ export function initMonitor(scene: THREE.Scene) {
   obj.rotation.copy(rotation);
 }
 
+let inPC = false;
+export function isInPC() {
+  return inPC;
+}
+
 export function enablePC(canvas: HTMLCanvasElement, scene: THREE.Scene) {
+  inPC = true;
   screenMesh.visible = true;
   screen.style.opacity = "1";
   disablePlayerControl(canvas);
   canvas.style.pointerEvents = "none";
+  enableAudioEl(false);
 
   onActionPressed("exitPC", () => {
+    inPC = false;
+    enableAudioEl();
     enablePlayerControl(canvas, scene);
     canvas.style.pointerEvents = "auto";
     // screen.style.opacity = "0";

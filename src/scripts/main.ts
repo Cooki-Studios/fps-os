@@ -19,9 +19,14 @@ import { getPlayerMesh, initPlayer } from "./objects/player";
 import { setMainCam, setMainScene } from "./util/scene";
 import { createKeypad, setDoor, setKeypad } from "./objects/keypad";
 import { setupAnimation } from "./system/animation";
-import { initWallpaper, toggleWallpaper } from "./objects/wallpaper";
+import { initWallpaper } from "./objects/wallpaper";
 import { initMonitor, setMonitor } from "./objects/pc";
 import { setupMainLight } from "./objects/mainLight";
+import "./system/audio";
+import { addAudioToObject, initAudio } from "./system/audio";
+import { pause } from "./system/pause";
+import { setBed } from "./objects/bed";
+import { setClock } from "./objects/clock";
 
 document.addEventListener(
   "wheel",
@@ -50,7 +55,7 @@ bootLog("Camera created");
 
 bootLog("Initialising lighting...");
 initLighting(scene, camera);
-bootLog("Initialising Renderer...");
+bootLog("Initialising renderer...");
 const { canvas, renderer } = initRenderer();
 bootLog("Initialising sky...");
 setupSky(scene, renderer);
@@ -58,6 +63,8 @@ bootLog("Initialising physics...");
 initPhysics(scene);
 bootLog("Initialising input...");
 initInput();
+bootLog("Initialising audio...");
+initAudio(camera);
 
 async function addPhysicsToObjects() {
   for (const mesh of meshes) {
@@ -101,17 +108,27 @@ loader.loadAsync("room.usdc").then((room) => {
       }
 
       if (mesh.parent) {
-        if (mesh.parent.name.startsWith("key_")) setKeypad(mesh.parent);
-
-        if (mesh.parent.parent && mesh.parent.name == "Door")
-          setDoor(mesh.parent.parent);
-
         if (mesh.parent.name == "PC") setMonitor(mesh.parent);
+        else if (mesh.parent.name == "Bed_001") setBed(mesh.parent, true);
+        else if (mesh.parent.name == "Clock_002") setClock(mesh.parent, "hour");
+        else if (mesh.parent.name == "Clock_003") setClock(mesh.parent, "min");
+        else if (mesh.parent.name == "Clock_004") setClock(mesh.parent, "sec");
+        else if (mesh.parent.parent && mesh.parent.name == "Door")
+          setDoor(mesh.parent.parent);
+        else if (mesh.parent.name.startsWith("key_")) setKeypad(mesh.parent);
+        else if (mesh.parent.name.startsWith("Bed_")) setBed(mesh.parent);
       }
 
       if (!mesh.name.startsWith("N_")) meshes.push(mesh);
-    } else if (mesh instanceof THREE.PointLight)
+    } else if (mesh instanceof THREE.PointLight) {
       if (mesh.name == "MainLight") setupMainLight(mesh, scene);
+    } else
+      switch (mesh.name) {
+        case "Switch_003":
+          addAudioToObject(mesh, "light-on");
+          addAudioToObject(mesh, "light-off");
+          break;
+      }
   });
   bootLog(`Meshes loaded`);
 
@@ -143,8 +160,7 @@ loader.loadAsync("room.usdc").then((room) => {
       return;
     }
 
-    // https://stackoverflow.com/a/37764963
-    await new Promise((f) => setTimeout(f, 250));
+    pause(250);
 
     const { titleScene, titleCamera, titleTitle } = await createTitleScene();
 
@@ -160,9 +176,6 @@ loader.loadAsync("room.usdc").then((room) => {
 
 onActionPressed("debug", () => {
   togglePhysicsDebug();
-  document.dispatchEvent(new CustomEvent("toggleDebug"));
-
-  toggleWallpaper();
 });
 onActionPressed("debugPlayer", () => {
   togglePhysicsDebug(true);

@@ -80,6 +80,22 @@ export function isPlayerGrounded(): boolean {
     ? playerChar.GetGroundState() === Jolt.EGroundState_OnGround
     : false;
 }
+export function isPlayerHittingCeiling(): boolean {
+  if (!playerChar) return false;
+
+  const contacts = playerChar.GetActiveContacts();
+  if (!contacts || contacts.size() === 0) return false;
+
+  for (let i = 0; i < contacts.size(); i++) {
+    const contact = contacts.at(i);
+    const normalY = contact.mContactNormal.GetY();
+
+    if (normalY < -0.5) {
+      return true;
+    }
+  }
+  return false;
+}
 export function isPlayerCrouched(): boolean {
   return isCrouched;
 }

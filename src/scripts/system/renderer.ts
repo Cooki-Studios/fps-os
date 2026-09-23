@@ -12,6 +12,7 @@ import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 import { updateAnimation } from "./animation";
 import { resize3DUI, update3DUI } from "../system/3dui";
 import { updateMenu } from "./interact";
+import { updateClock } from "../objects/clock";
 
 let renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
@@ -86,7 +87,7 @@ export async function enableRenderer(
       if (canEndAnim)
         if (title.userData.animDone) {
           canEndAnim = false;
-          setTimeout(async () => {
+          setTimeout(() => {
             scene = getMainScene();
             camera = getMainCam();
             title = undefined;
@@ -105,6 +106,7 @@ export async function enableRenderer(
         }
     } else {
       updateAnimation(delta);
+      updateClock();
       updatePhysics(delta);
       updateKeypad(delta, canvas, scene);
       update3DUI(scene, camera);

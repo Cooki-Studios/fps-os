@@ -22,6 +22,25 @@ body {
         transition: opacity 250ms;
     }
 
+    #audio {
+        width: 10em;
+        aspect-ratio: 1;
+        position: absolute;
+        bottom: calc(15% - 5em);
+        right: calc(15% - 5em);
+        z-index: 2;
+        background-image: url("/textures/muted.svg");
+        background-repeat: no-repeat;
+        background-position: center;
+        mix-blend-mode: difference;
+        cursor: pointer;
+        display: none;
+
+        &.unmuted {
+            background-image: url("/textures/unmuted.svg");
+        }
+    }
+
     #screen {
         display: grid;
         opacity: 0;
