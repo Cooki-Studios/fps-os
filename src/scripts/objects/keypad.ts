@@ -69,7 +69,7 @@ export function updateKeypad(
     }
   }
 
-  if (!door || doorStage == 2) return;
+  if (!door || doorStage == 3) return;
 
   if (door.rotation.z > 0.4) {
     PLAYER_WORLD_CONTROL.y = -1;
@@ -94,12 +94,13 @@ export function updateKeypad(
     enablePlayerControl(canvas, scene);
     if (!(isMobile || document.body.classList.contains("lock")))
       pcInfo.style.opacity = "1";
-    doorStage = 2;
+    doorStage = 3;
   }
 
   switch (doorStage) {
     case 1:
       playAnimation();
+      doorStage = 2;
       break;
   }
 }

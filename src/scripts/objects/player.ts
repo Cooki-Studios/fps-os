@@ -9,6 +9,7 @@ import {
   isActionPressed,
   isInputEnabled,
   onActionPressed,
+  toggleAction,
 } from "../system/input";
 import {
   applyWallDrag,
@@ -54,7 +55,7 @@ const GROUND_ACCEL = 5,
   NOCLIP_FRICTION = 60,
   AIR_ACCEL = 10,
   AIR_MAX_SPEED = 2.5,
-  AIR_FRICTION = 0,
+  AIR_FRICTION = 0.1,
   JUMP_VELOCITY = 6;
 
 let velocity = new THREE.Vector3(),
@@ -130,6 +131,10 @@ export function enablePlayerControl(
       interactPlayer(camera, scene, canvas, false);
     }
   };
+
+  onActionPressed("interact", () => {
+    interactPlayer(camera, scene, canvas, true, true);
+  });
 
   if (!isMobile) {
     canvas.style.cursor = "pointer";
@@ -236,6 +241,7 @@ export function initPlayer(
   });
 
   onActionPressed("noclip", () => {
+    toggleAction("interact", noclip);
     setPlayerCollision(noclip);
     playerMesh.castShadow = noclip;
     noclip = !noclip;

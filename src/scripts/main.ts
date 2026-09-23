@@ -121,6 +121,7 @@ loader.loadAsync("room.usdc").then((room) => {
   setupAnimation(room, room.animations[0], "Blind3", 0.5);
   setupAnimation(room, room.animations[0], "Blind4", 0.5);
   setupAnimation(room, room.animations[0], "Blind5", 0.5);
+  setupAnimation(room, room.animations[0], "Bed_003", 0.25);
 
   initMonitor(scene);
 

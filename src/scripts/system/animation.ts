@@ -26,6 +26,7 @@ export function setupAnimation(
 }
 
 export function playAnimation(id = 0) {
+  if (!actions[id].isRunning()) actions[id].stop();
   actions[id].timeScale = 1;
   actions[id].play();
 }

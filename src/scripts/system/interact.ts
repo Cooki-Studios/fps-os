@@ -12,6 +12,7 @@ import {
 } from "./animation";
 import { setLightLevel } from "./lighting";
 import { lock } from "../objects/keypad";
+import { sleep } from "../objects/bed";
 
 const raycaster = new THREE.Raycaster();
 raycaster.far = 8;
@@ -54,6 +55,7 @@ export function interactPlayer(
     name == "Switch" ||
     name == "Door" ||
     name == "PC" ||
+    name == "Bed" ||
     name.startsWith("Blind")
   )
     cross.classList.add("active");
@@ -95,6 +97,9 @@ export function interactPlayer(
           break;
         case "PC":
           enablePC(canvas, scene);
+          break;
+        case "Bed":
+          sleep(canvas, scene);
           break;
         default:
           if (name.startsWith("Blind")) {

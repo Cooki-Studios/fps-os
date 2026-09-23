@@ -12,6 +12,7 @@ const actions = {
   right: "d",
   jump: " ",
   crouch: "shift",
+  interact: "e",
 
   speedo: "r",
   exitPC: "escape",
@@ -33,9 +34,16 @@ const globalKeys = new Set<string>(
   globalActions.map((action) => actions[action]),
 );
 
+const disabledActions = new Set<Action>();
+export function toggleAction(action: Action, enable = false) {
+  if (enable) disabledActions.delete(action);
+  else disabledActions.add(action);
+}
+
 const keys: Record<string, boolean> = {},
   pressEvents: Record<string, CustomEvent> = {},
-  releaseEvents: Record<string, CustomEvent> = {};
+  releaseEvents: Record<string, CustomEvent> = {},
+  keyActions: Record<string, Action[]> = {};
 export let enabled = false;
 
 const cross = document.getElementById("cross") as HTMLHeadingElement;
@@ -61,8 +69,9 @@ function resetKeys() {
 
 export function initInput() {
   for (const [action, key] of Object.entries(actions)) {
-    pressEvents[key] = new CustomEvent(`${action}:pressed`);
-    releaseEvents[key] = new CustomEvent(`${action}:released`);
+    pressEvents[action] = new CustomEvent(`${action}:pressed`);
+    releaseEvents[action] = new CustomEvent(`${action}:released`);
+    (keyActions[key] ??= []).push(action as Action);
     bootLog(`Added input action: ${action} with key ${key}`);
   }
 
@@ -92,10 +101,10 @@ export function initInput() {
     if (!enabled && !globalKeys.has(key)) return;
     e.preventDefault();
 
-    if (!keys[key]) {
-      const event = pressEvents[key];
-      if (event) document.dispatchEvent(event);
-    }
+    if (!keys[key])
+      for (const action of keyActions[key] ?? [])
+        if (!disabledActions.has(action))
+          document.dispatchEvent(pressEvents[action]);
     keys[key] = true;
   };
 
@@ -106,15 +115,16 @@ export function initInput() {
     e.preventDefault();
 
     delete keys[key];
-    const event = releaseEvents[key];
-    if (event) document.dispatchEvent(event);
+    for (const action of keyActions[key] ?? [])
+      if (!disabledActions.has(action))
+        document.dispatchEvent(releaseEvents[action]);
   };
 
   bootLog("Input initialised");
 }
 
 export function isActionPressed(action: Action): boolean {
-  return Boolean(keys[actions[action]]);
+  return !disabledActions.has(action) && Boolean(keys[actions[action]]);
 }
 
 export function getInputVector(

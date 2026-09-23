@@ -18,15 +18,17 @@ const WIDTH = 1028,
   HEIGHT = 740;
 
 const screen = document.getElementById("screen") as HTMLDivElement;
+const spinnerBox = document.getElementById("spinner-box") as HTMLDivElement;
 const spinner = screen.querySelector(".spinner") as HTMLDivElement;
 const url = document.getElementById("url") as HTMLInputElement;
 
 const osButtons: NodeListOf<HTMLButtonElement> =
   screen.querySelectorAll("button.os");
-console.log(window.location.href);
 const oses: Record<string, string> = {
   fps: ".",
-  tundra: "https://annaxiomm.github.io/tundra/",
+  tundra: "annaxiomm.github.io/tundra",
+  google: "google.com",
+  threejs: "threejs.org",
 };
 for (const button of osButtons) {
   button.onclick = () => {
@@ -41,9 +43,9 @@ url.onkeydown = async (e) => {
 };
 
 async function loadPage(domain: string) {
+  spinnerBox.style.display = "block";
   spinner.style.animation =
     "spin 1s linear infinite, resize 2s ease-in infinite";
-  spinner.style.opacity = "1";
 
   if (domain != ".")
     if (domain.includes(".")) {
@@ -70,7 +72,7 @@ function iframeError() {
 }
 
 iframe.onload = () => {
-  spinner.style.opacity = "0";
+  spinnerBox.style.display = "none";
   spinner.style.animation = "";
 };
 
@@ -99,10 +101,10 @@ export function enablePC(canvas: HTMLCanvasElement, scene: THREE.Scene) {
   canvas.style.pointerEvents = "none";
 
   onActionPressed("exitPC", () => {
-    screen.style.opacity = "0";
     enablePlayerControl(canvas, scene);
     canvas.style.pointerEvents = "auto";
-    setTimeout(() => (screenMesh.visible = false), 1000);
+    // screen.style.opacity = "0";
+    // setTimeout(() => (screenMesh.visible = false), 1000);
   });
 }
 
