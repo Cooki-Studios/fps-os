@@ -27,7 +27,14 @@ import {
   contextPlayer,
   interactPlayer,
 } from "../system/interact";
-import { enableAudioEl } from "../system/audio";
+import {
+  addAudioToObject,
+  enableAudioEl,
+  isAudioPlaying,
+  playAudio,
+  setAudioVolume,
+  stopAudio,
+} from "../system/audio";
 import { isInPC } from "./pc";
 
 export type PlayerData = {
@@ -147,6 +154,7 @@ export function enablePlayerControl(
 
   if (!isMobile) {
     canvas.style.cursor = "pointer";
+    // canvas.oncontextmenu = () => contextPlayer(camera, scene);
     canvas.onclick = async (e) => {
       if (document.pointerLockElement == canvas) {
         switch (e.button) {
@@ -218,6 +226,7 @@ export function disablePlayerControl(canvas: HTMLCanvasElement) {
 }
 
 const player = new THREE.Group();
+player.name = "Player";
 let camera: THREE.PerspectiveCamera;
 
 export function getPlayerPosition() {
@@ -244,6 +253,15 @@ export function initPlayer(
   player.add(playerMesh);
   player.add(camera);
   camera.position.set(0, CAM_Y, 0);
+
+  addAudioToObject(player, "player-steps", 1, false, 2).then(() =>
+    setAudioVolume(player.name, "player-steps", 0.0),
+  );
+  addAudioToObject(player, "player-jump", 1).then(() =>
+    setAudioVolume(player.name, "player-jump", 0.1),
+  );
+  addAudioToObject(player, "player-wind", 1);
+  addAudioToObject(player, "wallpaper-change", 1);
 
   let crouched = false;
   let prevSpeed = 0;
@@ -277,6 +295,9 @@ export function initPlayer(
         playerData.velPosY = isPlayerCrouched()
           ? JUMP_VELOCITY * CROUCH_RATIO
           : JUMP_VELOCITY;
+
+        if (!isAudioPlaying(player.name, "player-jump"))
+          playAudio(player.name, "player-jump");
       } else if (!grounded && !cutscene)
         playerData.velPosY += getGravityY() * delta;
       else playerData.velPosY = 0;
@@ -353,6 +374,9 @@ export function initPlayer(
       if (noclip) velocity.y += wishDir.y * addSpeed;
 
       closeContextMenu();
+
+      if (grounded && !isAudioPlaying(player.name, "player-steps"))
+        playAudio(player.name, "player-steps");
     }
 
     if (!noclip) applyWallDrag(velocity);
@@ -360,14 +384,25 @@ export function initPlayer(
     playerData.velPosZ = velocity.z;
     if (noclip) playerData.velPosY = velocity.y;
 
-    const speedFixed = (
-      new THREE.Vector3(
-        playerData.velPosX,
-        playerData.velPosY,
-        playerData.velPosZ,
-      ).lengthSq() / 10
-    ).toFixed(1);
+    const playerDataVel = new THREE.Vector3(
+      playerData.velPosX,
+      playerData.velPosY,
+      playerData.velPosZ,
+    ).lengthSq();
+
+    const speedFixed = (playerDataVel / 10).toFixed(1);
     const deltaSpeedFixed = (Number(speedFixed) - prevSpeed).toFixed(1);
+
+    if (playerDataVel > 0.01) {
+      setAudioVolume(
+        player.name,
+        "player-wind",
+        Math.min(playerDataVel / 1000, 0.1),
+      );
+      if (!isAudioPlaying(player.name, "player-wind"))
+        playAudio(player.name, "player-wind", 0, 0, null);
+    } else if (isAudioPlaying(player.name, "player-wind"))
+      stopAudio(player.name, "player-wind");
 
     if (
       velEl.style.visibility == "visible" &&

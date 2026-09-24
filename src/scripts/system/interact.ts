@@ -15,6 +15,7 @@ import { lock } from "../objects/keypad";
 import { deleteBed, sleep } from "../objects/bed";
 import { toggleWallpaper } from "../objects/wallpaper";
 import { deleteClock } from "../objects/clock";
+import { playAudio } from "./audio";
 
 const raycaster = new THREE.Raycaster();
 raycaster.far = 8;
@@ -46,11 +47,15 @@ export function interactPlayer(
   const intersect = getObject(camera, scene);
   if (!intersect) {
     cross.classList.remove("active");
+    clickedEl?.classList.remove("active");
     return;
   }
 
   const obj = intersect.obj;
-  if (!obj) return;
+  if (!obj) {
+    clickedEl?.classList.remove("active");
+    return;
+  }
 
   const name = obj.name.split("_")[0];
   if (
@@ -111,9 +116,11 @@ export function interactPlayer(
 
             if (blindsDown[blindNum]) {
               playAnimationReversed(blindNum);
+              playAudio(name, "blind-up", 0, 0.6);
             } else {
               stopAnimation(blindNum);
               playAnimation(blindNum);
+              playAudio(name, "blind-down", 0, 0.2);
             }
             blindsDown[blindNum] = !blindsDown[blindNum];
 

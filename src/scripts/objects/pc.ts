@@ -2,12 +2,21 @@ import * as THREE from "three";
 import { createUI } from "../system/3dui";
 import { disablePlayerControl, enablePlayerControl } from "./player";
 import { onActionPressed } from "../system/input";
-import { enableAudioEl } from "../system/audio";
+import {
+  addAudioToObject,
+  enableAudioEl,
+  isAudioPlaying,
+  playAudio,
+} from "../system/audio";
 
 let monitor: THREE.Object3D;
 
 export function setMonitor(obj: THREE.Object3D) {
   monitor = obj;
+  addAudioToObject(monitor, "pc-hum", 0.5, true);
+  addAudioToObject(monitor, "pc-click-down", 1);
+  addAudioToObject(monitor, "pc-click-up", 1);
+  addAudioToObject(monitor, "pc-type", 1);
 }
 
 const rotation = new THREE.Euler(-Math.PI / 36, -Math.PI, 0, "YXZ"),
@@ -79,6 +88,10 @@ iframe.onload = () => {
 
 iframe.onerror = () => iframeError();
 
+screen.onpointerdown = () => playAudio(monitor.name, "pc-click-down");
+screen.onpointerup = () => playAudio(monitor.name, "pc-click-up");
+screen.onkeydown = () => playAudio(monitor.name, "pc-type");
+
 export function initMonitor(scene: THREE.Scene) {
   const pos = new THREE.Vector3();
   monitor.getWorldPosition(pos);
@@ -110,6 +123,8 @@ export function enablePC(canvas: HTMLCanvasElement, scene: THREE.Scene) {
   disablePlayerControl(canvas);
   canvas.style.pointerEvents = "none";
   enableAudioEl(false);
+  if (!isAudioPlaying(monitor.name, "pc-hum"))
+    playAudio(monitor.name, "pc-hum");
 
   onActionPressed("exitPC", () => {
     inPC = false;

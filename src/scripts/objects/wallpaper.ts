@@ -1,5 +1,6 @@
 import { bootLog } from "../boot";
 import * as THREE from "three";
+import { playAudio } from "../system/audio";
 
 const mats: THREE.MeshBasicMaterial[] = [];
 let texture: THREE.Texture;
@@ -22,6 +23,7 @@ export async function initWallpaper(walls?: THREE.Object3D) {
 }
 
 export function toggleWallpaper() {
+  playAudio("Player", "wallpaper-change");
   for (const mat of mats) {
     if (mat.map) mat.map = null;
     else mat.map = texture;

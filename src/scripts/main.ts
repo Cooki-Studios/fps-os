@@ -89,7 +89,7 @@ const loader = new USDLoader(manager),
 
 const spinner = document.getElementById("spinner") as HTMLDivElement;
 
-loader.loadAsync("room.usdc").then((room) => {
+loader.loadAsync("room.usdc").then(async (room) => {
   bootLog(`Preparing meshes...`);
   scene.attach(room);
 

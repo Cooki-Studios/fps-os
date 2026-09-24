@@ -1,10 +1,12 @@
 import * as THREE from "three";
 import { setupShadowMaterial } from "../system/lighting";
-import { addAudioToObject, playAudio } from "../system/audio";
 import { setBed } from "./bed";
 import { setClock } from "./clock";
 import { setKeyLight, setDoor, setKeypad } from "./keypad";
 import { setMonitor } from "./pc";
+import { addAudioToObject, loadBuffer } from "../system/audio";
+
+const wind = await loadBuffer("windows-wind");
 
 export function setupMesh(
   mesh: THREE.Mesh<any, any, any>,
@@ -40,22 +42,6 @@ export function setupMesh(
       case "Clock_004":
         setClock(mesh.parent, "sec");
         break;
-      case "Blind2":
-        addAudioToObject(mesh.parent, "windows-wind", 5, true);
-        playAudio(mesh.parent.name, "windows-wind");
-        break;
-      case "Blind3":
-        addAudioToObject(mesh.parent, "windows-wind", 5, true);
-        playAudio(mesh.parent.name, "windows-wind");
-        break;
-      case "Blind4":
-        addAudioToObject(mesh.parent, "windows-wind", 5, true);
-        playAudio(mesh.parent.name, "windows-wind");
-        break;
-      case "Blind5":
-        addAudioToObject(mesh.parent, "windows-wind", 5, true);
-        playAudio(mesh.parent.name, "windows-wind");
-        break;
       case "KeyLight":
         setKeyLight(mesh);
         break;
@@ -65,6 +51,11 @@ export function setupMesh(
       setDoor(mesh.parent.parent);
     else if (mesh.parent.name.startsWith("key_")) setKeypad(mesh.parent);
     else if (mesh.parent.name.startsWith("Bed_")) setBed(mesh.parent);
+    else if (mesh.parent.name.startsWith("Blind")) {
+      addAudioToObject(mesh.parent, "windows-wind", 0.5, true, 1, wind);
+      addAudioToObject(mesh.parent, "blind-down");
+      addAudioToObject(mesh.parent, "blind-up");
+    }
   }
 
   if (!mesh.name.startsWith("N_")) meshes.push(mesh);

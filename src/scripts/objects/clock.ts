@@ -1,14 +1,14 @@
 import * as THREE from "three";
 import { addAudioToObject, playAudio } from "../system/audio";
 
-let clockParts: Record<string, THREE.Object3D> = {};
+let clockParts: Record<string, THREE.Object3D> | null = {};
 
 export function setClock(
   obj: THREE.Object3D,
   part: "base" | "hour" | "min" | "sec",
 ) {
-  clockParts[part] = obj;
-  addAudioToObject(obj, "clock-tick", 0.15);
+  if (clockParts) clockParts[part] = obj;
+  addAudioToObject(obj, "clock-tick", 0.5);
 }
 
 let prevSecs = 0,
@@ -29,15 +29,19 @@ export function updateClock() {
   prevMins = mins;
   prevHours = hours;
 
-  clockParts["hour"].rotation.x = -hours * (Math.PI / 6);
-  clockParts["min"].rotation.x = -mins * (Math.PI / 30);
-  clockParts["sec"].rotation.x = -secs * (Math.PI / 30);
+  if (clockParts) {
+    clockParts["hour"].rotation.x = -hours * (Math.PI / 6);
+    clockParts["min"].rotation.x = -mins * (Math.PI / 30);
+    clockParts["sec"].rotation.x = -secs * (Math.PI / 30);
+  }
 }
 
 export function deleteClock() {
-  for (const key of Object.keys(clockParts)) {
-    const clockPart = clockParts[key];
-    clockPart.parent?.remove(clockPart);
-    delete clockParts[key];
-  }
+  if (clockParts)
+    for (const key of Object.keys(clockParts)) {
+      const clockPart = clockParts[key];
+      clockPart.parent?.remove(clockPart);
+      delete clockParts[key];
+    }
+  clockParts = null;
 }

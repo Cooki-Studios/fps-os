@@ -6,7 +6,7 @@ import {
   stopAnimation,
 } from "../system/animation";
 import { onActionPressed } from "../system/input";
-import { playAudio } from "../system/audio";
+import { addAudioToObject, playAudio, stopAudio } from "../system/audio";
 
 let intensity: number,
   spotLight: THREE.SpotLight,
@@ -37,6 +37,9 @@ export function setupMainLight(light: THREE.PointLight, scene: THREE.Scene) {
   mat = mesh.material as THREE.MeshPhysicalMaterial;
   mat.emissiveIntensity = 0;
 
+  spotLight.name = "MainLight";
+  addAudioToObject(spotLight, "light-buzz", 1, true);
+
   lightHelper = new THREE.SpotLightHelper(spotLight, 0.5);
   lightHelper.visible = false;
   scene.add(lightHelper);
@@ -51,10 +54,12 @@ export function toggleLight() {
   if (lighting) {
     playAnimationReversed(1);
     playAudio("Switch_003", "light-off", 200);
+    stopAudio(spotLight.name, "light-buzz");
   } else {
     stopAnimation(1);
     playAnimation(1);
     playAudio("Switch_003", "light-on");
+    playAudio(spotLight.name, "light-buzz", 200, 0, 1, false);
   }
 
   setTimeout(() => {

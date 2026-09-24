@@ -350,6 +350,7 @@ export async function addPhysicsToObject(
     bodyFilter = new Jolt.BodyFilter();
     shapeFilter = new Jolt.ShapeFilter();
     updateSettings = new Jolt.ExtendedUpdateSettings();
+    updateSettings.mWalkStairsStepUp = new Jolt.Vec3(0, 0.15, 0);
 
     Jolt.destroy(settings);
   } else {
@@ -480,13 +481,17 @@ function updatePrevPos(
   data: any,
   pos: JoltTypes.RVec3 | JoltTypes.Vec3,
   snap: boolean,
+  rot?: JoltTypes.Quat,
 ) {
   if (snap) {
     joltToVec3(pos, data.prevPos);
+    if (rot) joltToQuat(rot, data.prevQuat);
   } else {
     data.prevPos.copy(data.currPos);
+    if (rot) data.prevQuat.copy(data.currQuat);
   }
   joltToVec3(pos, data.currPos);
+  if (rot) joltToQuat(rot, data.currQuat);
 }
 
 function doPhysicsStep(delta: number) {
@@ -517,7 +522,7 @@ function doPhysicsStep(delta: number) {
 
     const rot = bodyInterface.GetRotation(bodyId);
 
-    updatePrevPos(obj.parent.userData, pos, wasReset);
+    updatePrevPos(obj.parent.userData, pos, wasReset, rot);
 
     if (wasReset) {
       joltToVec3(pos, obj.parent.userData.prevPos);

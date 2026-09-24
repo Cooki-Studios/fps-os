@@ -109,6 +109,11 @@ export function updateKeypad(
     if (!(isMobile || document.body.classList.contains("lock")))
       pcInfo.style.opacity = "1";
     doorStage = 3;
+
+    playAudio("Blind2", "windows-wind", 0, 0, 1, false);
+    playAudio("Blind3", "windows-wind", 0, 0, 1, false);
+    playAudio("Blind4", "windows-wind", 0, 0, 1, false);
+    playAudio("Blind5", "windows-wind", 0, 0, 1, false);
   }
 
   switch (doorStage) {

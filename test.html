@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+    </head>
+    <body>
+        <canvas style="background-color: red"></canvas>
+        <h1></h1>
+        <script>
+            const c = document.querySelector("canvas");
+            const s = document.querySelector("h1");
+            c.onclick = (e) => {
+                if (document.pointerLockElement == c) {
+                    console.log(e.button);
+                    s.textContent += e.button;
+                } else c.requestPointerLock();
+            };
+        </script>
+    </body>
+</html>
