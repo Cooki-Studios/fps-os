@@ -36,7 +36,7 @@ export function addAudioToObject(
 ) {
   const sound = new THREE.PositionalAudio(listener);
   const audioLoader = new THREE.AudioLoader();
-  audioLoader.load(`src/assets/audio/${soundName}.mp3`, function (buffer) {
+  audioLoader.load(`audio/${soundName}.mp3`, function (buffer) {
     sound.setBuffer(buffer);
     sound.setRefDistance(distance);
     sound.setLoop(looping);
