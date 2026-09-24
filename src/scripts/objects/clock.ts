@@ -1,10 +1,13 @@
 import * as THREE from "three";
 import { addAudioToObject, playAudio } from "../system/audio";
 
-let hourParts: Record<string, THREE.Object3D> = {};
+let clockParts: Record<string, THREE.Object3D> = {};
 
-export function setClock(obj: THREE.Object3D, part: "hour" | "min" | "sec") {
-  hourParts[part] = obj;
+export function setClock(
+  obj: THREE.Object3D,
+  part: "base" | "hour" | "min" | "sec",
+) {
+  clockParts[part] = obj;
   addAudioToObject(obj, "clock-tick", 0.15);
 }
 
@@ -26,7 +29,15 @@ export function updateClock() {
   prevMins = mins;
   prevHours = hours;
 
-  hourParts["hour"].rotation.x = -hours * (Math.PI / 6);
-  hourParts["min"].rotation.x = -mins * (Math.PI / 30);
-  hourParts["sec"].rotation.x = -secs * (Math.PI / 30);
+  clockParts["hour"].rotation.x = -hours * (Math.PI / 6);
+  clockParts["min"].rotation.x = -mins * (Math.PI / 30);
+  clockParts["sec"].rotation.x = -secs * (Math.PI / 30);
+}
+
+export function deleteClock() {
+  for (const key of Object.keys(clockParts)) {
+    const clockPart = clockParts[key];
+    clockPart.parent?.remove(clockPart);
+    delete clockParts[key];
+  }
 }

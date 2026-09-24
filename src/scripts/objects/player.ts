@@ -100,7 +100,8 @@ const deg = Math.PI / 180,
   clamp = (num: number, min: number, max: number) =>
     Math.max(min, Math.min(max, num));
 
-const pcInfo = document.getElementById("pc-info") as HTMLHeadingElement;
+const pcInfo = document.getElementById("pc-info") as HTMLHeadingElement,
+  warnEl = document.getElementById("literal-pc-info") as HTMLHeadingElement;
 
 export function enablePlayerControl(
   canvas: HTMLCanvasElement,
@@ -140,6 +141,7 @@ export function enablePlayerControl(
   };
 
   onActionPressed("interact", () => {
+    interactPlayer(camera, scene, canvas, true, false);
     interactPlayer(camera, scene, canvas, true, true);
   });
 
@@ -160,6 +162,10 @@ export function enablePlayerControl(
         if (pcInfo) {
           pcInfo.style.transition = "none";
           pcInfo.style.opacity = "0";
+        }
+        if (warnEl) {
+          warnEl.style.opacity = "0";
+          warnEl.textContent = "Press ESC to exit PC";
         }
       }
     };

@@ -100,10 +100,13 @@ export function isInPC() {
   return inPC;
 }
 
+const warnEl = document.getElementById("literal-pc-info") as HTMLHeadingElement;
+
 export function enablePC(canvas: HTMLCanvasElement, scene: THREE.Scene) {
   inPC = true;
   screenMesh.visible = true;
   screen.style.opacity = "1";
+  warnEl.style.opacity = "1";
   disablePlayerControl(canvas);
   canvas.style.pointerEvents = "none";
   enableAudioEl(false);
@@ -113,6 +116,7 @@ export function enablePC(canvas: HTMLCanvasElement, scene: THREE.Scene) {
     enableAudioEl();
     enablePlayerControl(canvas, scene);
     canvas.style.pointerEvents = "auto";
+    warnEl.textContent = "Click to play";
     // screen.style.opacity = "0";
     // setTimeout(() => (screenMesh.visible = false), 1000);
   });

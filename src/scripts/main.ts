@@ -2,7 +2,7 @@ import { bootLog, bootFinished, createTitleScene, hideBootLog } from "./boot";
 
 import * as THREE from "three";
 import { USDLoader } from "three/examples/jsm/loaders/USDLoader.js";
-import { initLighting, setupShadowMaterial } from "./system/lighting";
+import { initLighting } from "./system/lighting";
 import {
   compileRenderer,
   enableRenderer,
@@ -17,21 +17,15 @@ import {
 import { initInput, onActionPressed } from "./system/input";
 import { getPlayerMesh, initPlayer } from "./objects/player";
 import { setMainCam, setMainScene } from "./util/scene";
-import {
-  createKeypad,
-  setDoor,
-  setKeyLight,
-  setKeypad,
-} from "./objects/keypad";
+import { createKeypad } from "./objects/keypad";
 import { setupAnimation } from "./system/animation";
 import { initWallpaper } from "./objects/wallpaper";
-import { initMonitor, setMonitor } from "./objects/pc";
+import { initMonitor } from "./objects/pc";
 import { setupMainLight } from "./objects/mainLight";
 import "./system/audio";
-import { addAudioToObject, initAudio, playAudio } from "./system/audio";
+import { addAudioToObject, initAudio } from "./system/audio";
 import { pause } from "./system/pause";
-import { setBed } from "./objects/bed";
-import { setClock } from "./objects/clock";
+import { setupMesh } from "./objects/mesh";
 
 document.addEventListener(
   "wheel",
@@ -104,61 +98,7 @@ loader.loadAsync("room.usdc").then((room) => {
 
   room.traverse((mesh) => {
     if (mesh instanceof THREE.Mesh) {
-      mesh.material.dithering = true;
-      mesh.receiveShadow = true;
-      mesh.castShadow = true;
-      setupShadowMaterial(mesh.material);
-
-      if (mesh.name.startsWith("N_Blind")) {
-        (mesh.material as THREE.MeshPhysicalMaterial).opacity = 0.9;
-        (mesh.material as THREE.MeshPhysicalMaterial).transparent = true;
-      }
-
-      if (mesh.parent) {
-        switch (mesh.parent.name) {
-          case "PC":
-            setMonitor(mesh.parent);
-            break;
-          case "Bed_001":
-            setBed(mesh.parent, true);
-            break;
-          case "Clock_002":
-            setClock(mesh.parent, "hour");
-            break;
-          case "Clock_003":
-            setClock(mesh.parent, "min");
-            break;
-          case "Clock_004":
-            setClock(mesh.parent, "sec");
-            break;
-          case "Blind2":
-            addAudioToObject(mesh.parent, "windows-wind", 5, true);
-            playAudio(mesh.parent.name, "windows-wind");
-            break;
-          case "Blind3":
-            addAudioToObject(mesh.parent, "windows-wind", 5, true);
-            playAudio(mesh.parent.name, "windows-wind");
-            break;
-          case "Blind4":
-            addAudioToObject(mesh.parent, "windows-wind", 5, true);
-            playAudio(mesh.parent.name, "windows-wind");
-            break;
-          case "Blind5":
-            addAudioToObject(mesh.parent, "windows-wind", 5, true);
-            playAudio(mesh.parent.name, "windows-wind");
-            break;
-          case "KeyLight":
-            setKeyLight(mesh);
-            break;
-        }
-
-        if (mesh.parent.parent && mesh.parent.name == "Door")
-          setDoor(mesh.parent.parent);
-        else if (mesh.parent.name.startsWith("key_")) setKeypad(mesh.parent);
-        else if (mesh.parent.name.startsWith("Bed_")) setBed(mesh.parent);
-      }
-
-      if (!mesh.name.startsWith("N_")) meshes.push(mesh);
+      setupMesh(mesh, meshes);
     } else if (mesh instanceof THREE.PointLight) {
       if (mesh.name == "MainLight") setupMainLight(mesh, scene);
     } else

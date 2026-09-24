@@ -14,6 +14,7 @@ import { setLightLevel } from "./lighting";
 import { lock } from "../objects/keypad";
 import { deleteBed, sleep } from "../objects/bed";
 import { toggleWallpaper } from "../objects/wallpaper";
+import { deleteClock } from "../objects/clock";
 
 const raycaster = new THREE.Raycaster();
 raycaster.far = 8;
@@ -188,6 +189,7 @@ export function contextPlayer(
     if (name == "Light") disableLight();
     else if (name == "PC") deletePC();
     else if (name == "Bed") deleteBed();
+    else if (name == "Clock") deleteClock();
 
     obj.parent?.remove(obj);
   };

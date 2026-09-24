@@ -335,13 +335,15 @@ body {
 
 canvas[data-engine],
 #pc-info,
+#literal-pc-info,
 #cross {
     position: absolute;
     pointer-events: none;
     top: 0;
 }
 
-#pc-info {
+#pc-info,
+#literal-pc-info {
     z-index: 2;
     display: grid;
     width: 100%;
@@ -356,6 +358,13 @@ canvas[data-engine],
     font-family:
         Inter ExtraBold,
         sans-serif;
+}
+
+#literal-pc-info {
+    height: 15%;
+    mix-blend-mode: normal;
+    text-align: center;
+    transition: none;
 }
 
 #cross {
