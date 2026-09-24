@@ -1,6 +1,5 @@
 import { bootLog } from "../boot";
 import * as THREE from "three";
-import { lerp } from "three/src/math/MathUtils.js";
 import {
   disablePlayerControl,
   enablePlayerControl,
@@ -13,18 +12,28 @@ import { respawnPlayer, setPlayerCollision } from "../system/physics";
 import { playAnimation, stopAnimation } from "../system/animation";
 import { isMobile } from "../util/mobile";
 import { setupContextMenu } from "../system/interact";
+import { addAudioToObject, playAudio, stopAudio } from "../system/audio";
 
 let buttonPressed: THREE.Object3D | null = null,
   codeInput = "",
   doorStage = 0,
   buttons: THREE.Object3D[] = [],
-  door: THREE.Object3D;
+  door: THREE.Object3D,
+  keyLightMat: THREE.MeshPhysicalMaterial;
 
 export function setKeypad(button: THREE.Object3D) {
+  addAudioToObject(button, "keypad-down", 0.25);
+  addAudioToObject(button, "keypad-up", 0.25);
   buttons.push(button);
 }
 export function setDoor(obj: THREE.Object3D) {
+  addAudioToObject(obj, "door-open", 0.5);
   door = obj;
+}
+export function setKeyLight(mesh: THREE.Mesh) {
+  keyLightMat = mesh.material as THREE.MeshPhysicalMaterial;
+  keyLightMat.emissive = new THREE.Color(1, 0, 0);
+  keyLightMat.emissiveIntensity = 0;
 }
 
 const pcInfo = document.getElementById("pc-info") as HTMLHeadingElement;
@@ -62,11 +71,16 @@ export function updateKeypad(
 ) {
   if (buttons.length == 0) return;
   for (const button of buttons) {
-    if (buttonPressed != button)
-      button.position.y = lerp(button.position.y, -0.2, delta * 15);
-    else {
-      button.position.y = lerp(button.position.y, -0.15, delta * 20);
-    }
+    const isPressed = buttonPressed === button,
+      y = isPressed ? -0.15 : -0.2,
+      lambda = isPressed ? 20 : 15;
+
+    button.position.y = THREE.MathUtils.damp(
+      button.position.y,
+      y,
+      lambda,
+      delta,
+    );
   }
 
   if (!door || doorStage == 3) return;
@@ -99,6 +113,7 @@ export function updateKeypad(
 
   switch (doorStage) {
     case 1:
+      setTimeout(() => playAudio(door.name, "door-open"), 500);
       playAnimation();
       doorStage = 2;
       break;
@@ -154,26 +169,37 @@ export function createKeypad(
 
     const button = intersects[0].object.parent;
 
-    if (!button) return;
+    if (!button || button.position.y >= -0.18) return;
 
     const key = button.name.replace("key_", "");
-    if (key == "C") codeInput = "";
-    else codeInput += key;
-
-    if (button.position.y >= -0.18) return;
+    if (key == "C") {
+      codeInput = "";
+      keyLightMat.emissiveIntensity = 0;
+    } else codeInput += key;
 
     buttonPressed = button;
+
+    playAudio(buttonPressed.name, "keypad-down", 125);
   };
 
   canvas.onpointerup = () => {
+    if (buttonPressed) {
+      stopAudio(buttonPressed.name, "keypad-down");
+      if (buttonPressed.position.y <= -0.15)
+        playAudio(buttonPressed.name, "keypad-up");
+    }
     buttonPressed = null;
 
     if (codeInput == "0000") {
+      keyLightMat.emissive = new THREE.Color(0, 1, 0);
+      keyLightMat.emissiveIntensity = 1;
       codeInput = "";
       raycaster = undefined;
       canvas.style.cursor = "default";
 
       setTimeout(() => (doorStage = 1), 150);
+    } else if (codeInput.length > 3) {
+      keyLightMat.emissiveIntensity = 1;
     }
   };
 }

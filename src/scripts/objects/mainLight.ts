@@ -50,11 +50,11 @@ let lighting = false;
 export function toggleLight() {
   if (lighting) {
     playAnimationReversed(1);
-    playAudio("light-off", 200);
+    playAudio("Switch_003", "light-off", 200);
   } else {
     stopAnimation(1);
     playAnimation(1);
-    playAudio("light-on");
+    playAudio("Switch_003", "light-on");
   }
 
   setTimeout(() => {

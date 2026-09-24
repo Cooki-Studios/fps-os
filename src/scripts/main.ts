@@ -17,13 +17,18 @@ import {
 import { initInput, onActionPressed } from "./system/input";
 import { getPlayerMesh, initPlayer } from "./objects/player";
 import { setMainCam, setMainScene } from "./util/scene";
-import { createKeypad, setDoor, setKeypad } from "./objects/keypad";
+import {
+  createKeypad,
+  setDoor,
+  setKeyLight,
+  setKeypad,
+} from "./objects/keypad";
 import { setupAnimation } from "./system/animation";
 import { initWallpaper } from "./objects/wallpaper";
 import { initMonitor, setMonitor } from "./objects/pc";
 import { setupMainLight } from "./objects/mainLight";
 import "./system/audio";
-import { addAudioToObject, initAudio } from "./system/audio";
+import { addAudioToObject, initAudio, playAudio } from "./system/audio";
 import { pause } from "./system/pause";
 import { setBed } from "./objects/bed";
 import { setClock } from "./objects/clock";
@@ -36,6 +41,8 @@ document.addEventListener(
   { passive: false },
 );
 document.oncontextmenu = (e) => e.preventDefault();
+
+window.onpagehide = () => (document.body.style.opacity = "0");
 
 const scene = new THREE.Scene();
 setMainScene(scene);
@@ -108,12 +115,44 @@ loader.loadAsync("room.usdc").then((room) => {
       }
 
       if (mesh.parent) {
-        if (mesh.parent.name == "PC") setMonitor(mesh.parent);
-        else if (mesh.parent.name == "Bed_001") setBed(mesh.parent, true);
-        else if (mesh.parent.name == "Clock_002") setClock(mesh.parent, "hour");
-        else if (mesh.parent.name == "Clock_003") setClock(mesh.parent, "min");
-        else if (mesh.parent.name == "Clock_004") setClock(mesh.parent, "sec");
-        else if (mesh.parent.parent && mesh.parent.name == "Door")
+        switch (mesh.parent.name) {
+          case "PC":
+            setMonitor(mesh.parent);
+            break;
+          case "Bed_001":
+            setBed(mesh.parent, true);
+            break;
+          case "Clock_002":
+            setClock(mesh.parent, "hour");
+            break;
+          case "Clock_003":
+            setClock(mesh.parent, "min");
+            break;
+          case "Clock_004":
+            setClock(mesh.parent, "sec");
+            break;
+          case "Blind2":
+            addAudioToObject(mesh.parent, "windows-wind", 5, true);
+            playAudio(mesh.parent.name, "windows-wind");
+            break;
+          case "Blind3":
+            addAudioToObject(mesh.parent, "windows-wind", 5, true);
+            playAudio(mesh.parent.name, "windows-wind");
+            break;
+          case "Blind4":
+            addAudioToObject(mesh.parent, "windows-wind", 5, true);
+            playAudio(mesh.parent.name, "windows-wind");
+            break;
+          case "Blind5":
+            addAudioToObject(mesh.parent, "windows-wind", 5, true);
+            playAudio(mesh.parent.name, "windows-wind");
+            break;
+          case "KeyLight":
+            setKeyLight(mesh);
+            break;
+        }
+
+        if (mesh.parent.parent && mesh.parent.name == "Door")
           setDoor(mesh.parent.parent);
         else if (mesh.parent.name.startsWith("key_")) setKeypad(mesh.parent);
         else if (mesh.parent.name.startsWith("Bed_")) setBed(mesh.parent);
