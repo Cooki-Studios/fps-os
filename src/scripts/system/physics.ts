@@ -23,7 +23,7 @@ let Jolt: typeof initJolt,
   joltInterface: JoltTypes.JoltInterface,
   initPromise: Promise<void> | null = null;
 
-const dynamicObjects: THREE.Mesh[] = [],
+const dynamicObjects = new Set<THREE.Mesh>(),
   LAYER_STATIC = 0,
   LAYER_DYNAMIC = 1,
   LAYER_NOCLIP = 2,
@@ -378,7 +378,7 @@ export async function addPhysicsToObject(
     Jolt.destroy(bodySettings);
 
     obj.userData.body = body;
-    dynamicObjects.push(obj);
+    dynamicObjects.add(obj);
   }
 
   Jolt.destroy(pos);
@@ -404,11 +404,16 @@ export async function addPhysicsToObject(
   bootLog(`Added physics to ${obj.name}`);
 }
 
-export async function removePhysicsFromObject(body: JoltTypes.Body) {
+export async function removePhysicsFromObject(
+  obj: THREE.Mesh,
+  body: JoltTypes.Body,
+) {
   const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
   const id = body.GetID();
   bodyInterface.RemoveBody(id);
   bodyInterface.DestroyBody(id);
+  obj.userData.debugMesh.parent.remove(obj.userData.debugMesh);
+  dynamicObjects.delete(obj);
 }
 
 export function togglePhysicsDebug(isPlayer = false) {

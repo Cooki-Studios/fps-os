@@ -96,7 +96,7 @@ loader.loadAsync("room.usdc").then(async (room) => {
   bootLog("Initialising wallpaper...");
   initWallpaper(room.getObjectByName("Walls"));
 
-  room.traverse((mesh) => {
+  room.traverse(async (mesh) => {
     if (mesh instanceof THREE.Mesh) {
       setupMesh(mesh, meshes);
     } else if (mesh instanceof THREE.PointLight) {
@@ -104,8 +104,8 @@ loader.loadAsync("room.usdc").then(async (room) => {
     } else
       switch (mesh.name) {
         case "Switch_003":
-          addAudioToObject(mesh, "light-on");
-          addAudioToObject(mesh, "light-off");
+          await addAudioToObject(mesh, "light-on");
+          await addAudioToObject(mesh, "light-off");
           break;
       }
   });

@@ -42,6 +42,7 @@ export async function addAudioToObject(
   distance = 0.5,
   looping = false,
   speed = 1,
+  pos?: THREE.Vector3,
   buffer?: AudioBuffer,
 ) {
   const sound = new THREE.PositionalAudio(listener);
@@ -54,6 +55,8 @@ export async function addAudioToObject(
   sound.setRefDistance(distance);
   sound.setLoop(looping);
   sound.setPlaybackRate(speed);
+
+  if (pos) sound.position.copy(pos);
 
   if (!sounds[obj.name]) sounds[obj.name] = {};
   sounds[obj.name][soundName] = sound;
@@ -75,6 +78,11 @@ export function isAudioPlaying(objName: string, soundName: string) {
 export function setAudioVolume(objName: string, soundName: string, volume = 1) {
   const sound = sounds[objName]?.[soundName];
   return sound.setVolume(volume);
+}
+
+export function setAudioSpeed(objName: string, soundName: string, speed = 1) {
+  const sound = sounds[objName]?.[soundName];
+  return sound.setPlaybackRate(speed);
 }
 
 export async function stopAudio(objName: string, soundName: string) {

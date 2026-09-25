@@ -8,7 +8,7 @@ import { addAudioToObject, loadBuffer } from "../system/audio";
 
 const wind = await loadBuffer("windows-wind");
 
-export function setupMesh(
+export async function setupMesh(
   mesh: THREE.Mesh<any, any, any>,
   meshes: THREE.Mesh[],
 ) {
@@ -52,9 +52,17 @@ export function setupMesh(
     else if (mesh.parent.name.startsWith("key_")) setKeypad(mesh.parent);
     else if (mesh.parent.name.startsWith("Bed_")) setBed(mesh.parent);
     else if (mesh.parent.name.startsWith("Blind")) {
-      addAudioToObject(mesh.parent, "windows-wind", 0.5, true, 1, wind);
-      addAudioToObject(mesh.parent, "blind-down");
-      addAudioToObject(mesh.parent, "blind-up");
+      await addAudioToObject(
+        mesh.parent,
+        "windows-wind",
+        1,
+        true,
+        1,
+        undefined,
+        wind,
+      );
+      await addAudioToObject(mesh.parent, "blind-down");
+      await addAudioToObject(mesh.parent, "blind-up");
     }
   }
 

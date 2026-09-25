@@ -3,17 +3,22 @@ import { addAudioToObject, playAudio } from "../system/audio";
 
 let clockParts: Record<string, THREE.Object3D> | null = {};
 
-export function setClock(
+export async function setClock(
   obj: THREE.Object3D,
   part: "base" | "hour" | "min" | "sec",
 ) {
   if (clockParts) clockParts[part] = obj;
-  addAudioToObject(obj, "clock-tick", 0.5);
+  await addAudioToObject(obj, "clock-tick", 0.5);
 }
 
 let prevSecs = 0,
   prevMins = 0,
   prevHours = 0;
+
+let audio = false;
+export function startClockAudio() {
+  audio = true;
+}
 
 export function updateClock() {
   const date = new Date();
@@ -22,9 +27,11 @@ export function updateClock() {
     mins = date.getMinutes() + date.getSeconds() / 60,
     secs = date.getSeconds();
 
-  if (secs != prevSecs) playAudio("Clock_004", "clock-tick");
-  if (mins != prevMins) playAudio("Clock_003", "clock-tick");
-  if (hours != prevHours) playAudio("Clock_002", "clock-tick");
+  if (audio) {
+    if (secs != prevSecs) playAudio("Clock_004", "clock-tick");
+    if (mins != prevMins) playAudio("Clock_003", "clock-tick");
+    if (hours != prevHours) playAudio("Clock_002", "clock-tick");
+  }
   prevSecs = secs;
   prevMins = mins;
   prevHours = hours;

@@ -13,6 +13,7 @@ import { playAnimation, stopAnimation } from "../system/animation";
 import { isMobile } from "../util/mobile";
 import { setupContextMenu } from "../system/interact";
 import { addAudioToObject, playAudio, stopAudio } from "../system/audio";
+import { startClockAudio } from "./clock";
 
 let buttonPressed: THREE.Object3D | null = null,
   codeInput = "",
@@ -21,14 +22,18 @@ let buttonPressed: THREE.Object3D | null = null,
   door: THREE.Object3D,
   keyLightMat: THREE.MeshPhysicalMaterial;
 
-export function setKeypad(button: THREE.Object3D) {
-  addAudioToObject(button, "keypad-down", 0.25);
-  addAudioToObject(button, "keypad-up", 0.25);
+export async function setKeypad(button: THREE.Object3D) {
+  await addAudioToObject(button, "keypad-down", 0.25);
+  await addAudioToObject(button, "keypad-up", 0.25);
   buttons.push(button);
 }
-export function setDoor(obj: THREE.Object3D) {
-  addAudioToObject(obj, "door-open", 0.5);
+export async function setDoor(obj: THREE.Object3D) {
   door = obj;
+
+  const audioPos = new THREE.Vector3(1, 0.5, 0);
+  await addAudioToObject(obj, "door-open", 0.5);
+  await addAudioToObject(obj, "door-correct", 1.5, false, 1, audioPos);
+  await addAudioToObject(obj, "door-wrong", 0.5, false, 1, audioPos);
 }
 export function setKeyLight(mesh: THREE.Mesh) {
   keyLightMat = mesh.material as THREE.MeshPhysicalMaterial;
@@ -114,6 +119,8 @@ export function updateKeypad(
     playAudio("Blind3", "windows-wind", 0, 0, 1, false);
     playAudio("Blind4", "windows-wind", 0, 0, 1, false);
     playAudio("Blind5", "windows-wind", 0, 0, 1, false);
+
+    startClockAudio();
   }
 
   switch (doorStage) {
@@ -196,15 +203,24 @@ export function createKeypad(
     buttonPressed = null;
 
     if (codeInput == "0000") {
-      keyLightMat.emissive = new THREE.Color(0, 1, 0);
-      keyLightMat.emissiveIntensity = 1;
       codeInput = "";
       raycaster = undefined;
       canvas.style.cursor = "default";
 
-      setTimeout(() => (doorStage = 1), 150);
+      setTimeout(() => {
+        keyLightMat.emissive = new THREE.Color(0, 1, 0);
+        keyLightMat.emissiveIntensity = 1;
+        playAudio(door.name, "door-correct", 0, 0, 1, false);
+        doorStage = 1;
+        setTimeout(() => {
+          keyLightMat.emissiveIntensity = 0;
+        }, 1000);
+      }, 150);
     } else if (codeInput.length > 3) {
-      keyLightMat.emissiveIntensity = 1;
+      playAudio(door.name, "door-wrong", 0, 0, 1, false);
+      setTimeout(() => {
+        keyLightMat.emissiveIntensity = 1;
+      });
     }
   };
 }

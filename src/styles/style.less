@@ -23,7 +23,7 @@ body {
     }
 
     #audio {
-        width: 10em;
+        width: 8em;
         aspect-ratio: 1;
         position: absolute;
         bottom: calc(15% - 5em);
@@ -32,9 +32,11 @@ body {
         background-image: url("/textures/muted.svg");
         background-repeat: no-repeat;
         background-position: center;
-        mix-blend-mode: difference;
         cursor: pointer;
         display: none;
+        background-size: 80%;
+        background-color: rgba(0, 0, 0, 0.5);
+        border-radius: 16px;
 
         &.unmuted {
             background-image: url("/textures/unmuted.svg");
@@ -257,13 +259,19 @@ body {
     font-size: 1.25em;
     max-height: 100%;
     pointer-events: none;
-    scrollbar-width: 0;
     overflow-y: scroll;
     white-space: pre;
     pointer-events: all;
     background-color: black;
     backdrop-filter: blur(0.5em);
     z-index: 10;
+
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overflow: -moz-scrollbars-none;
+    &::-webkit-scrollbar {
+        display: none;
+    }
 
     :last-child {
         margin-bottom: 5em;
@@ -383,16 +391,35 @@ canvas[data-engine],
     position: relative;
 
     &.active::after {
-        content: "○";
-        width: 1em;
-        height: 1em;
+        content: "";
+        width: 24px;
+        height: 24px;
         position: absolute;
-        top: calc(50% - 0.6em);
-        left: calc(50% - 0.5em);
-        text-align: center;
+        top: calc(50% - 12.5px);
+        left: calc(50% - 14px);
         border-radius: 100%;
         z-index: -1;
+        border: 2px white solid;
+    }
+
+    @property --progress {
+        syntax: "<length>";
+        inherits: true;
+        initial-value: 0px;
+    }
+
+    transition: --progress linear 500ms;
+    &::before {
+        content: "";
+        width: var(--progress);
+        height: 24px;
+        position: absolute;
+        top: calc(50% - 4px);
+        left: calc(50% - 12px);
+        text-align: center;
+        z-index: -1;
         font-size: 1.25em;
+        border-bottom: 4px white solid;
     }
 }
 

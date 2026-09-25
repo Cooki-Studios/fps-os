@@ -9,6 +9,7 @@ import {
   isActionPressed,
   isInputEnabled,
   onActionPressed,
+  onActionReleased,
   toggleAction,
 } from "../system/input";
 import {
@@ -18,6 +19,7 @@ import {
   isPlayerCrouched,
   isPlayerGrounded,
   isPlayerHittingCeiling,
+  removePhysicsFromObject,
   setPlayerCollision,
 } from "../system/physics";
 import { bootLog } from "../boot";
@@ -32,10 +34,12 @@ import {
   enableAudioEl,
   isAudioPlaying,
   playAudio,
+  setAudioSpeed,
   setAudioVolume,
   stopAudio,
 } from "../system/audio";
 import { isInPC } from "./pc";
+import { addUpdateUI } from "../system/3dui";
 
 export type PlayerData = {
   velPosX: number;
@@ -147,10 +151,12 @@ export function enablePlayerControl(
     }
   };
 
-  onActionPressed("interact", () => {
-    interactPlayer(camera, scene, canvas, true, false);
-    interactPlayer(camera, scene, canvas, true, true);
-  });
+  onActionPressed("interact", () =>
+    interactPlayer(camera, scene, canvas, true, false),
+  );
+  onActionReleased("interact", () =>
+    interactPlayer(camera, scene, canvas, true, true),
+  );
 
   if (!isMobile) {
     canvas.style.cursor = "pointer";
@@ -242,7 +248,7 @@ export function resetPlayer() {
   camera.rotation.set(0, 0, 0);
 }
 
-export function initPlayer(
+export async function initPlayer(
   scene: THREE.Scene,
   sceneCam: THREE.PerspectiveCamera,
 ) {
@@ -254,14 +260,14 @@ export function initPlayer(
   player.add(camera);
   camera.position.set(0, CAM_Y, 0);
 
-  addAudioToObject(player, "player-steps", 1, false, 2).then(() =>
-    setAudioVolume(player.name, "player-steps", 0.0),
+  await addAudioToObject(player, "player-steps", 5, false, 2).then(() =>
+    setAudioVolume(player.name, "player-steps", 5),
   );
-  addAudioToObject(player, "player-jump", 1).then(() =>
-    setAudioVolume(player.name, "player-jump", 0.1),
+  await addAudioToObject(player, "player-jump", 1).then(() =>
+    setAudioVolume(player.name, "player-jump", 0.0),
   );
-  addAudioToObject(player, "player-wind", 1);
-  addAudioToObject(player, "wallpaper-change", 1);
+  await addAudioToObject(player, "player-wind", 1);
+  await addAudioToObject(player, "wallpaper-change", 1);
 
   let crouched = false;
   let prevSpeed = 0;
@@ -308,9 +314,13 @@ export function initPlayer(
     if (isActionPressed("crouch") && !crouched && !noclip) {
       crouched = true;
       crouchPlayer(true, playerMesh, camera);
+      setAudioSpeed(player.name, "player-steps", 1);
     }
     if (crouched && !isActionPressed("crouch"))
-      if (crouchPlayer(false, playerMesh, camera)) crouched = false;
+      if (crouchPlayer(false, playerMesh, camera)) {
+        crouched = false;
+        setAudioSpeed(player.name, "player-steps", 2);
+      }
 
     // https://github.com/AceSpectre/Quakelike-Controller/blob/main/QuakelikeController/playerMovement.gd
     const inputDir = isMobile
@@ -422,4 +432,26 @@ export function initPlayer(
   });
 
   bootLog("Player initialised");
+}
+
+export function pickupObject(obj: THREE.Object3D) {
+  const physObj = obj.children[0] as THREE.Mesh;
+  if (physObj) removePhysicsFromObject(physObj, physObj.userData.body);
+
+  const mesh = (physObj || obj) as THREE.Mesh,
+    mat = mesh.material as THREE.Material;
+
+  mesh.renderOrder = 2;
+  mat.depthWrite = false;
+  mat.transparent = true;
+  mat.depthFunc = THREE.AlwaysDepth;
+
+  camera.attach(obj);
+  obj.position.set(2, -1, -3);
+  obj.rotation.set(0, -Math.PI / 8, 0);
+
+  if (obj.userData.ui) {
+    obj.userData.pickup = true;
+    addUpdateUI(obj);
+  }
 }

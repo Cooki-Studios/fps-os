@@ -13,7 +13,10 @@ let intensity: number,
   mat: THREE.MeshPhysicalMaterial,
   lightHelper: THREE.SpotLightHelper;
 
-export function setupMainLight(light: THREE.PointLight, scene: THREE.Scene) {
+export async function setupMainLight(
+  light: THREE.PointLight,
+  scene: THREE.Scene,
+) {
   intensity = light.intensity;
 
   spotLight = new THREE.SpotLight(light.color, 0, 0, Math.PI / 2.5, 0.25);
@@ -38,7 +41,7 @@ export function setupMainLight(light: THREE.PointLight, scene: THREE.Scene) {
   mat.emissiveIntensity = 0;
 
   spotLight.name = "MainLight";
-  addAudioToObject(spotLight, "light-buzz", 1, true);
+  await addAudioToObject(spotLight, "light-buzz", 2, true);
 
   lightHelper = new THREE.SpotLightHelper(spotLight, 0.5);
   lightHelper.visible = false;

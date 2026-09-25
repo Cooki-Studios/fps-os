@@ -11,12 +11,12 @@ import {
 
 let monitor: THREE.Object3D;
 
-export function setMonitor(obj: THREE.Object3D) {
+export async function setMonitor(obj: THREE.Object3D) {
   monitor = obj;
-  addAudioToObject(monitor, "pc-hum", 0.5, true);
-  addAudioToObject(monitor, "pc-click-down", 1);
-  addAudioToObject(monitor, "pc-click-up", 1);
-  addAudioToObject(monitor, "pc-type", 1);
+  await addAudioToObject(monitor, "pc-hum", 0.35, true);
+  await addAudioToObject(monitor, "pc-click-down", 0.5);
+  await addAudioToObject(monitor, "pc-click-up", 0.5);
+  await addAudioToObject(monitor, "pc-type", 0.5);
 }
 
 const rotation = new THREE.Euler(-Math.PI / 36, -Math.PI, 0, "YXZ"),
@@ -90,7 +90,13 @@ iframe.onerror = () => iframeError();
 
 screen.onpointerdown = () => playAudio(monitor.name, "pc-click-down");
 screen.onpointerup = () => playAudio(monitor.name, "pc-click-up");
-screen.onkeydown = () => playAudio(monitor.name, "pc-type");
+screen.onkeydown = (e) => {
+  if (e.key == "Escape") {
+    if (e.target) (e.target as HTMLElement).blur();
+    document.dispatchEvent(new CustomEvent("exitPC:pressed"));
+  }
+  playAudio(monitor.name, "pc-type");
+};
 
 export function initMonitor(scene: THREE.Scene) {
   const pos = new THREE.Vector3();
@@ -98,7 +104,9 @@ export function initMonitor(scene: THREE.Scene) {
 
   const { mesh, obj } = createUI(scene, screen, 1.5);
   if (!mesh) return;
+  mesh.name = "Screen";
   screenMesh = mesh;
+  screenMesh.userData.ui = obj;
 
   mesh.position.copy(pos.add(offset));
   mesh.rotation.copy(rotation);
@@ -106,6 +114,10 @@ export function initMonitor(scene: THREE.Scene) {
 
   obj.position.copy(pos);
   obj.rotation.copy(rotation);
+}
+
+export function getPCScreen() {
+  return screenMesh;
 }
 
 let inPC = false;
@@ -125,6 +137,7 @@ export function enablePC(canvas: HTMLCanvasElement, scene: THREE.Scene) {
   enableAudioEl(false);
   if (!isAudioPlaying(monitor.name, "pc-hum"))
     playAudio(monitor.name, "pc-hum");
+  url.focus();
 
   onActionPressed("exitPC", () => {
     inPC = false;

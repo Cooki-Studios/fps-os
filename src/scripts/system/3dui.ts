@@ -79,3 +79,21 @@ export function resize3DUI() {
   cssRenderer.setSize(window.innerWidth, window.innerHeight);
   overlayCssRenderer.setSize(window.innerWidth, window.innerHeight);
 }
+
+const uiPos = new THREE.Vector3(),
+  uiRot = new THREE.Quaternion(),
+  updateUIs: THREE.Object3D[] = [];
+
+export function addUpdateUI(obj: THREE.Object3D) {
+  updateUIs.push(obj);
+}
+
+export function updateUIPosRot() {
+  for (const updateUI of updateUIs) {
+    updateUI.getWorldPosition(uiPos);
+    updateUI.getWorldQuaternion(uiRot);
+
+    updateUI.userData.ui.position.copy(uiPos);
+    updateUI.userData.ui.quaternion.copy(uiRot);
+  }
+}

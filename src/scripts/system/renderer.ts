@@ -10,7 +10,7 @@ import Stats from "stats.js";
 import { onActionPressed } from "./input";
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 import { updateAnimation } from "./animation";
-import { resize3DUI, update3DUI } from "../system/3dui";
+import { resize3DUI, update3DUI, updateUIPosRot } from "../system/3dui";
 import { updateMenu } from "./interact";
 import { updateClock } from "../objects/clock";
 
@@ -109,6 +109,7 @@ export async function enableRenderer(
       updateClock();
       updatePhysics(delta);
       updateKeypad(delta, canvas, scene);
+      updateUIPosRot();
       update3DUI(scene, camera);
       updateMenu(camera);
       updateCSM(delta);

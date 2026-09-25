@@ -3,6 +3,7 @@ import { playAnimation, playAnimationReversed } from "../system/animation";
 import { disablePlayerControl, enablePlayerControl } from "./player";
 import { pause } from "../system/pause";
 import { removePhysicsFromObject } from "../system/physics";
+import { addAudioToObject, playAudio } from "../system/audio";
 
 const html = document.querySelector("html")!;
 
@@ -13,6 +14,7 @@ export async function sleep(canvas: HTMLCanvasElement, scene: THREE.Scene) {
 
   document.body.style.opacity = "0";
   await pause(250);
+  playAudio(bed.name, "bed-down-up");
 
   playAnimationReversed(6);
   await pause(250);
@@ -27,6 +29,7 @@ export async function sleep(canvas: HTMLCanvasElement, scene: THREE.Scene) {
     await canvas.requestPointerLock();
 
     document.body.style.opacity = "1";
+    playAudio(bed.name, "bed-down-up");
     playAnimation(6);
     await pause(250);
 
@@ -40,9 +43,11 @@ export async function sleep(canvas: HTMLCanvasElement, scene: THREE.Scene) {
 let bed: THREE.Object3D;
 const bedParts: THREE.Object3D[] = [];
 
-export function setBed(obj: THREE.Object3D, main = false) {
-  if (main) bed = obj;
-  else bedParts.push(obj);
+export async function setBed(obj: THREE.Object3D, main = false) {
+  if (main) {
+    bed = obj;
+    await addAudioToObject(obj, "bed-down-up", 10);
+  } else bedParts.push(obj);
 }
 
 export function deleteBed() {
@@ -55,7 +60,10 @@ export function deleteBed() {
   if (debugMesh) debugMesh.parent!.remove(debugMesh);
 
   if (bed.children[0].userData.body)
-    removePhysicsFromObject(bed.children[0].userData.body);
+    removePhysicsFromObject(
+      bed.children[0] as THREE.Mesh,
+      bed.children[0].userData.body,
+    );
 
   bed.parent!.remove(bed);
 }

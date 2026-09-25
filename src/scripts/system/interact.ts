@@ -3,7 +3,7 @@ import { createUI } from "./3dui";
 import type { CSS3DObject } from "three/examples/jsm/Addons.js";
 import { disableLight, toggleLight } from "../objects/mainLight";
 import { removePhysicsFromObject } from "./physics";
-import { deletePC, enablePC } from "../objects/pc";
+import { deletePC, enablePC, getPCScreen } from "../objects/pc";
 import {
   getAnimationTime,
   playAnimation,
@@ -16,6 +16,7 @@ import { deleteBed, sleep } from "../objects/bed";
 import { toggleWallpaper } from "../objects/wallpaper";
 import { deleteClock } from "../objects/clock";
 import { playAudio } from "./audio";
+import { pickupObject } from "../objects/player";
 
 const raycaster = new THREE.Raycaster();
 raycaster.far = 8;
@@ -23,19 +24,32 @@ raycaster.far = 8;
 function getObject(camera: THREE.PerspectiveCamera, scene: THREE.Scene) {
   raycaster.setFromCamera(new THREE.Vector2(), camera);
 
-  const intersects = raycaster.intersectObject(scene);
+  const intersects = raycaster.intersectObjects([scene, getPCScreen()]);
   const intersect = intersects.find(
     (i) => i.object instanceof THREE.Mesh && i.object.name != "",
   );
   if (!intersect || !intersect.object.parent) return;
 
-  return { obj: intersect.object.parent, i: intersect };
+  return {
+    obj:
+      intersect.object.name == "Screen"
+        ? intersect.object
+        : intersect.object.parent,
+    i: intersect,
+  };
 }
 
 let hoverEl: Element, clickedEl: Element | undefined;
 const blindsDown: boolean[] = [];
 
 const cross = document.getElementById("cross") as HTMLHeadingElement;
+let grabStart: number | null = null;
+
+function resetGrab() {
+  cross.style.transition = "none";
+  cross.style.setProperty("--progress", "0");
+  grabStart = null;
+}
 
 export function interactPlayer(
   camera: THREE.PerspectiveCamera,
@@ -48,22 +62,26 @@ export function interactPlayer(
   if (!intersect) {
     cross.classList.remove("active");
     clickedEl?.classList.remove("active");
+    resetGrab();
     return;
   }
 
   const obj = intersect.obj;
   if (!obj) {
     clickedEl?.classList.remove("active");
+    resetGrab();
     return;
   }
 
   const name = obj.name.split("_")[0];
   if (
-    name == "Switch" ||
-    name == "Door" ||
-    name == "PC" ||
-    name == "Bed" ||
-    name.startsWith("Blind")
+    !obj.userData.pickup &&
+    (name == "Switch" ||
+      name == "Door" ||
+      name == "PC" ||
+      name == "Screen" ||
+      name == "Bed" ||
+      name.startsWith("Blind"))
   )
     cross.classList.add("active");
   else cross.classList.remove("active");
@@ -74,6 +92,16 @@ export function interactPlayer(
   );
 
   if (click) {
+    if (name == "Pillow" || (name == "Screen" && obj.visible))
+      if (released && grabStart) {
+        if (Date.now() - grabStart >= 450) pickupObject(obj);
+        resetGrab();
+      } else {
+        grabStart = Date.now();
+        cross.style.transition = "--progress linear 500ms";
+        cross.style.setProperty("--progress", "24px");
+      }
+
     if (!released && el && menu.contains(el)) {
       if (clickedEl && clickedEl !== el) clickedEl.classList.remove("active");
       clickedEl = el;
@@ -102,7 +130,10 @@ export function interactPlayer(
           lock(camera, canvas);
           break;
         case "PC":
-          enablePC(canvas, scene);
+          if (!obj.userData.pickup) enablePC(canvas, scene);
+          break;
+        case "Screen":
+          if (!obj.userData.pickup) enablePC(canvas, scene);
           break;
         case "Bed":
           sleep(canvas, scene);
@@ -116,7 +147,7 @@ export function interactPlayer(
 
             if (blindsDown[blindNum]) {
               playAnimationReversed(blindNum);
-              playAudio(name, "blind-up", 0, 0.6);
+              playAudio(name, "blind-up", 0, 0.6, 1.5);
             } else {
               stopAnimation(blindNum);
               playAnimation(blindNum);
@@ -187,11 +218,12 @@ export function contextPlayer(
   const button = document.createElement("button");
   button.textContent = "Delete";
   button.onclick = () => {
-    const debugMesh: THREE.Mesh = obj.children[0].userData.debugMesh;
-    if (debugMesh) debugMesh.parent!.remove(debugMesh);
-
-    if (obj.children[0].userData.body)
-      removePhysicsFromObject(obj.children[0].userData.body);
+    if (obj.children[0] instanceof THREE.Mesh) {
+      const mesh = obj.children[0];
+      const debugMesh: THREE.Mesh = mesh.userData.debugMesh;
+      if (debugMesh) debugMesh.parent!.remove(debugMesh);
+      if (mesh.userData.body) removePhysicsFromObject(mesh, mesh.userData.body);
+    }
 
     if (name == "Light") disableLight();
     else if (name == "PC") deletePC();
