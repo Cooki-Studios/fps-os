@@ -51,5 +51,5 @@ export function renderWithShaders() {
 }
 
 export function resizeShaders(width: number, height: number) {
-  composer.setSize(width, height);
+  if (composer) composer.setSize(width, height);
 }

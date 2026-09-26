@@ -196,12 +196,25 @@ export function enablePlayerControl(
       }
     };
   } else {
+    canvas.onclick = async (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1,
+        y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+      interactPlayer(camera, scene, canvas, true, true, x, y);
+    };
     canvas.onpointerdown = (e) => {
       if (activePointerId !== null) return;
       activePointerId = e.pointerId;
       dragging = true;
       lastPointerX = e.clientX;
       lastPointerY = e.clientY;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1,
+        y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+      interactPlayer(camera, scene, canvas, true, false, x, y);
     };
 
     const releasePointer = (e: PointerEvent) => {

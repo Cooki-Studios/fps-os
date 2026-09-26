@@ -21,8 +21,13 @@ import { dropObject, pickupObject } from "../objects/player";
 const raycaster = new THREE.Raycaster();
 raycaster.far = 8;
 
-function getObject(camera: THREE.PerspectiveCamera, scene: THREE.Scene) {
-  raycaster.setFromCamera(new THREE.Vector2(), camera);
+function getObject(
+  camera: THREE.PerspectiveCamera,
+  scene: THREE.Scene,
+  x = 0,
+  y = 0,
+) {
+  raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
 
   const intersects = raycaster.intersectObjects([scene, ...getPCScreens()]);
   const intersect = intersects.find(
@@ -70,10 +75,12 @@ export function interactPlayer(
   canvas: HTMLCanvasElement,
   click = true,
   released = true,
+  x = 0,
+  y = 0,
 ) {
   interactReleased = released;
 
-  const intersect = getObject(camera, scene);
+  const intersect = getObject(camera, scene, x, y);
   if (!intersect) {
     cross.classList.remove("active");
     clickedEl?.classList.remove("active");
