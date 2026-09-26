@@ -13,7 +13,7 @@ import { updateAnimation } from "./animation";
 import { resize3DUI, update3DUI, updateUIPosRot } from "../system/3dui";
 import { updateMenu } from "./interact";
 import { updateClock } from "../objects/clock";
-import { initShaders, renderWithShaders } from "./shaders";
+import { initShaders, renderWithShaders, resizeShaders } from "./shaders";
 
 let renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
@@ -144,6 +144,7 @@ export function resizeRenderer() {
   const height = document.documentElement.clientHeight || window.innerHeight;
 
   renderer.setSize(width, height);
+  resizeShaders(width, height);
 
   if (camera) {
     camera.aspect = width / height;

@@ -49,3 +49,7 @@ export function initShaders(
 export function renderWithShaders() {
   composer.render();
 }
+
+export function resizeShaders(width: number, height: number) {
+  composer.setSize(width, height);
+}

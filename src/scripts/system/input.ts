@@ -1,6 +1,8 @@
+import type { PerspectiveCamera, Scene, Object3DEventMap } from "three";
 import { bootLog } from "../boot";
 import { isMobile } from "../util/mobile";
 import { enableAudioEl } from "./audio";
+import { getInteractReleased, interactPlayer } from "./interact";
 
 const actions = {
   // General
@@ -54,10 +56,17 @@ export function enableInput() {
   enableAudioEl(false);
   if (!isMobile) cross.style.visibility = "visible";
 }
-export function disableInput() {
+export function disableInput(
+  camera?: PerspectiveCamera,
+  scene?: Scene<Object3DEventMap>,
+  canvas?: HTMLCanvasElement,
+) {
   enabled = false;
   if (!isMobile) cross.style.visibility = "hidden";
   resetKeys();
+
+  if (camera && scene && canvas && !getInteractReleased())
+    interactPlayer(camera, scene, canvas, true, true);
 }
 export function isInputEnabled() {
   return enabled;

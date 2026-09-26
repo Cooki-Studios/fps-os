@@ -3,7 +3,7 @@ import { createUI } from "./3dui";
 import type { CSS3DObject } from "three/examples/jsm/Addons.js";
 import { disableLight, toggleLight } from "../objects/mainLight";
 import { removePhysicsFromObject } from "./physics";
-import { deletePC, enablePC, getPCScreen } from "../objects/pc";
+import { enablePC, getPCScreens } from "../objects/pc";
 import {
   getAnimationTime,
   playAnimation,
@@ -24,7 +24,7 @@ raycaster.far = 8;
 function getObject(camera: THREE.PerspectiveCamera, scene: THREE.Scene) {
   raycaster.setFromCamera(new THREE.Vector2(), camera);
 
-  const intersects = raycaster.intersectObjects([scene, getPCScreen()]);
+  const intersects = raycaster.intersectObjects([scene, ...getPCScreens()]);
   const intersect = intersects.find(
     (i) => i.object instanceof THREE.Mesh && i.object.name != "",
   );
@@ -49,13 +49,19 @@ let grabTimeout: number | null = null,
 function resetGrab() {
   cross.style.transition = "none";
   cross.style.setProperty("--progress", "0");
+
+  if (grabTimeout) clearTimeout(grabTimeout);
   grabTimeout = null;
 
   if (grabObj) {
     dropObject(grabObj);
     grabObj = null;
-    return;
   }
+}
+
+let interactReleased = true;
+export function getInteractReleased() {
+  return interactReleased;
 }
 
 export function interactPlayer(
@@ -65,6 +71,8 @@ export function interactPlayer(
   click = true,
   released = true,
 ) {
+  interactReleased = released;
+
   const intersect = getObject(camera, scene);
   if (!intersect) {
     cross.classList.remove("active");
@@ -82,7 +90,7 @@ export function interactPlayer(
 
   const name = obj.name.split("_")[0];
   if (
-    !obj.userData.pickup &&
+    !grabObj &&
     (name == "Switch" ||
       name == "Door" ||
       name == "PC" ||
@@ -131,8 +139,7 @@ export function interactPlayer(
       closeContextMenu();
     }
 
-    if (released) {
-      resetGrab();
+    if (click && released) {
       switch (name) {
         case "Switch":
           toggleLight();
@@ -141,10 +148,10 @@ export function interactPlayer(
           lock(camera, canvas);
           break;
         case "PC":
-          if (!obj.userData.pickup) enablePC(canvas, scene);
+          if (!grabObj) enablePC(canvas, scene);
           break;
         case "Screen":
-          if (!obj.userData.pickup) enablePC(canvas, scene);
+          if (!grabObj) enablePC(canvas, scene, undefined, true);
           break;
         case "Bed":
           sleep(canvas, scene);
@@ -176,6 +183,7 @@ export function interactPlayer(
           }
           break;
       }
+      resetGrab();
     }
   } else if (el && menu.contains(el)) {
     if (hoverEl && hoverEl !== el) hoverEl.classList.remove("hover");
@@ -235,7 +243,6 @@ export function contextPlayer(
     }
 
     if (name == "Light") disableLight();
-    else if (name == "PC") deletePC();
     else if (name == "Bed") deleteBed();
     else if (name == "Clock") deleteClock();
 

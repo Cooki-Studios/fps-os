@@ -130,12 +130,12 @@ export function enablePlayerControl(
         const events = e.getCoalescedEvents?.() ?? [e];
         deltaX = 0;
         deltaY = 0;
-        for (const ev of events) {
-          deltaX += ev.clientX - lastPointerX;
-          deltaY += ev.clientY - lastPointerY;
-          lastPointerX = ev.clientX;
-          lastPointerY = ev.clientY;
-        }
+
+        const ev = events[0];
+        deltaX += ev.clientX - lastPointerX;
+        deltaY += ev.clientY - lastPointerY;
+        lastPointerX = ev.clientX;
+        lastPointerY = ev.clientY;
       } else {
         deltaX = e.movementX;
         deltaY = e.movementY;
@@ -192,7 +192,7 @@ export function enablePlayerControl(
       if (document.pointerLockElement == canvas) enableInput();
       else {
         if (!isInPC()) enableAudioEl();
-        disableInput();
+        disableInput(camera, scene, canvas);
       }
     };
   } else {
@@ -440,7 +440,7 @@ export function pickupObject(obj: THREE.Object3D) {
   if (physObj) pausePhysicsOfObject(physObj, physObj.userData.body);
 
   camera.attach(obj);
-  obj.userData.pickup = true;
+  obj.userData.grabbed = true;
 
   if (obj.userData.ui) {
     addUpdateUI(obj);
@@ -460,8 +460,6 @@ export function dropObject(obj: THREE.Object3D) {
 
     resumePhysicsOfObject(physObj, physObj.userData.body, pos, rot);
   }
-
-  obj.userData.pickup = false;
 
   if (obj.userData.ui) {
     addUpdateUI(obj);

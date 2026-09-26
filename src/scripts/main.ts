@@ -20,7 +20,6 @@ import { setMainCam, setMainScene } from "./util/scene";
 import { createKeypad } from "./objects/keypad";
 import { setupAnimation } from "./system/animation";
 import { initWallpaper } from "./objects/wallpaper";
-import { initMonitor } from "./objects/pc";
 import { setupMainLight } from "./objects/mainLight";
 import "./system/audio";
 import { addAudioToObject, initAudio } from "./system/audio";
@@ -119,8 +118,6 @@ loader.loadAsync("room.usdc").then(async (room) => {
   setupAnimation(room, room.animations[0], "Blind4", 0.5);
   setupAnimation(room, room.animations[0], "Blind5", 0.5);
   setupAnimation(room, room.animations[0], "Bed_003", 0.25);
-
-  initMonitor(scene);
 
   addPhysicsToObjects().then(async () => {
     bootLog("Compiling renderer...");
