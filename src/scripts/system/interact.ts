@@ -16,7 +16,7 @@ import { deleteBed, sleep } from "../objects/bed";
 import { toggleWallpaper } from "../objects/wallpaper";
 import { deleteClock } from "../objects/clock";
 import { playAudio } from "./audio";
-import { pickupObject } from "../objects/player";
+import { dropObject, pickupObject } from "../objects/player";
 
 const raycaster = new THREE.Raycaster();
 raycaster.far = 8;
@@ -43,12 +43,19 @@ let hoverEl: Element, clickedEl: Element | undefined;
 const blindsDown: boolean[] = [];
 
 const cross = document.getElementById("cross") as HTMLHeadingElement;
-let grabStart: number | null = null;
+let grabTimeout: number | null = null,
+  grabObj: THREE.Object3D | null = null;
 
 function resetGrab() {
   cross.style.transition = "none";
   cross.style.setProperty("--progress", "0");
-  grabStart = null;
+  grabTimeout = null;
+
+  if (grabObj) {
+    dropObject(grabObj);
+    grabObj = null;
+    return;
+  }
 }
 
 export function interactPlayer(
@@ -93,13 +100,16 @@ export function interactPlayer(
 
   if (click) {
     if (name == "Pillow" || (name == "Screen" && obj.visible))
-      if (released && grabStart) {
-        if (Date.now() - grabStart >= 450) pickupObject(obj);
-        resetGrab();
+      if (grabTimeout) {
+        clearTimeout(grabTimeout);
+        grabTimeout = null;
       } else {
-        grabStart = Date.now();
-        cross.style.transition = "--progress linear 500ms";
+        cross.style.transition = "--progress linear 200ms";
         cross.style.setProperty("--progress", "24px");
+        grabTimeout = setTimeout(() => {
+          pickupObject(obj);
+          grabObj = obj;
+        }, 200);
       }
 
     if (!released && el && menu.contains(el)) {
@@ -122,6 +132,7 @@ export function interactPlayer(
     }
 
     if (released) {
+      resetGrab();
       switch (name) {
         case "Switch":
           toggleLight();
@@ -220,8 +231,6 @@ export function contextPlayer(
   button.onclick = () => {
     if (obj.children[0] instanceof THREE.Mesh) {
       const mesh = obj.children[0];
-      const debugMesh: THREE.Mesh = mesh.userData.debugMesh;
-      if (debugMesh) debugMesh.parent!.remove(debugMesh);
       if (mesh.userData.body) removePhysicsFromObject(mesh, mesh.userData.body);
     }
 

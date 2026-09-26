@@ -13,6 +13,7 @@ import { updateAnimation } from "./animation";
 import { resize3DUI, update3DUI, updateUIPosRot } from "../system/3dui";
 import { updateMenu } from "./interact";
 import { updateClock } from "../objects/clock";
+import { initShaders, renderWithShaders } from "./shaders";
 
 let renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
@@ -95,6 +96,8 @@ export async function enableRenderer(
             resizeRenderer();
             resize3DUI();
 
+            initShaders(renderer, scene, camera);
+
             const logo = document.getElementById("logo");
             if (logo) logo.style.display = "none";
 
@@ -104,6 +107,8 @@ export async function enableRenderer(
             localStorage.setItem("booted", "true");
           }, 500);
         }
+
+      renderer.render(scene, camera);
     } else {
       updateAnimation(delta);
       updateClock();
@@ -113,11 +118,11 @@ export async function enableRenderer(
       update3DUI(scene, camera);
       updateMenu(camera);
       updateCSM(delta);
-    }
 
-    stats.begin();
-    renderer.render(scene, camera);
-    stats.end();
+      stats.begin();
+      renderWithShaders();
+      stats.end();
+    }
   }
 
   const timer = new THREE.Timer();
@@ -150,13 +155,17 @@ export function initRenderer(): {
   canvas: HTMLCanvasElement;
   renderer: THREE.WebGLRenderer;
 } {
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+  renderer = new THREE.WebGLRenderer({
+    powerPreference: "high-performance",
+    antialias: false,
+    alpha: false,
+    stencil: false,
+    // depth: false,
+  });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1));
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = true;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1;
+  renderer.toneMapping = THREE.NoToneMapping;
 
   const canvas = renderer.domElement;
 

@@ -26,6 +26,7 @@ import "./system/audio";
 import { addAudioToObject, initAudio } from "./system/audio";
 import { pause } from "./system/pause";
 import { setupMesh } from "./objects/mesh";
+import { initShaders } from "./system/shaders";
 
 document.addEventListener(
   "wheel",
@@ -131,6 +132,7 @@ loader.loadAsync("room.usdc").then(async (room) => {
 
     if (localStorage.getItem("booted")) {
       createKeypad(camera, canvas);
+      initShaders(renderer, scene, camera);
       enableRenderer(scene, camera);
       hideBootLog();
       (

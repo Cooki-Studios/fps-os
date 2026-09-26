@@ -53,11 +53,12 @@ let playerCam: THREE.Camera | undefined,
 
 const FIXED_DELTA = isMobile ? 1 / 15 : 1 / 30,
   MAX_STEPS_PER_FRAME = 5,
-  DEATH_HEIGHT = -50;
+  DEATH_HEIGHT = -2.5;
 
 let gravity: JoltTypes.Vec3,
   tempVec3: JoltTypes.Vec3,
   respawnPos: JoltTypes.RVec3,
+  playerRespawnPos: JoltTypes.RVec3,
   zeroVel: JoltTypes.Vec3,
   playerWasReset = false;
 
@@ -243,7 +244,8 @@ export async function initPhysics(scene: THREE.Scene): Promise<void> {
     Jolt.destroy(settings);
 
     gravity = joltInterface.GetPhysicsSystem().GetGravity();
-    respawnPos = new Jolt.RVec3(0, 2, 0.3);
+    respawnPos = new Jolt.RVec3(0, 2, -8.5);
+    playerRespawnPos = new Jolt.RVec3(0, 2, 0.3);
     zeroVel = new Jolt.Vec3(0, 0, 0);
     tempVec3 = new Jolt.Vec3(0, 0, 0);
 
@@ -371,6 +373,7 @@ export async function addPhysicsToObject(
       bodySettings.mOverrideMassProperties =
         Jolt.EOverrideMassProperties_CalculateInertia;
       bodySettings.mMassPropertiesOverride.mMass = 10;
+      obj.userData.dynamic = true;
     }
 
     const body = bodyInterface.CreateBody(bodySettings);
@@ -412,8 +415,52 @@ export async function removePhysicsFromObject(
   const id = body.GetID();
   bodyInterface.RemoveBody(id);
   bodyInterface.DestroyBody(id);
-  obj.userData.debugMesh.parent.remove(obj.userData.debugMesh);
+  if (obj.userData.debugMesh)
+    obj.userData.debugMesh.parent.remove(obj.userData.debugMesh);
   dynamicObjects.delete(obj);
+}
+
+export async function pausePhysicsOfObject(
+  obj: THREE.Mesh,
+  body: JoltTypes.Body,
+) {
+  const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
+  const id = body.GetID();
+  bodyInterface.DeactivateBody(id);
+  if (obj.userData.debugMesh) obj.userData.debugMesh.visible = false;
+  dynamicObjects.delete(obj);
+}
+export function resumePhysicsOfObject(
+  obj: THREE.Mesh,
+  body: JoltTypes.Body,
+  pos: THREE.Vector3,
+  rot: THREE.Quaternion,
+) {
+  const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
+  const id = body.GetID();
+
+  const physData = obj.parent!.userData;
+  physData.currPos = pos;
+  physData.currQuat = rot;
+  physData.prevPos = null;
+  physData.prevQuat = null;
+
+  const physPos = new Jolt.RVec3(pos.x, pos.y, pos.z);
+  const physRot = new Jolt.Quat(rot.x, rot.y, rot.z, rot.w);
+  bodyInterface.SetPositionRotationAndVelocity(
+    id,
+    physPos,
+    physRot,
+    zeroVel,
+    zeroVel,
+  );
+
+  if (obj.userData.debugMesh) obj.userData.debugMesh.visible = true;
+  if (obj.userData.dynamic) dynamicObjects.add(obj);
+  bodyInterface.ActivateBody(id);
+
+  Jolt.destroy(physPos);
+  Jolt.destroy(physRot);
 }
 
 export function togglePhysicsDebug(isPlayer = false) {
@@ -488,6 +535,9 @@ function updatePrevPos(
   snap: boolean,
   rot?: JoltTypes.Quat,
 ) {
+  if (data.prevPos == null) data.prevPos = new THREE.Vector3();
+  if (data.prevQuat == null) data.prevQuat = new THREE.Quaternion();
+
   if (snap) {
     joltToVec3(pos, data.prevPos);
     if (rot) joltToQuat(rot, data.prevQuat);
@@ -569,7 +619,7 @@ function doPhysicsStep(delta: number) {
   if (!playerWasReset) playerWasReset = charPos.GetY() < DEATH_HEIGHT;
 
   if (playerWasReset) {
-    playerChar.SetPosition(respawnPos);
+    playerChar.SetPosition(playerRespawnPos);
     playerChar.SetLinearVelocity(zeroVel);
 
     charPos = playerChar.GetPosition();
@@ -591,12 +641,17 @@ function doPhysicsStep(delta: number) {
 
 function lerpPhysics(alpha: number) {
   const updateMeshTransform = (obj: THREE.Mesh) => {
-    if (!obj.parent?.userData.currPos) return;
+    if (!obj.parent) return;
     const uData = obj.parent.userData;
 
-    obj.parent.position.lerpVectors(uData.prevPos, uData.currPos, alpha);
+    if (uData.prevPos)
+      obj.parent.position.lerpVectors(uData.prevPos, uData.currPos, alpha);
+    else obj.parent.position.copy(uData.currPos);
+
     if (obj != playerObj)
-      obj.parent.quaternion.copy(uData.prevQuat).slerp(uData.currQuat, alpha);
+      if (uData.prevQuat)
+        obj.parent.quaternion.copy(uData.prevQuat).slerp(uData.currQuat, alpha);
+      else obj.parent.quaternion.copy(uData.currQuat);
 
     if (obj == playerObj) obj.parent.position.y -= playerOffsetY;
 

@@ -33,7 +33,7 @@ export function initLighting(
   csm.fade = true;
   csm.lights.forEach((light) => {
     light.shadow.radius = 2.5;
-    light.shadow.intensity = 0.55;
+    light.shadow.intensity = 0.8;
   });
 
   if (debug) {

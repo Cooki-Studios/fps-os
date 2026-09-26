@@ -19,7 +19,8 @@ import {
   isPlayerCrouched,
   isPlayerGrounded,
   isPlayerHittingCeiling,
-  removePhysicsFromObject,
+  pausePhysicsOfObject,
+  resumePhysicsOfObject,
   setPlayerCollision,
 } from "../system/physics";
 import { bootLog } from "../boot";
@@ -436,22 +437,33 @@ export async function initPlayer(
 
 export function pickupObject(obj: THREE.Object3D) {
   const physObj = obj.children[0] as THREE.Mesh;
-  if (physObj) removePhysicsFromObject(physObj, physObj.userData.body);
-
-  const mesh = (physObj || obj) as THREE.Mesh,
-    mat = mesh.material as THREE.Material;
-
-  mesh.renderOrder = 2;
-  mat.depthWrite = false;
-  mat.transparent = true;
-  mat.depthFunc = THREE.AlwaysDepth;
+  if (physObj) pausePhysicsOfObject(physObj, physObj.userData.body);
 
   camera.attach(obj);
-  obj.position.set(2, -1, -3);
-  obj.rotation.set(0, -Math.PI / 8, 0);
+  obj.userData.pickup = true;
 
   if (obj.userData.ui) {
-    obj.userData.pickup = true;
+    addUpdateUI(obj);
+  }
+}
+
+export function dropObject(obj: THREE.Object3D) {
+  player.parent?.attach(obj);
+
+  const physObj = obj.children[0] as THREE.Mesh;
+  if (physObj) {
+    const pos = new THREE.Vector3();
+    physObj.getWorldPosition(pos);
+
+    const rot = new THREE.Quaternion();
+    physObj.getWorldQuaternion(rot);
+
+    resumePhysicsOfObject(physObj, physObj.userData.body, pos, rot);
+  }
+
+  obj.userData.pickup = false;
+
+  if (obj.userData.ui) {
     addUpdateUI(obj);
   }
 }
