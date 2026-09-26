@@ -145,24 +145,28 @@ export function enablePC(
   id = screenMeshes.length - 1,
   screen = false,
 ) {
+  let url: HTMLInputElement | undefined;
+
   if (!screen) {
     if (!screenMeshes[id] || screenMeshes[id].userData.grabbed)
       initMonitor(scene);
 
     inPC = true;
 
+    url = screens[id + 1]?.querySelector(".url") as HTMLInputElement;
+    if (url)
+      url.onkeydown = async (e) => {
+        if (e.key != "Enter") return;
+        if (url) {
+          loadPage(url.value, screens[id + 1]);
+          url.value = "";
+        }
+      };
+
     screenMeshes[id + 1].visible = true;
     screens[id + 1].style.display = "grid";
     screens[id + 1].style.opacity = "1";
   }
-
-  const url = screens[id + 1].querySelector(".url") as HTMLInputElement;
-
-  url.onkeydown = async (e) => {
-    if (e.key != "Enter") return;
-    loadPage(url.value, screens[id + 1]);
-    url.value = "";
-  };
 
   warnEl.style.opacity = "1";
   disablePlayerControl(canvas);
@@ -170,7 +174,10 @@ export function enablePC(
   enableAudioEl(false);
   if (!isAudioPlaying(monitor.name, "pc-hum"))
     playAudio(monitor.name, "pc-hum");
-  url.focus();
+
+  if (!url && screens[id])
+    url = screens[id].querySelector(".url") as HTMLInputElement;
+  setTimeout(() => url?.focus());
 
   onActionPressed("exitPC", () => {
     inPC = false;
