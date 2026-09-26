@@ -28,17 +28,10 @@ const WIDTH = 1028,
 const screen = document.getElementById("screen") as HTMLDivElement;
 const spinnerBox = document.getElementById("spinner-box") as HTMLDivElement;
 const spinner = screen.querySelector(".spinner") as HTMLDivElement;
-const url = document.querySelector(".url") as HTMLInputElement;
 
 const screens: HTMLDivElement[] = [],
   screenMeshes: THREE.Mesh[] = [],
   iframes: HTMLIFrameElement[] = [];
-
-url.onkeydown = async (e) => {
-  if (e.key != "Enter") return;
-  loadPage(url.value, url.parentElement!);
-  url.value = "";
-};
 
 async function loadPage(domain: string, parent: HTMLElement) {
   spinnerBox.style.display = "block";
@@ -162,6 +155,14 @@ export function enablePC(
     screens[id + 1].style.display = "grid";
     screens[id + 1].style.opacity = "1";
   }
+
+  const url = screens[id + 1].querySelector(".url") as HTMLInputElement;
+
+  url.onkeydown = async (e) => {
+    if (e.key != "Enter") return;
+    loadPage(url.value, screens[id + 1]);
+    url.value = "";
+  };
 
   warnEl.style.opacity = "1";
   disablePlayerControl(canvas);
