@@ -158,15 +158,14 @@ export function initRenderer(): {
 } {
   renderer = new THREE.WebGLRenderer({
     powerPreference: "high-performance",
-    antialias: false,
+    antialias: true,
     alpha: false,
     stencil: false,
-    // depth: false,
   });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
-  renderer.toneMapping = THREE.NoToneMapping;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
   const canvas = renderer.domElement;
 

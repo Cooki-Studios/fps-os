@@ -281,7 +281,7 @@ export async function initPlayer(
     setAudioVolume(player.name, "player-jump", 0.0),
   );
   await addAudioToObject(player, "player-wind", 1);
-  await addAudioToObject(player, "wallpaper-change", 1);
+  await addAudioToObject(player, "wallpaper-change", 2);
 
   let crouched = false;
   let prevSpeed = 0;

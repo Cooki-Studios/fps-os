@@ -13,7 +13,7 @@ import {
 import { setLightLevel } from "./lighting";
 import { lock } from "../objects/keypad";
 import { deleteBed, sleep } from "../objects/bed";
-import { toggleWallpaper } from "../objects/wallpaper";
+import { setWallpaper, toggleWallpaper } from "../objects/wallpaper";
 import { deleteClock } from "../objects/clock";
 import { playAudio } from "./audio";
 import { dropObject, pickupObject } from "../objects/player";
@@ -134,7 +134,7 @@ export function interactPlayer(
     } else if (clickedEl) {
       clickedEl.classList.remove("active");
       if (el == clickedEl) {
-        if (el instanceof HTMLButtonElement) {
+        if (el instanceof HTMLButtonElement || el instanceof HTMLInputElement) {
           (clickedEl as HTMLElement).click();
           canShow = false;
           contextObj.visible = false;
@@ -236,9 +236,24 @@ export function contextPlayer(
 
   if (name == "Walls") {
     const button = document.createElement("button");
-    button.textContent = "Change wallpaper";
+    button.textContent = "Toggle wallpaper";
     button.onclick = toggleWallpaper;
     menuButtons.appendChild(button);
+
+    const label = document.createElement("label");
+    label.textContent = "Import wallpaper: ";
+
+    const file = document.createElement("input");
+    file.type = "file";
+    file.accept = "image/*";
+    file.onclick = () => document.exitPointerLock();
+    file.onchange = () => {
+      if (!file.files) return;
+      setWallpaper(file.files[0]);
+    };
+
+    label.appendChild(file);
+    menuButtons.appendChild(label);
   }
 
   const button = document.createElement("button");

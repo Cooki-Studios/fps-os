@@ -14,6 +14,7 @@ import {
   type Camera,
   HalfFloatType,
   Vector2,
+  NoToneMapping,
 } from "three";
 
 let composer: EffectComposer;
@@ -23,6 +24,8 @@ export function initShaders(
   scene: Scene,
   camera: Camera,
 ) {
+  renderer.toneMapping = NoToneMapping;
+
   composer = new EffectComposer(renderer, {
     frameBufferType: HalfFloatType,
     multisampling: 4,
