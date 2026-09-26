@@ -237,7 +237,7 @@ export function enablePlayerControl(
 }
 
 export function disablePlayerControl(canvas: HTMLCanvasElement) {
-  document.exitPointerLock();
+  if (document.exitPointerLock) document.exitPointerLock();
   canvas.onclick = null;
   canvas.onpointermove = null;
   canvas.onpointerdown = null;
