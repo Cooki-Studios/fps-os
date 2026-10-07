@@ -31,6 +31,7 @@ export function createUI(
   el: HTMLElement,
   scale: number = 1,
   overlay = false,
+  isScreen = false,
 ) {
   el.style.backfaceVisibility = "hidden";
 
@@ -54,15 +55,57 @@ export function createUI(
     rect.height * SCALE * scale,
   );
   const material = new THREE.MeshBasicMaterial({
-    color: 0xff0000,
     blending: THREE.NoBlending,
     opacity: 0,
     premultipliedAlpha: true,
+    side: THREE.DoubleSide,
   });
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.castShadow = true;
+
+  const shadowMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0xffffff,
+    transparent: true,
+    depthWrite: false,
+    polygonOffset: true,
+    polygonOffsetFactor: -1,
+    polygonOffsetUnits: -1,
+  });
+  if (isScreen) {
+    shadowMaterial.metalness = 0.65;
+    shadowMaterial.roughness = 0.65;
+    shadowMaterial.emissive = new THREE.Color(1, 1, 1);
+    shadowMaterial.emissiveIntensity = 0.8;
+  }
+
+  shadowMaterial.onBeforeCompile = (shader) => {
+    shadowMaterial.userData.shader = shader;
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <opaque_fragment>",
+      isScreen
+        ? `
+        float lum = dot(outgoingLight, vec3(0.2126, 0.7152, 0.0722));
+        float dark = clamp(1.0 - lum, 0.0, 1.0);
+        gl_FragColor = vec4(outgoingLight, dark);
+      `
+        : `
+        float lum = dot(outgoingLight, vec3(0.2126, 0.7152, 0.0722));
+        float dark = clamp(1.0 - lum, 0.0, 1.0);
+        gl_FragColor = vec4(0.0, 0.0, 0.0, dark);
+      `,
+    );
+  };
+
+  const shadowMesh = new THREE.Mesh(geometry, shadowMaterial);
+  shadowMesh.receiveShadow = true;
+  shadowMesh.renderOrder = 1;
+  shadowMesh.name = "shadow";
+  mesh.add(shadowMesh);
 
   parent.add(mesh);
   parent.add(obj);
+
+  mesh.userData.ui = obj;
 
   return { mesh: mesh, obj: obj };
 }
@@ -85,7 +128,7 @@ const uiPos = new THREE.Vector3(),
   updateUIs: THREE.Object3D[] = [];
 
 export function addUpdateUI(obj: THREE.Object3D) {
-  updateUIs.push(obj);
+  if (!updateUIs.includes(obj)) updateUIs.push(obj);
 }
 
 export function updateUIPosRot() {

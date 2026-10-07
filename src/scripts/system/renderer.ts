@@ -11,7 +11,7 @@ import { onActionPressed } from "./input";
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 import { updateAnimation } from "./animation";
 import { resize3DUI, update3DUI, updateUIPosRot } from "../system/3dui";
-import { updateMenu } from "./interact";
+import { updateGrabInertia, updateMenu } from "./interact";
 import { updateClock } from "../objects/clock";
 import { initShaders, renderWithShaders, resizeShaders } from "./shaders";
 
@@ -38,6 +38,8 @@ export function setSkyOffset(offset: number) {
   scene.backgroundRotation.y = offset;
 }
 
+let texture: THREE.DataTexture;
+
 export async function setupSky(
   scene: THREE.Scene,
   renderer: THREE.WebGLRenderer,
@@ -47,15 +49,17 @@ export async function setupSky(
   scene.environmentIntensity = 0.2;
 
   const textureLoader = new EXRLoader();
-  const texture = await textureLoader.loadAsync(
-    "textures/DaySkyHDRI069B_1K_HDR.exr",
-  );
+  texture = await textureLoader.loadAsync("textures/DaySkyHDRI069B_1K_HDR.exr");
   texture.mapping = THREE.EquirectangularReflectionMapping;
 
   scene.background = texture;
   scene.backgroundIntensity = 2;
 
   bootLog("Sky initialised");
+}
+
+export function getSkyTexture() {
+  return texture;
 }
 
 export function setSkyLightLevel(intensity = 1) {
@@ -114,6 +118,7 @@ export async function enableRenderer(
       updateClock();
       updatePhysics(delta);
       updateKeypad(delta, canvas, scene);
+      updateGrabInertia();
       updateUIPosRot();
       update3DUI(scene, camera);
       updateMenu(camera);

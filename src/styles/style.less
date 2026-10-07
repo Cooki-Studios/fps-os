@@ -43,6 +43,19 @@ body {
         }
     }
 
+    .note {
+        aspect-ratio: 1/1.43;
+        height: 738px;
+        background: repeating-linear-gradient(
+            white,
+            white 1em,
+            grey 1em,
+            grey calc(1em + 2px)
+        );
+        color: black;
+        font-size: 1.5em;
+    }
+
     .screen {
         display: grid;
         opacity: 0;
@@ -427,15 +440,15 @@ canvas[data-engine],
     }
 
     @property --progress {
-        syntax: "<length>";
+        syntax: "<percentage>";
         inherits: true;
-        initial-value: 0px;
+        initial-value: 0%;
     }
 
     transition: --progress linear 200ms;
-    &::before {
+    &.grabbable::before {
         content: "";
-        width: var(--progress);
+        width: 24px;
         height: 24px;
         position: absolute;
         top: calc(50% - 4px);
@@ -444,6 +457,11 @@ canvas[data-engine],
         z-index: -1;
         font-size: 1.25em;
         border-bottom: 4px white solid;
+        mask-image: linear-gradient(
+            to right,
+            rgb(0 0 0 / 1) var(--progress),
+            rgb(0 0 0 / 0.25) var(--progress)
+        );
     }
 }
 

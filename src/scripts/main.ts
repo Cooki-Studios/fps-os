@@ -98,7 +98,7 @@ loader.loadAsync("room.usdc").then(async (room) => {
 
   room.traverse(async (mesh) => {
     if (mesh instanceof THREE.Mesh) {
-      setupMesh(mesh, meshes);
+      setupMesh(mesh, meshes, scene);
     } else if (mesh instanceof THREE.PointLight) {
       if (mesh.name == "MainLight") setupMainLight(mesh, scene);
     } else

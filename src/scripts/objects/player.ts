@@ -29,6 +29,7 @@ import {
   closeContextMenu,
   contextPlayer,
   interactPlayer,
+  setGrabVel,
 } from "../system/interact";
 import {
   addAudioToObject,
@@ -136,9 +137,11 @@ export function enablePlayerControl(
         deltaY += ev.clientY - lastPointerY;
         lastPointerX = ev.clientX;
         lastPointerY = ev.clientY;
+        setGrabVel(deltaX, deltaY, camera);
       } else {
         deltaX = e.movementX;
         deltaY = e.movementY;
+        setGrabVel(deltaX, deltaY, camera);
       }
 
       player.rotation.y -= deltaX * sens * deg;
@@ -161,17 +164,12 @@ export function enablePlayerControl(
 
   if (!isMobile) {
     canvas.style.cursor = "pointer";
-    // canvas.oncontextmenu = () => contextPlayer(camera, scene);
+    document.onclick = (e) => {
+      if (e.button == 2) contextPlayer(camera, scene);
+    };
     canvas.onclick = async (e) => {
       if (document.pointerLockElement == canvas) {
-        switch (e.button) {
-          case 0:
-            interactPlayer(camera, scene, canvas);
-            break;
-          case 2:
-            contextPlayer(camera, scene);
-            break;
-        }
+        if (e.button == 0) interactPlayer(camera, scene, canvas);
       } else {
         await canvas.requestPointerLock();
         if (pcInfo) {
@@ -207,8 +205,12 @@ export function enablePlayerControl(
       if (activePointerId !== null) return;
       activePointerId = e.pointerId;
       dragging = true;
+
+      const deltaX = e.clientX - lastPointerX;
+      const deltaY = e.clientY - lastPointerY;
       lastPointerX = e.clientX;
       lastPointerY = e.clientY;
+      setGrabVel(deltaX, deltaY, camera);
 
       const rect = canvas.getBoundingClientRect();
       const x = ((e.clientX - rect.left) / rect.width) * 2 - 1,
@@ -450,31 +452,23 @@ export async function initPlayer(
 
 export function pickupObject(obj: THREE.Object3D) {
   const physObj = obj.children[0] as THREE.Mesh;
-  if (physObj) pausePhysicsOfObject(physObj, physObj.userData.body);
+  if (physObj && physObj.userData.body) {
+    pausePhysicsOfObject(physObj, physObj.userData.body);
+  }
 
   camera.attach(obj);
   obj.userData.grabbed = true;
 
-  if (obj.userData.ui) {
-    addUpdateUI(obj);
-  }
+  if (obj.userData.ui) addUpdateUI(obj);
 }
 
-export function dropObject(obj: THREE.Object3D) {
+export function dropObject(obj: THREE.Object3D, vel: THREE.Vector3) {
   player.parent?.attach(obj);
 
   const physObj = obj.children[0] as THREE.Mesh;
-  if (physObj) {
-    const pos = new THREE.Vector3();
-    physObj.getWorldPosition(pos);
-
-    const rot = new THREE.Quaternion();
-    physObj.getWorldQuaternion(rot);
-
-    resumePhysicsOfObject(physObj, physObj.userData.body, pos, rot);
+  if (physObj && physObj.userData.body && !physObj.userData.paused) {
+    resumePhysicsOfObject(physObj, physObj.userData.body, vel);
   }
 
-  if (obj.userData.ui) {
-    addUpdateUI(obj);
-  }
+  if (obj.userData.ui) addUpdateUI(obj);
 }

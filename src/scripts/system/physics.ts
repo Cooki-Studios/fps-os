@@ -418,6 +418,7 @@ export async function removePhysicsFromObject(
   if (obj.userData.debugMesh)
     obj.userData.debugMesh.parent.remove(obj.userData.debugMesh);
   dynamicObjects.delete(obj);
+  obj.userData = {};
 }
 
 export async function pausePhysicsOfObject(
@@ -433,11 +434,15 @@ export async function pausePhysicsOfObject(
 export function resumePhysicsOfObject(
   obj: THREE.Mesh,
   body: JoltTypes.Body,
-  pos: THREE.Vector3,
-  rot: THREE.Quaternion,
+  vel: THREE.Vector3 = new THREE.Vector3(),
 ) {
   const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
   const id = body.GetID();
+
+  const pos = new THREE.Vector3();
+  obj.getWorldPosition(pos);
+  const rot = new THREE.Quaternion();
+  obj.getWorldQuaternion(rot);
 
   const physData = obj.parent!.userData;
   physData.currPos = pos;
@@ -445,14 +450,16 @@ export function resumePhysicsOfObject(
   physData.prevPos = null;
   physData.prevQuat = null;
 
-  const physPos = new Jolt.RVec3(pos.x, pos.y, pos.z);
-  const physRot = new Jolt.Quat(rot.x, rot.y, rot.z, rot.w);
+  const physPos = new Jolt.RVec3(pos.x, pos.y, pos.z),
+    physRot = new Jolt.Quat(rot.x, rot.y, rot.z, rot.w),
+    physVel = new Jolt.Vec3(vel.x, vel.y, vel.z);
+
   bodyInterface.SetPositionRotationAndVelocity(
     id,
     physPos,
     physRot,
-    zeroVel,
-    zeroVel,
+    physVel,
+    physVel,
   );
 
   if (obj.userData.debugMesh) obj.userData.debugMesh.visible = true;

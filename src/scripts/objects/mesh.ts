@@ -5,12 +5,14 @@ import { setClock } from "./clock";
 import { setKeyLight, setDoor, setKeypad } from "./keypad";
 import { setMonitor } from "./pc";
 import { addAudioToObject, loadBuffer } from "../system/audio";
+import { setNotepad } from "./notepad";
 
 const wind = await loadBuffer("windows-wind");
 
 export async function setupMesh(
-  mesh: THREE.Mesh<any, any, any>,
+  mesh: THREE.Mesh<any, THREE.MeshPhysicalMaterial, any>,
   meshes: THREE.Mesh[],
+  scene: THREE.Scene,
 ) {
   mesh.material.dithering = true;
   mesh.receiveShadow = true;
@@ -45,6 +47,8 @@ export async function setupMesh(
       case "KeyLight":
         setKeyLight(mesh);
         break;
+      case "Papers":
+        setNotepad(mesh, scene);
     }
 
     if (mesh.parent.parent && mesh.parent.name == "Door")

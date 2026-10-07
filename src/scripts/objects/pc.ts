@@ -19,7 +19,7 @@ export async function setMonitor(obj: THREE.Object3D) {
   await addAudioToObject(monitor, "pc-type", 0.5);
 }
 
-const rotation = new THREE.Euler(-Math.PI / 36, -Math.PI, 0, "YXZ"),
+const rot = new THREE.Euler(-Math.PI / 36, -Math.PI, 0, "YXZ"),
   offset = new THREE.Vector3(0, 1.34, -0.02);
 
 const WIDTH = 1028,
@@ -79,21 +79,21 @@ function iframeError() {
   error.style.display = "grid";
 }
 
-screen.onpointerdown = () => playAudio(monitor.name, "pc-click-down");
-screen.onpointerup = () => playAudio(monitor.name, "pc-click-up");
-screen.onkeydown = (e) => {
-  if (e.key == "Escape") {
-    if (e.target) (e.target as HTMLElement).blur();
-    document.dispatchEvent(new CustomEvent("exitPC:pressed"));
-  }
-  playAudio(monitor.name, "pc-type");
-};
-
 function initMonitor(scene: THREE.Scene) {
-  const pos = new THREE.Vector3();
-  monitor.getWorldPosition(pos);
-
   const monitorScreen = screen.cloneNode(true) as HTMLDivElement;
+  const { mesh, obj } = createUI(scene, monitorScreen, 1.5, undefined, true);
+  if (!mesh) return;
+  mesh.name = "Screen";
+
+  monitorScreen.onpointerdown = () => playAudio(monitor.name, "pc-click-down");
+  monitorScreen.onpointerup = () => playAudio(monitor.name, "pc-click-up");
+  monitorScreen.onkeydown = (e) => {
+    if (e.key == "Escape") {
+      if (e.target) (e.target as HTMLElement).blur();
+      document.dispatchEvent(new CustomEvent("exitPC:pressed"));
+    }
+    playAudio(monitor.name, "pc-type");
+  };
 
   const osButtons: NodeListOf<HTMLButtonElement> =
     monitorScreen.querySelectorAll("button.os");
@@ -110,22 +110,17 @@ function initMonitor(scene: THREE.Scene) {
   }
 
   screens.push(monitorScreen);
+  screenMeshes.push(mesh);
 
-  const { mesh, obj } = createUI(scene, monitorScreen, 1.5);
-
-  if (!mesh) return;
-  mesh.name = "Screen";
-
-  const screenMesh = mesh;
-  screenMesh.userData.ui = obj;
-  screenMeshes.push(screenMesh);
+  const pos = new THREE.Vector3();
+  monitor.getWorldPosition(pos);
 
   mesh.position.copy(pos.add(offset));
-  mesh.rotation.copy(rotation);
+  mesh.rotation.copy(rot);
   mesh.visible = false;
 
   obj.position.copy(pos);
-  obj.rotation.copy(rotation);
+  obj.rotation.copy(rot);
 }
 
 export function getPCScreens() {

@@ -35,9 +35,9 @@ export function initShaders(
   const bloom = new BloomEffect({ intensity: 0.5 });
 
   const chromatic = new ChromaticAberrationEffect({
-    offset: new Vector2(0.00025, 0.00025),
+    offset: new Vector2(0.0005, 0.0005),
     radialModulation: true,
-    modulationOffset: 0.15,
+    modulationOffset: 0.5,
   });
 
   const vignette = new VignetteEffect({ darkness: 0.25 });

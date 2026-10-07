@@ -2,7 +2,12 @@ import * as THREE from "three";
 import { createUI } from "./3dui";
 import type { CSS3DObject } from "three/examples/jsm/Addons.js";
 import { disableLight, toggleLight } from "../objects/mainLight";
-import { removePhysicsFromObject } from "./physics";
+import {
+  addPhysicsToObject,
+  pausePhysicsOfObject,
+  removePhysicsFromObject,
+  resumePhysicsOfObject,
+} from "./physics";
 import { enablePC, getPCScreens } from "../objects/pc";
 import {
   getAnimationTime,
@@ -17,6 +22,7 @@ import { setWallpaper, toggleWallpaper } from "../objects/wallpaper";
 import { deleteClock } from "../objects/clock";
 import { playAudio } from "./audio";
 import { dropObject, pickupObject } from "../objects/player";
+import { enableNote, getNoteMeshes } from "../objects/notepad";
 
 const raycaster = new THREE.Raycaster();
 raycaster.far = 8;
@@ -29,7 +35,11 @@ function getObject(
 ) {
   raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
 
-  const intersects = raycaster.intersectObjects([scene, ...getPCScreens()]);
+  const intersects = raycaster.intersectObjects([
+    scene,
+    ...getPCScreens(),
+    ...getNoteMeshes(),
+  ]);
   const intersect = intersects.find(
     (i) => i.object instanceof THREE.Mesh && i.object.name != "",
   );
@@ -37,7 +47,7 @@ function getObject(
 
   return {
     obj:
-      intersect.object.name == "Screen"
+      intersect.object.name == "Screen" || intersect.object.name == "Note"
         ? intersect.object
         : intersect.object.parent,
     i: intersect,
@@ -53,13 +63,14 @@ let grabTimeout: number | null = null,
 
 function resetGrab() {
   cross.style.transition = "none";
-  cross.style.setProperty("--progress", "0");
+  cross.style.setProperty("--progress", "0%");
+  cross.classList.remove("grabbable");
 
   if (grabTimeout) clearTimeout(grabTimeout);
   grabTimeout = null;
 
   if (grabObj) {
-    dropObject(grabObj);
+    dropObject(grabObj, grabVel);
     grabObj = null;
   }
 }
@@ -67,6 +78,28 @@ function resetGrab() {
 let interactReleased = true;
 export function getInteractReleased() {
   return interactReleased;
+}
+
+const grabVel = new THREE.Vector3();
+export function setGrabVel(
+  x: number,
+  y: number,
+  camera: THREE.PerspectiveCamera,
+) {
+  const dir = new THREE.Vector3();
+  camera.getWorldDirection(dir);
+
+  const right = new THREE.Vector3().crossVectors(dir, camera.up).normalize();
+  const up = new THREE.Vector3().crossVectors(right, dir).normalize();
+
+  grabVel
+    .addScaledVector(up, THREE.MathUtils.clamp(-y, -2, 2))
+    .addScaledVector(right, THREE.MathUtils.clamp(x, -2, 2));
+}
+
+const DAMPING = 0.5;
+export function updateGrabInertia() {
+  if (grabVel.lengthSq() > 0.00001) grabVel.multiplyScalar(DAMPING);
 }
 
 export function interactPlayer(
@@ -85,28 +118,34 @@ export function interactPlayer(
     cross.classList.remove("active");
     clickedEl?.classList.remove("active");
     resetGrab();
-    return;
   }
 
-  const obj = intersect.obj;
+  const obj = intersect?.obj;
   if (!obj) {
     clickedEl?.classList.remove("active");
     resetGrab();
-    return;
   }
 
-  const name = obj.name.split("_")[0];
-  if (
-    !grabObj &&
-    (name == "Switch" ||
-      name == "Door" ||
-      name == "PC" ||
-      name == "Screen" ||
-      name == "Bed" ||
-      name.startsWith("Blind"))
-  )
-    cross.classList.add("active");
-  else cross.classList.remove("active");
+  const name = obj?.name.split("_")[0];
+  if (obj) {
+    if (
+      !grabObj &&
+      (name == "Switch" ||
+        name == "Door" ||
+        name == "PC" ||
+        name == "Screen" ||
+        name == "Papers" ||
+        name == "Note" ||
+        name == "Bed" ||
+        name?.startsWith("Blind"))
+    )
+      cross.classList.add("active");
+    else cross.classList.remove("active");
+
+    if (name == "Pillow" || name == "Note" || (name == "Screen" && obj.visible))
+      cross.classList.add("grabbable");
+    else cross.classList.remove("grabbable");
+  }
 
   const el = document.elementFromPoint(
     window.innerWidth / 2,
@@ -114,23 +153,11 @@ export function interactPlayer(
   );
 
   if (click) {
-    if (name == "Pillow" || (name == "Screen" && obj.visible))
-      if (grabTimeout) {
-        clearTimeout(grabTimeout);
-        grabTimeout = null;
-      } else {
-        cross.style.transition = "--progress linear 200ms";
-        cross.style.setProperty("--progress", "24px");
-        grabTimeout = setTimeout(() => {
-          pickupObject(obj);
-          grabObj = obj;
-        }, 200);
-      }
-
     if (!released && el && menu.contains(el)) {
       if (clickedEl && clickedEl !== el) clickedEl.classList.remove("active");
       clickedEl = el;
       el.classList.add("active");
+      return;
     } else if (clickedEl) {
       clickedEl.classList.remove("active");
       if (el == clickedEl) {
@@ -139,14 +166,34 @@ export function interactPlayer(
           canShow = false;
           contextObj.visible = false;
         }
+        clickedEl = undefined;
         return;
       }
       clickedEl = undefined;
+      return;
     } else {
       closeContextMenu();
     }
 
-    if (click && released) {
+    if (obj)
+      if (
+        name == "Pillow" ||
+        name == "Note" ||
+        (name == "Screen" && obj.visible)
+      )
+        if (grabTimeout) {
+          clearTimeout(grabTimeout);
+          grabTimeout = null;
+        } else {
+          cross.style.transition = "--progress linear 200ms";
+          cross.style.setProperty("--progress", "100%");
+          grabTimeout = setTimeout(() => {
+            pickupObject(obj);
+            grabObj = obj;
+          }, 200);
+        }
+
+    if (name && click && released) {
       switch (name) {
         case "Switch":
           toggleLight();
@@ -159,6 +206,12 @@ export function interactPlayer(
           break;
         case "Screen":
           if (!grabObj) enablePC(canvas, scene, undefined, true);
+          break;
+        case "Papers":
+          if (!grabObj) enableNote(scene);
+          break;
+        case "Note":
+          if (!grabObj) enableNote(scene, undefined, true);
           break;
         case "Bed":
           sleep(canvas, scene);
@@ -254,6 +307,29 @@ export function contextPlayer(
 
     label.appendChild(file);
     menuButtons.appendChild(label);
+  } else if (
+    name == "Pillow" ||
+    name == "Note" ||
+    (name == "Screen" && obj.visible)
+  ) {
+    const mesh = obj.children[0] as THREE.Mesh;
+    const button = document.createElement("button");
+    let enabled = false;
+    if (mesh.userData.body && !mesh.userData.paused) {
+      button.textContent = "Disable physics";
+      enabled = true;
+    } else button.textContent = "Enable physics";
+    button.onclick = () => {
+      if (enabled) {
+        mesh.userData.paused = true;
+        pausePhysicsOfObject(mesh, mesh.userData.body);
+      } else {
+        mesh.userData.paused = false;
+        if (mesh.userData.body) resumePhysicsOfObject(mesh, mesh.userData.body);
+        else addPhysicsToObject(mesh, true, false, false);
+      }
+    };
+    menuButtons.appendChild(button);
   }
 
   const button = document.createElement("button");

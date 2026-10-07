@@ -109,6 +109,6 @@ export async function playAudio(
 
   sound.offset = offset;
   if (volume != null) sound.setVolume(volume);
-  if (randomise) sound.setDetune(Math.random() * 100);
+  if (randomise) sound.setDetune(Math.random() * 10);
   sound.play();
 }
