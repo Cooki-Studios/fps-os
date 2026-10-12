@@ -48,12 +48,19 @@ body {
         height: 738px;
         background: repeating-linear-gradient(
             white,
-            white 1em,
-            grey 1em,
-            grey calc(1em + 2px)
+            white 24px,
+            grey 24px,
+            grey 26px
         );
+        line-height: 26px;
         color: black;
-        font-size: 1.5em;
+        font-size: 24px;
+        white-space: pre;
+        outline: none;
+        border: none;
+        font-family:
+            Inter Semi-Bold,
+            sans-serif;
     }
 
     .screen {
@@ -63,6 +70,7 @@ body {
         background: black;
         position: absolute;
         top: 0;
+        z-index: -1;
 
         #spinner-box {
             display: none;

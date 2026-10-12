@@ -7,6 +7,7 @@ import {
   pausePhysicsOfObject,
   removePhysicsFromObject,
   resumePhysicsOfObject,
+  addVelocityToObject,
 } from "./physics";
 import { enablePC, getPCScreens } from "../objects/pc";
 import {
@@ -21,8 +22,12 @@ import { deleteBed, sleep } from "../objects/bed";
 import { setWallpaper, toggleWallpaper } from "../objects/wallpaper";
 import { deleteClock } from "../objects/clock";
 import { playAudio } from "./audio";
-import { dropObject, pickupObject } from "../objects/player";
-import { enableNote, getNoteMeshes } from "../objects/notepad";
+import {
+  disablePlayerControl,
+  dropObject,
+  pickupObject,
+} from "../objects/player";
+import { getNoteMeshes, initNote } from "../objects/notepad";
 
 const raycaster = new THREE.Raycaster();
 raycaster.far = 8;
@@ -54,12 +59,15 @@ function getObject(
   };
 }
 
-let hoverEl: Element, clickedEl: Element | undefined;
+let hoverEl: HTMLElement, clickedEl: HTMLElement | undefined;
 const blindsDown: boolean[] = [];
 
 const cross = document.getElementById("cross") as HTMLHeadingElement;
 let grabTimeout: number | null = null,
   grabObj: THREE.Object3D | null = null;
+
+let throwObj: THREE.Mesh | null = null,
+  throwFrames = 0;
 
 function resetGrab() {
   cross.style.transition = "none";
@@ -70,7 +78,9 @@ function resetGrab() {
   grabTimeout = null;
 
   if (grabObj) {
-    dropObject(grabObj, grabVel);
+    dropObject(grabObj, new THREE.Vector3());
+    throwObj = grabObj.children[0] as THREE.Mesh;
+    throwFrames = 5;
     grabObj = null;
   }
 }
@@ -93,12 +103,16 @@ export function setGrabVel(
   const up = new THREE.Vector3().crossVectors(right, dir).normalize();
 
   grabVel
-    .addScaledVector(up, THREE.MathUtils.clamp(-y, -2, 2))
-    .addScaledVector(right, THREE.MathUtils.clamp(x, -2, 2));
+    .addScaledVector(up.divideScalar(6), THREE.MathUtils.clamp(-y, -2, 2))
+    .addScaledVector(right.divideScalar(6), THREE.MathUtils.clamp(x, -2, 2));
 }
 
 const DAMPING = 0.5;
 export function updateGrabInertia() {
+  if (throwFrames > 0 && throwObj?.userData.body) {
+    addVelocityToObject(throwObj, grabVel);
+    throwFrames--;
+  }
   if (grabVel.lengthSq() > 0.00001) grabVel.multiplyScalar(DAMPING);
 }
 
@@ -117,14 +131,10 @@ export function interactPlayer(
   if (!intersect) {
     cross.classList.remove("active");
     clickedEl?.classList.remove("active");
-    resetGrab();
   }
 
   const obj = intersect?.obj;
-  if (!obj) {
-    clickedEl?.classList.remove("active");
-    resetGrab();
-  }
+  if (!obj) clickedEl?.classList.remove("active");
 
   const name = obj?.name.split("_")[0];
   if (obj) {
@@ -134,7 +144,6 @@ export function interactPlayer(
         name == "Door" ||
         name == "PC" ||
         name == "Screen" ||
-        name == "Papers" ||
         name == "Note" ||
         name == "Bed" ||
         name?.startsWith("Blind"))
@@ -147,24 +156,46 @@ export function interactPlayer(
     else cross.classList.remove("grabbable");
   }
 
-  const el = document.elementFromPoint(
-    window.innerWidth / 2,
-    window.innerHeight / 2,
-  );
+  const el: HTMLElement | null =
+    obj?.userData.ui?.element ||
+    document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 2);
 
   if (click) {
-    if (!released && el && menu.contains(el)) {
+    if (!released && el && (obj?.userData.ui?.element || menu.contains(el))) {
       if (clickedEl && clickedEl !== el) clickedEl.classList.remove("active");
       clickedEl = el;
       el.classList.add("active");
-      return;
+      if (!obj?.userData.ui?.element) return;
     } else if (clickedEl) {
+      if (released) {
+        const held = grabObj;
+        resetGrab();
+        if (held) {
+          clickedEl.classList.remove("active");
+          clickedEl = undefined;
+          return;
+        }
+      }
+
       clickedEl.classList.remove("active");
       if (el == clickedEl) {
         if (el instanceof HTMLButtonElement || el instanceof HTMLInputElement) {
-          (clickedEl as HTMLElement).click();
+          clickedEl.click();
           canShow = false;
           contextObj.visible = false;
+        } else if (!grabObj && el.classList.contains("note")) {
+          disablePlayerControl(canvas);
+          canvas.style.pointerEvents = "none";
+          document.addEventListener(
+            "pointerlockchange",
+            () => {
+              el.focus();
+              (el as HTMLTextAreaElement).setSelectionRange(-1, -1);
+            },
+            {
+              once: true,
+            },
+          );
         }
         clickedEl = undefined;
         return;
@@ -188,6 +219,11 @@ export function interactPlayer(
           cross.style.transition = "--progress linear 200ms";
           cross.style.setProperty("--progress", "100%");
           grabTimeout = setTimeout(() => {
+            if (getObject(camera, scene)?.obj !== obj) return resetGrab();
+
+            if (!obj.userData.grabbed && obj.name == "Note")
+              obj.userData.createNote = 1;
+
             pickupObject(obj);
             grabObj = obj;
           }, 200);
@@ -206,12 +242,6 @@ export function interactPlayer(
           break;
         case "Screen":
           if (!grabObj) enablePC(canvas, scene, undefined, true);
-          break;
-        case "Papers":
-          if (!grabObj) enableNote(scene);
-          break;
-        case "Note":
-          if (!grabObj) enableNote(scene, undefined, true);
           break;
         case "Bed":
           sleep(canvas, scene);
@@ -245,13 +275,34 @@ export function interactPlayer(
       }
       resetGrab();
     }
-  } else if (el && menu.contains(el)) {
-    if (hoverEl && hoverEl !== el) hoverEl.classList.remove("hover");
-    hoverEl = el;
-    el.classList.add("hover");
-  } else if (hoverEl) {
-    hoverEl.classList.remove("hover");
+  } else {
+    if (grabObj)
+      if (
+        grabObj.name == "Note" &&
+        grabObj.userData.grabbed &&
+        grabObj.userData.createNote
+      ) {
+        switch (grabObj.userData.createNote) {
+          case 1:
+            grabObj.userData.createNote = 2;
+            break;
+          case 2:
+            grabObj.userData.createNote = 0;
+            initNote(scene, canvas);
+            break;
+        }
+      }
+
+    if (el && menu.contains(el)) {
+      if (hoverEl && hoverEl !== el) hoverEl.classList.remove("hover");
+      hoverEl = el;
+      el.classList.add("hover");
+    } else if (hoverEl) {
+      hoverEl.classList.remove("hover");
+    }
   }
+
+  if (!grabObj && (!intersect || !obj)) resetGrab();
 }
 
 const menu = document.getElementById("context") as HTMLDivElement,
@@ -299,7 +350,12 @@ export function contextPlayer(
     const file = document.createElement("input");
     file.type = "file";
     file.accept = "image/*";
-    file.onclick = () => document.exitPointerLock();
+    file.onclick = () => {
+      if (document.exitPointerLock) {
+        document.exitPointerLock();
+        closeContextMenu();
+      }
+    };
     file.onchange = () => {
       if (!file.files) return;
       setWallpaper(file.files[0]);

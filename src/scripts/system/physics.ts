@@ -470,6 +470,19 @@ export function resumePhysicsOfObject(
   Jolt.destroy(physRot);
 }
 
+export function addVelocityToObject(obj: THREE.Mesh, vel: THREE.Vector3) {
+  const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
+  const id = obj.userData.body.GetID();
+  const current = bodyInterface.GetLinearVelocity(id);
+  tempVec3.Set(
+    current.GetX() + vel.x,
+    current.GetY() + vel.y,
+    current.GetZ() + vel.z,
+  );
+  bodyInterface.SetLinearVelocity(id, tempVec3);
+  Jolt.destroy(current);
+}
+
 export function togglePhysicsDebug(isPlayer = false) {
   if (isPlayer) {
     const playerMesh = debugGroup.getObjectByName("playerDebug");

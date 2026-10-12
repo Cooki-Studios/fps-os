@@ -13,6 +13,7 @@ export async function setupMesh(
   mesh: THREE.Mesh<any, THREE.MeshPhysicalMaterial, any>,
   meshes: THREE.Mesh[],
   scene: THREE.Scene,
+  canvas: HTMLCanvasElement,
 ) {
   mesh.material.dithering = true;
   mesh.receiveShadow = true;
@@ -48,7 +49,7 @@ export async function setupMesh(
         setKeyLight(mesh);
         break;
       case "Papers":
-        setNotepad(mesh, scene);
+        setNotepad(mesh, scene, canvas);
     }
 
     if (mesh.parent.parent && mesh.parent.name == "Door")

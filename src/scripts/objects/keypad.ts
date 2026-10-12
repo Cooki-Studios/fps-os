@@ -145,11 +145,18 @@ function getMousePos(e: PointerEvent, canvas: HTMLCanvasElement) {
   return mousePos;
 }
 
+let autologin = false;
+if (import.meta.env.DEV) autologin = true;
+
 export function createKeypad(
   camera: THREE.PerspectiveCamera,
   canvas: HTMLCanvasElement,
 ) {
   bootLog("Creating keypad...");
+  if (autologin) {
+    login();
+    return;
+  }
 
   canvas.onpointermove = (e) => {
     if (!raycaster) return;
@@ -206,16 +213,7 @@ export function createKeypad(
       codeInput = "";
       raycaster = undefined;
       canvas.style.cursor = "default";
-
-      setTimeout(() => {
-        keyLightMat.emissive = new THREE.Color(0, 1, 0);
-        keyLightMat.emissiveIntensity = 1;
-        playAudio(door.name, "door-correct", 0, 0, 1, false);
-        doorStage = 1;
-        setTimeout(() => {
-          keyLightMat.emissiveIntensity = 0;
-        }, 1000);
-      }, 150);
+      login();
     } else if (codeInput.length > 3) {
       playAudio(door.name, "door-wrong", 0, 0, 1, false);
       setTimeout(() => {
@@ -223,4 +221,16 @@ export function createKeypad(
       });
     }
   };
+}
+
+function login() {
+  setTimeout(() => {
+    keyLightMat.emissive = new THREE.Color(0, 1, 0);
+    keyLightMat.emissiveIntensity = 1;
+    playAudio(door.name, "door-correct", 0, 0, 1, false);
+    doorStage = 1;
+    setTimeout(() => {
+      keyLightMat.emissiveIntensity = 0;
+    }, 1000);
+  }, 150);
 }

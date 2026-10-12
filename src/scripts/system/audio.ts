@@ -9,7 +9,7 @@ let enabled = false;
 
 const loopedSounds = new Set<THREE.PositionalAudio>();
 
-if (localStorage.getItem("audio")) {
+if (sessionStorage.getItem("audio")) {
   audioEl.classList.add("unmuted");
   enabled = true;
 }
@@ -17,8 +17,8 @@ if (localStorage.getItem("audio")) {
 audioEl.onclick = () => {
   audioEl.classList.toggle("unmuted");
   enabled = audioEl.classList.contains("unmuted");
-  if (localStorage.getItem("audio")) localStorage.removeItem("audio");
-  else localStorage.setItem("audio", "true");
+  if (sessionStorage.getItem("audio")) sessionStorage.removeItem("audio");
+  else sessionStorage.setItem("audio", "true");
 
   loopedSounds.forEach((sound) => {
     if (enabled) sound.play();

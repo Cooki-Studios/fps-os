@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { createUI } from "../system/3dui";
+import { enablePlayerControl } from "./player";
 
 let stack: THREE.Object3D;
 const noteMeshes: THREE.Mesh[] = [];
@@ -8,18 +9,35 @@ export function getNoteMeshes() {
   return noteMeshes;
 }
 
-export async function setNotepad(obj: THREE.Object3D, scene: THREE.Scene) {
+export async function setNotepad(
+  obj: THREE.Object3D,
+  scene: THREE.Scene,
+  canvas: HTMLCanvasElement,
+) {
   stack = obj;
-  enableNote(scene);
+  enableNote(scene, canvas);
 }
 
 const rot = new THREE.Euler(-Math.PI / 2, -Math.PI / 2, -Math.PI / 2, "YXZ"),
   offset = new THREE.Vector3(0, 0.221, 0);
 
-function initNote(scene: THREE.Scene) {
-  const el = document.createElement("div");
+export function initNote(scene: THREE.Scene, canvas: HTMLCanvasElement) {
+  const el = document.createElement("textarea");
+  el.name = "note";
+  el.autocorrect = false;
+  el.spellcheck = false;
+
   el.classList.add("note");
-  el.textContent = "testing...";
+  el.value = "testing...";
+
+  el.onblur = () => {
+    enablePlayerControl(canvas, scene);
+    canvas.style.pointerEvents = "auto";
+  };
+
+  el.onkeydown = (e) => {
+    if (e.key == "Escape") el.blur();
+  };
 
   const { mesh, obj } = createUI(scene, el);
   if (!mesh) return;
@@ -39,9 +57,9 @@ function initNote(scene: THREE.Scene) {
 
 export function enableNote(
   scene: THREE.Scene,
+  canvas: HTMLCanvasElement,
   id = noteMeshes.length - 1,
-  note = false,
 ) {
-  if (!note)
-    if (!noteMeshes[id] || noteMeshes[id].userData.grabbed) initNote(scene);
+  if (!noteMeshes[id] || noteMeshes[id].userData.grabbed)
+    initNote(scene, canvas);
 }

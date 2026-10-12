@@ -173,11 +173,6 @@ export function initRenderer(): {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
   const canvas = renderer.domElement;
-
-  canvas.oncontextmenu = (e) => {
-    e.preventDefault();
-  };
-
   document.body.appendChild(canvas);
 
   const onresize = () => {

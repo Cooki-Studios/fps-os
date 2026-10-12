@@ -15,10 +15,10 @@ export function initLighting(
   camera: THREE.PerspectiveCamera,
   debug = false,
 ) {
-  ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+  ambientLight = new THREE.AmbientLight(0xffffff, 0.25);
   scene.add(ambientLight);
 
-  hemisphereLight = new THREE.HemisphereLight(0x87ceeb, 0xffa500, 0.5);
+  hemisphereLight = new THREE.HemisphereLight(0x87ceeb, 0xffa500, 0.25);
   scene.add(hemisphereLight);
 
   csm = new CSM({
@@ -46,8 +46,8 @@ export function initLighting(
 }
 
 export function setLightLevel(intensity = 1) {
-  ambientLight.intensity = 0.5 * intensity;
-  hemisphereLight.intensity = 0.5 * intensity;
+  ambientLight.intensity = 0.25 * intensity;
+  hemisphereLight.intensity = 0.25 * intensity;
   setSkyLightLevel(intensity);
 }
 

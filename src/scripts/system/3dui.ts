@@ -12,6 +12,7 @@ cssRenderer.setSize(window.innerWidth, window.innerHeight);
 const div = cssRenderer.domElement;
 div.style.position = "absolute";
 div.style.top = "0";
+div.style.pointerEvents = "none";
 document.body.appendChild(div);
 
 const overlayCssRenderer = new CSS3DRenderer();

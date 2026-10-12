@@ -165,7 +165,7 @@ export function enablePlayerControl(
   if (!isMobile) {
     canvas.style.cursor = "pointer";
     document.onclick = (e) => {
-      if (e.button == 2) contextPlayer(camera, scene);
+      if (e.button == 2 || e.ctrlKey) contextPlayer(camera, scene);
     };
     canvas.onclick = async (e) => {
       if (document.pointerLockElement == canvas) {
@@ -239,7 +239,10 @@ export function enablePlayerControl(
 }
 
 export function disablePlayerControl(canvas: HTMLCanvasElement) {
-  if (document.exitPointerLock) document.exitPointerLock();
+  if (document.exitPointerLock) {
+    document.exitPointerLock();
+    closeContextMenu();
+  }
   canvas.onclick = null;
   canvas.onpointermove = null;
   canvas.onpointerdown = null;
