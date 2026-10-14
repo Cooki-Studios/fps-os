@@ -116,6 +116,8 @@ const deg = Math.PI / 180,
 const pcInfo = document.getElementById("pc-info") as HTMLHeadingElement,
   warnEl = document.getElementById("literal-pc-info") as HTMLHeadingElement;
 
+let deltaX: number, deltaY: number;
+
 export function enablePlayerControl(
   canvas: HTMLCanvasElement,
   scene: THREE.Scene,
@@ -124,7 +126,6 @@ export function enablePlayerControl(
     if (isMobile && e.pointerId !== activePointerId) return;
     if (isMobile || isInputEnabled()) {
       e.preventDefault();
-      let deltaX: number, deltaY: number;
       const playerVel = getPlayerVel();
 
       if (isMobile) {
@@ -138,22 +139,11 @@ export function enablePlayerControl(
         deltaY += ev.clientY - lastPointerY;
         lastPointerX = ev.clientX;
         lastPointerY = ev.clientY;
-        setGrabVel(
-          deltaX + playerVel.x,
-          deltaY + playerVel.y,
-          playerVel.z,
-          camera,
-        );
       } else {
         deltaX = e.movementX;
         deltaY = e.movementY;
-        setGrabVel(
-          deltaX + playerVel.x,
-          deltaY + playerVel.y,
-          playerVel.z,
-          camera,
-        );
       }
+      setGrabVel(deltaX, deltaY, playerVel, camera);
 
       player.rotation.y -= deltaX * sens * deg;
       camera.rotation.x = clamp(
@@ -223,12 +213,7 @@ export function enablePlayerControl(
       lastPointerY = e.clientY;
 
       const playerVel = getPlayerVel();
-      setGrabVel(
-        deltaX + playerVel.x,
-        deltaY + playerVel.y,
-        playerVel.z,
-        camera,
-      );
+      setGrabVel(deltaX, deltaY, playerVel, camera);
 
       const rect = canvas.getBoundingClientRect();
       const x = ((e.clientX - rect.left) / rect.width) * 2 - 1,
@@ -276,8 +261,12 @@ export function getPlayerPosition() {
   return player.position;
 }
 
-export function getPlayerVel() {
-  return velocity.clone().applyQuaternion(player.quaternion);
+function getPlayerVel() {
+  return new THREE.Vector3(
+    playerData.velPosX,
+    playerData.velPosY,
+    playerData.velPosZ,
+  ).applyQuaternion(player.quaternion);
 }
 
 export function resetPlayer() {
@@ -452,6 +441,9 @@ export async function initPlayer(
       );
       if (!isAudioPlaying(player.name, "player-wind"))
         playAudio(player.name, "player-wind", 0, 0, null);
+
+      const playerVel = getPlayerVel();
+      setGrabVel(deltaX, deltaY, playerVel, camera);
     } else if (isAudioPlaying(player.name, "player-wind"))
       stopAudio(player.name, "player-wind");
 

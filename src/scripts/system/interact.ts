@@ -99,19 +99,25 @@ const grabVel = new THREE.Vector3();
 export function setGrabVel(
   x: number,
   y: number,
-  z: number,
+  playerVel: THREE.Vector3,
   camera: THREE.PerspectiveCamera,
 ) {
   const dir = new THREE.Vector3();
   camera.getWorldDirection(dir);
 
-  const right = new THREE.Vector3().crossVectors(dir, camera.up).normalize();
-  const up = new THREE.Vector3().crossVectors(right, dir).normalize();
+  const right = new THREE.Vector3().crossVectors(dir, camera.up);
+  if (right.lengthSq() < 0.0001) right.set(1, 0, 0);
+  else right.normalize();
 
+  const up = new THREE.Vector3().crossVectors(right, dir);
+  if (up.lengthSq() < 0.0001) up.set(0, 1, 0);
+  else up.normalize();
+
+  grabVel.set(0, 0, 0);
   grabVel
-    .addScaledVector(up.divideScalar(6), THREE.MathUtils.clamp(-y, -2, 2))
-    .addScaledVector(right.divideScalar(6), THREE.MathUtils.clamp(x, -2, 2))
-    .addScaledVector(dir.divideScalar(6), THREE.MathUtils.clamp(z, -2, 2));
+    .addScaledVector(up.clone().divideScalar(2), -y + playerVel.y)
+    .addScaledVector(right.clone().divideScalar(2), x + playerVel.x)
+    .addScaledVector(dir.clone().divideScalar(2), -playerVel.z);
 }
 
 const DAMPING = 0.5;
