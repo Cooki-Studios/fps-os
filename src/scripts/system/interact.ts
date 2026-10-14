@@ -105,19 +105,15 @@ export function setGrabVel(
   const dir = new THREE.Vector3();
   camera.getWorldDirection(dir);
 
-  const right = new THREE.Vector3().crossVectors(dir, camera.up);
-  if (right.lengthSq() < 0.0001) right.set(1, 0, 0);
-  else right.normalize();
+  const right = new THREE.Vector3().crossVectors(dir, camera.up).normalize();
+  const up = new THREE.Vector3().crossVectors(right, dir).normalize();
 
-  const up = new THREE.Vector3().crossVectors(right, dir);
-  if (up.lengthSq() < 0.0001) up.set(0, 1, 0);
-  else up.normalize();
-
-  grabVel.set(0, 0, 0);
   grabVel
-    .addScaledVector(up.clone().divideScalar(2), -y + playerVel.y)
-    .addScaledVector(right.clone().divideScalar(2), x + playerVel.x)
-    .addScaledVector(dir.clone().divideScalar(2), -playerVel.z);
+    .set(playerVel.x * 2, playerVel.y * 2, playerVel.z * 2)
+    .applyQuaternion(camera.quaternion);
+
+  grabVel.addScaledVector(up, -y);
+  grabVel.addScaledVector(right, x);
 }
 
 const DAMPING = 0.5;

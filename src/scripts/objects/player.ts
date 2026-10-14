@@ -266,7 +266,7 @@ function getPlayerVel() {
     playerData.velPosX,
     playerData.velPosY,
     playerData.velPosZ,
-  ).applyQuaternion(player.quaternion);
+  );
 }
 
 export function resetPlayer() {

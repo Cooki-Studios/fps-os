@@ -375,7 +375,7 @@ export async function addPhysicsToObject(
       bodySettings.mOverrideMassProperties =
         Jolt.EOverrideMassProperties_CalculateInertia;
       bodySettings.mMassPropertiesOverride.mMass =
-        masses[obj.name] ?? masses["default"];
+        masses[obj.parent.name] ?? masses["default"];
       obj.userData.dynamic = true;
     }
 
@@ -424,13 +424,10 @@ export async function removePhysicsFromObject(
   obj.userData = {};
 }
 
-export async function pausePhysicsOfObject(
-  obj: THREE.Mesh,
-  body: JoltTypes.Body,
-) {
+export function pausePhysicsOfObject(obj: THREE.Mesh, body: JoltTypes.Body) {
   const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
   const id = body.GetID();
-  bodyInterface.DeactivateBody(id);
+  bodyInterface.RemoveBody(id);
   if (obj.userData.debugMesh) obj.userData.debugMesh.visible = false;
   dynamicObjects.delete(obj);
 }
@@ -441,6 +438,7 @@ export function resumePhysicsOfObject(
 ) {
   const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
   const id = body.GetID();
+  bodyInterface.AddBody(body.GetID(), Jolt.EActivation_DontActivate);
 
   const pos = new THREE.Vector3();
   obj.getWorldPosition(pos);
@@ -477,10 +475,15 @@ export function addVelocityToObject(obj: THREE.Mesh, vel: THREE.Vector3) {
   const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
   const id = obj.userData.body.GetID();
   const current = bodyInterface.GetLinearVelocity(id);
+
+  const velScaled = vel
+    .clone()
+    .multiplyScalar(obj.userData.body.GetMotionProperties().GetInverseMass());
+
   tempVec3.Set(
-    current.GetX() + vel.x,
-    current.GetY() + vel.y,
-    current.GetZ() + vel.z,
+    current.GetX() + velScaled.x,
+    current.GetY() + velScaled.y,
+    current.GetZ() + velScaled.z,
   );
   bodyInterface.SetLinearVelocity(id, tempVec3);
   Jolt.destroy(current);

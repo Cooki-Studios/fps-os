@@ -43,9 +43,9 @@ export const grabbables = [
 
 export const masses: Record<string, number> = {
   default: 10,
-  Shelf: 50,
-  Rug: 0.1,
+  Shelf: 20,
   Bin: 5,
+  Clock: 2,
 };
 
 export async function setupMesh(
