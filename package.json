@@ -15,8 +15,10 @@
     "vite": "^8.3.1"
   },
   "dependencies": {
+    "dompurify": "^3.4.17",
     "idb": "^8.0.3",
     "jolt-physics": "^1.1.0",
+    "marked": "^18.1.1",
     "postprocessing": "^6.39.5",
     "stats.js": "^0.17.0",
     "three": "^0.185.1"

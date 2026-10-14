@@ -170,7 +170,7 @@ export function initRenderer(): {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
-  renderer.toneMapping = THREE.AgXToneMapping;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
   const canvas = renderer.domElement;
   document.body.appendChild(canvas);

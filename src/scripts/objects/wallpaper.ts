@@ -18,7 +18,6 @@ export async function initWallpaper(walls: THREE.Object3D) {
 
   for (const wall of wallObjs) {
     const mesh = wall.children[0] as THREE.Mesh;
-    console.log(mesh.name);
     const mat = mesh.material as THREE.MeshBasicMaterial;
     mats.push(mat);
   }

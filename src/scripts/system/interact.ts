@@ -28,7 +28,7 @@ import {
   getPlayerPosition,
   pickupObject,
 } from "../objects/player";
-import { getNoteMeshes, initNote } from "../objects/notepad";
+import { enableNoteEl, getNoteMeshes, initNote } from "../objects/notepad";
 import { grabbables, interactibles } from "../objects/mesh";
 
 const raycaster = new THREE.Raycaster();
@@ -123,6 +123,27 @@ export function updateGrabInertia() {
   if (grabVel.lengthSq() > 0.00001) grabVel.multiplyScalar(DAMPING);
 }
 
+export function scrollPlayer(
+  e: WheelEvent,
+  camera: THREE.PerspectiveCamera,
+  scene: THREE.Scene,
+) {
+  const intersect = getObject(camera, scene);
+  if (!intersect) return;
+
+  const obj = intersect?.obj;
+  if (!obj) return;
+
+  if (obj.name == "Note") {
+    e.stopPropagation();
+
+    const el = obj.userData.ui.element.querySelector(
+      "p",
+    ) as HTMLParagraphElement;
+    el.scrollTop -= e.deltaY;
+  }
+}
+
 export function interactPlayer(
   camera: THREE.PerspectiveCamera,
   scene: THREE.Scene,
@@ -197,8 +218,9 @@ export function interactPlayer(
           document.addEventListener(
             "pointerlockchange",
             () => {
-              el.focus();
-              (el as HTMLTextAreaElement).setSelectionRange(-1, -1);
+              const note = el.querySelector("textarea")!;
+              enableNoteEl(note, el.querySelector("p")!);
+              note.focus();
             },
             {
               once: true,

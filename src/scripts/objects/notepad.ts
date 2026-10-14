@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import { createUI } from "../system/3dui";
 import { enablePlayerControl } from "./player";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 
 let stack: THREE.Object3D;
 const noteMeshes: THREE.Mesh[] = [];
@@ -19,30 +21,42 @@ export async function setNotepad(
 }
 
 const rot = new THREE.Euler(-Math.PI / 2, -Math.PI / 2, -Math.PI / 2, "YXZ"),
-  offset = new THREE.Vector3(0, 0.221, 0),
-  maxLines = 27;
+  offset = new THREE.Vector3(0, 0.221, 0);
+
+async function updateMD(el: HTMLTextAreaElement, mdEl: HTMLParagraphElement) {
+  mdEl.innerHTML = DOMPurify.sanitize(
+    await marked.parse(el.value, { breaks: true, gfm: true }),
+  );
+  el.style.display = "none";
+  mdEl.style.display = "block";
+}
+
+export function enableNoteEl(
+  el: HTMLTextAreaElement,
+  mdEl: HTMLParagraphElement,
+) {
+  el.style.display = "block";
+  mdEl.style.display = "none";
+}
 
 export function initNote(scene: THREE.Scene, canvas: HTMLCanvasElement) {
+  const div = document.createElement("div");
+  div.classList.add("note");
+
   const el = document.createElement("textarea");
   el.name = "note";
   el.autocorrect = false;
   el.spellcheck = false;
 
-  el.oninput = () => {
-    const lines = el.value.split("\n");
-    if (lines.length > maxLines) el.value = lines.slice(0, maxLines).join("\n");
-  };
+  const mdEl = document.createElement("p");
 
-  el.onkeydown = (e) => {
-    if (e.key === "Enter") {
-      if (el.value.split("\n").length >= maxLines) e.preventDefault();
-    }
-  };
+  div.appendChild(el);
+  div.appendChild(mdEl);
 
-  el.classList.add("note");
   el.value = "";
 
   el.onblur = () => {
+    updateMD(el, mdEl);
     enablePlayerControl(canvas, scene);
     canvas.style.pointerEvents = "auto";
   };
@@ -51,7 +65,7 @@ export function initNote(scene: THREE.Scene, canvas: HTMLCanvasElement) {
     if (e.key == "Escape") el.blur();
   };
 
-  const { mesh, obj } = createUI(scene, el);
+  const { mesh, obj } = createUI(scene, div);
   if (!mesh) return;
   mesh.name = "Note";
 

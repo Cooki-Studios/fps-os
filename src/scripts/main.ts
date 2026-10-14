@@ -15,7 +15,7 @@ import {
   pausePhysicsOfObject,
   togglePhysicsDebug,
 } from "./system/physics";
-import { initInput, onActionPressed } from "./system/input";
+import { initInput, isInputEnabled, onActionPressed } from "./system/input";
 import { getPlayerMesh, initPlayer } from "./objects/player";
 import { setMainCam, setMainScene } from "./util/scene";
 import { createKeypad } from "./objects/keypad";
@@ -28,11 +28,19 @@ import { pause } from "./system/pause";
 import { setupMesh } from "./objects/mesh";
 import { initShaders } from "./system/shaders";
 import { setupClock } from "./objects/clock";
+import { scrollPlayer } from "./system/interact";
 
 document.addEventListener(
   "wheel",
   (e) => {
-    e.preventDefault();
+    if (
+      e.ctrlKey ||
+      document.activeElement == document.body ||
+      isInputEnabled()
+    ) {
+      e.preventDefault();
+      if (isInputEnabled()) scrollPlayer(e, camera, scene);
+    }
   },
   { passive: false },
 );
