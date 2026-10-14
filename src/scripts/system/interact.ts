@@ -17,7 +17,7 @@ import {
   stopAnimation,
 } from "./animation";
 import { setLightLevel } from "./lighting";
-import { lock } from "../objects/keypad";
+import { deleteDoor, lock } from "../objects/keypad";
 import { deleteBed, sleep } from "../objects/bed";
 import { setWallpaper, toggleWallpaper } from "../objects/wallpaper";
 import { deleteClock } from "../objects/clock";
@@ -434,6 +434,7 @@ export function contextPlayer(
     if (name == "Light") disableLight();
     else if (name == "Bed") deleteBed();
     else if (name == "Clock") deleteClock();
+    else if (name == "Door") deleteDoor();
 
     obj.parent?.remove(obj);
   };

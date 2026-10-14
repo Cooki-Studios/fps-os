@@ -41,6 +41,10 @@ export function setKeyLight(mesh: THREE.Mesh) {
   keyLightMat.emissiveIntensity = 0;
 }
 
+export function deleteDoor() {
+  door.parent?.remove(door);
+}
+
 const pcInfo = document.getElementById("pc-info") as HTMLHeadingElement;
 let doorParts: THREE.Object3D[];
 
