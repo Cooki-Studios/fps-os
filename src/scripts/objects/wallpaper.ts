@@ -8,13 +8,17 @@ let texture: THREE.Texture;
 
 const loader = new THREE.TextureLoader();
 
-export async function initWallpaper(walls?: THREE.Object3D) {
+export async function initWallpaper(walls: THREE.Object3D) {
   if (!walls) return;
 
-  const wallObjs = [...walls.children];
+  const wallObjs: THREE.Object3D[] = [];
+  walls.traverse((child) => {
+    if (child.children[0]?.type == "Mesh") wallObjs.push(child);
+  });
 
   for (const wall of wallObjs) {
     const mesh = wall.children[0] as THREE.Mesh;
+    console.log(mesh.name);
     const mat = mesh.material as THREE.MeshBasicMaterial;
     mats.push(mat);
   }

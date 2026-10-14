@@ -46,6 +46,8 @@ body {
     .note {
         aspect-ratio: 1/1.43;
         height: 738px;
+        word-break: break-all;
+        white-space: pre-wrap;
         background: repeating-linear-gradient(
             white,
             white 24px,
@@ -55,12 +57,13 @@ body {
         line-height: 26px;
         color: black;
         font-size: 24px;
-        white-space: pre;
         outline: none;
         border: none;
         font-family:
             Inter Semi-Bold,
             sans-serif;
+
+        resize: none;
     }
 
     .screen {

@@ -125,6 +125,7 @@ export function enablePlayerControl(
     if (isMobile || isInputEnabled()) {
       e.preventDefault();
       let deltaX: number, deltaY: number;
+      const playerVel = getPlayerVel();
 
       if (isMobile) {
         if (!dragging) return;
@@ -137,11 +138,21 @@ export function enablePlayerControl(
         deltaY += ev.clientY - lastPointerY;
         lastPointerX = ev.clientX;
         lastPointerY = ev.clientY;
-        setGrabVel(deltaX, deltaY, camera);
+        setGrabVel(
+          deltaX + playerVel.x,
+          deltaY + playerVel.y,
+          playerVel.z,
+          camera,
+        );
       } else {
         deltaX = e.movementX;
         deltaY = e.movementY;
-        setGrabVel(deltaX, deltaY, camera);
+        setGrabVel(
+          deltaX + playerVel.x,
+          deltaY + playerVel.y,
+          playerVel.z,
+          camera,
+        );
       }
 
       player.rotation.y -= deltaX * sens * deg;
@@ -164,7 +175,7 @@ export function enablePlayerControl(
 
   if (!isMobile) {
     canvas.style.cursor = "pointer";
-    document.onclick = (e) => {
+    canvas.onpointerup = (e) => {
       if (e.button == 2 || e.ctrlKey) contextPlayer(camera, scene);
     };
     canvas.onclick = async (e) => {
@@ -210,7 +221,14 @@ export function enablePlayerControl(
       const deltaY = e.clientY - lastPointerY;
       lastPointerX = e.clientX;
       lastPointerY = e.clientY;
-      setGrabVel(deltaX, deltaY, camera);
+
+      const playerVel = getPlayerVel();
+      setGrabVel(
+        deltaX + playerVel.x,
+        deltaY + playerVel.y,
+        playerVel.z,
+        camera,
+      );
 
       const rect = canvas.getBoundingClientRect();
       const x = ((e.clientX - rect.left) / rect.width) * 2 - 1,
@@ -256,6 +274,10 @@ let camera: THREE.PerspectiveCamera;
 
 export function getPlayerPosition() {
   return player.position;
+}
+
+export function getPlayerVel() {
+  return velocity.clone().applyQuaternion(player.quaternion);
 }
 
 export function resetPlayer() {
@@ -455,9 +477,9 @@ export async function initPlayer(
 
 export function pickupObject(obj: THREE.Object3D) {
   const physObj = obj.children[0] as THREE.Mesh;
-  if (physObj && physObj.userData.body) {
+
+  if (physObj && physObj.userData.body)
     pausePhysicsOfObject(physObj, physObj.userData.body);
-  }
 
   camera.attach(obj);
   obj.userData.grabbed = true;

@@ -16,6 +16,7 @@ import {
 import { lerp } from "three/src/math/MathUtils.js";
 import { bootLog } from "../boot";
 import { isMobile } from "../util/mobile";
+import { masses } from "../objects/mesh";
 
 const { default: initJolt } = await import("jolt-physics/wasm");
 
@@ -289,6 +290,7 @@ export async function addPhysicsToObject(
     obj.updateMatrixWorld(true);
     const posAttr = obj.geometry.attributes.position,
       vertices = new Jolt.ArrayVec3();
+    if (!posAttr) return;
 
     for (let i = 0; i < posAttr.count; i++) {
       const pt = new Jolt.Vec3(
@@ -372,7 +374,8 @@ export async function addPhysicsToObject(
     if (dynamic) {
       bodySettings.mOverrideMassProperties =
         Jolt.EOverrideMassProperties_CalculateInertia;
-      bodySettings.mMassPropertiesOverride.mMass = 10;
+      bodySettings.mMassPropertiesOverride.mMass =
+        masses[obj.name] ?? masses["default"];
       obj.userData.dynamic = true;
     }
 

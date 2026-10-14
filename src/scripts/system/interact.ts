@@ -25,9 +25,11 @@ import { playAudio } from "./audio";
 import {
   disablePlayerControl,
   dropObject,
+  getPlayerPosition,
   pickupObject,
 } from "../objects/player";
 import { getNoteMeshes, initNote } from "../objects/notepad";
+import { grabbables, interactibles } from "../objects/mesh";
 
 const raycaster = new THREE.Raycaster();
 raycaster.far = 8;
@@ -46,7 +48,10 @@ function getObject(
     ...getNoteMeshes(),
   ]);
   const intersect = intersects.find(
-    (i) => i.object instanceof THREE.Mesh && i.object.name != "",
+    (i) =>
+      i.object instanceof THREE.Mesh &&
+      i.object.name != "" &&
+      !i.object.name.startsWith("N_Hand"),
   );
   if (!intersect || !intersect.object.parent) return;
 
@@ -94,6 +99,7 @@ const grabVel = new THREE.Vector3();
 export function setGrabVel(
   x: number,
   y: number,
+  z: number,
   camera: THREE.PerspectiveCamera,
 ) {
   const dir = new THREE.Vector3();
@@ -104,7 +110,8 @@ export function setGrabVel(
 
   grabVel
     .addScaledVector(up.divideScalar(6), THREE.MathUtils.clamp(-y, -2, 2))
-    .addScaledVector(right.divideScalar(6), THREE.MathUtils.clamp(x, -2, 2));
+    .addScaledVector(right.divideScalar(6), THREE.MathUtils.clamp(x, -2, 2))
+    .addScaledVector(dir.divideScalar(6), THREE.MathUtils.clamp(z, -2, 2));
 }
 
 const DAMPING = 0.5;
@@ -138,34 +145,35 @@ export function interactPlayer(
 
   const name = obj?.name.split("_")[0];
   if (obj) {
-    if (
-      !grabObj &&
-      (name == "Switch" ||
-        name == "Door" ||
-        name == "PC" ||
-        name == "Screen" ||
-        name == "Note" ||
-        name == "Bed" ||
-        name?.startsWith("Blind"))
-    )
+    if (!grabObj && interactibles.includes(name ?? ""))
       cross.classList.add("active");
     else cross.classList.remove("active");
 
-    if (name == "Pillow" || name == "Note" || (name == "Screen" && obj.visible))
+    if (obj.visible && grabbables.includes(name ?? ""))
       cross.classList.add("grabbable");
     else cross.classList.remove("grabbable");
   }
 
-  const el: HTMLElement | null =
-    obj?.userData.ui?.element ||
-    document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 2);
+  const domEl = document.elementFromPoint(
+    window.innerWidth / 2,
+    window.innerHeight / 2,
+  ) as HTMLElement | null;
+
+  const overMenu =
+    !!domEl &&
+    !!contextObj?.visible &&
+    !!domEl.closest("#ctx-buttons button, #ctx-buttons label");
+
+  const el: HTMLElement | null = overMenu
+    ? domEl
+    : obj?.userData.ui?.element || domEl;
 
   if (click) {
     if (!released && el && (obj?.userData.ui?.element || menu.contains(el))) {
       if (clickedEl && clickedEl !== el) clickedEl.classList.remove("active");
       clickedEl = el;
       el.classList.add("active");
-      if (!obj?.userData.ui?.element) return;
+      if (!obj?.userData.ui?.element || overMenu) return;
     } else if (clickedEl) {
       if (released) {
         const held = grabObj;
@@ -207,11 +215,7 @@ export function interactPlayer(
     }
 
     if (obj)
-      if (
-        name == "Pillow" ||
-        name == "Note" ||
-        (name == "Screen" && obj.visible)
-      )
+      if (obj.visible && grabbables.includes(name ?? ""))
         if (grabTimeout) {
           clearTimeout(grabTimeout);
           grabTimeout = null;
@@ -363,18 +367,27 @@ export function contextPlayer(
 
     label.appendChild(file);
     menuButtons.appendChild(label);
-  } else if (
-    name == "Pillow" ||
-    name == "Note" ||
-    (name == "Screen" && obj.visible)
-  ) {
+  } else if (obj.visible && grabbables.includes(name ?? "")) {
     const mesh = obj.children[0] as THREE.Mesh;
     const button = document.createElement("button");
     let enabled = false;
     if (mesh.userData.body && !mesh.userData.paused) {
       button.textContent = "Disable physics";
       enabled = true;
-    } else button.textContent = "Enable physics";
+    } else {
+      button.textContent = "Enable physics";
+
+      const button2 = document.createElement("button");
+      button2.textContent = "Reset rotation";
+      button2.onclick = () => {
+        obj.lookAt(getPlayerPosition().add(camera.position));
+        if (obj.name != "Note" && obj.name != "Screen") {
+          obj.rotateY(-Math.PI / 2);
+          obj.rotateX(-Math.PI / 2);
+        }
+      };
+      menuButtons.appendChild(button2);
+    }
     button.onclick = () => {
       if (enabled) {
         mesh.userData.paused = true;

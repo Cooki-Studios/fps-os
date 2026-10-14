@@ -17,6 +17,7 @@ if (sessionStorage.getItem("audio")) {
 audioEl.onclick = () => {
   audioEl.classList.toggle("unmuted");
   enabled = audioEl.classList.contains("unmuted");
+
   if (sessionStorage.getItem("audio")) sessionStorage.removeItem("audio");
   else sessionStorage.setItem("audio", "true");
 
@@ -90,6 +91,7 @@ export async function stopAudio(objName: string, soundName: string) {
   if (sound) sound.stop();
 }
 
+const ctx = listener.context;
 export async function playAudio(
   objName: string,
   soundName: string,
@@ -98,7 +100,7 @@ export async function playAudio(
   volume: number | null = 1,
   randomise = true,
 ) {
-  if (!enabled) return;
+  if (!enabled && ctx.state !== "suspended") return;
   await pause(delay);
 
   const sound = sounds[objName]?.[soundName];
@@ -110,5 +112,6 @@ export async function playAudio(
   sound.offset = offset;
   if (volume != null) sound.setVolume(volume);
   if (randomise) sound.setDetune(Math.random() * 10);
+
   sound.play();
 }

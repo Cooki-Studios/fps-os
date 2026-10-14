@@ -12,6 +12,7 @@ import {
 import {
   addPhysicsToObject,
   initPhysics,
+  pausePhysicsOfObject,
   togglePhysicsDebug,
 } from "./system/physics";
 import { initInput, onActionPressed } from "./system/input";
@@ -26,6 +27,7 @@ import { addAudioToObject, initAudio } from "./system/audio";
 import { pause } from "./system/pause";
 import { setupMesh } from "./objects/mesh";
 import { initShaders } from "./system/shaders";
+import { setupClock } from "./objects/clock";
 
 document.addEventListener(
   "wheel",
@@ -74,6 +76,11 @@ async function addPhysicsToObjects() {
     if (mesh.name.startsWith("D_")) {
       addPhysicsToObject(mesh, true, true, false);
     } else addPhysicsToObject(mesh, false, true, false);
+
+    setTimeout(() => {
+      if (mesh.name == "D_Cylinder_002" || mesh.name == "D_Plane_002")
+        pausePhysicsOfObject(mesh, mesh.userData.body);
+    });
   }
 
   bootLog("Initialising player...");
@@ -94,7 +101,7 @@ loader.loadAsync("room.usdc").then(async (room) => {
   scene.attach(room);
 
   bootLog("Initialising wallpaper...");
-  initWallpaper(room.getObjectByName("Walls"));
+  initWallpaper(room.getObjectByName("Walls")!);
 
   room.traverse(async (mesh) => {
     if (mesh instanceof THREE.Mesh) {
@@ -109,6 +116,7 @@ loader.loadAsync("room.usdc").then(async (room) => {
           break;
       }
   });
+  setupClock();
   bootLog(`Meshes loaded`);
 
   setupAnimation(room, room.animations[0], "DoorGroup");

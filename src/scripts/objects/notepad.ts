@@ -19,7 +19,8 @@ export async function setNotepad(
 }
 
 const rot = new THREE.Euler(-Math.PI / 2, -Math.PI / 2, -Math.PI / 2, "YXZ"),
-  offset = new THREE.Vector3(0, 0.221, 0);
+  offset = new THREE.Vector3(0, 0.221, 0),
+  maxLines = 27;
 
 export function initNote(scene: THREE.Scene, canvas: HTMLCanvasElement) {
   const el = document.createElement("textarea");
@@ -27,8 +28,19 @@ export function initNote(scene: THREE.Scene, canvas: HTMLCanvasElement) {
   el.autocorrect = false;
   el.spellcheck = false;
 
+  el.oninput = () => {
+    const lines = el.value.split("\n");
+    if (lines.length > maxLines) el.value = lines.slice(0, maxLines).join("\n");
+  };
+
+  el.onkeydown = (e) => {
+    if (e.key === "Enter") {
+      if (el.value.split("\n").length >= maxLines) e.preventDefault();
+    }
+  };
+
   el.classList.add("note");
-  el.value = "testing...";
+  el.value = "";
 
   el.onblur = () => {
     enablePlayerControl(canvas, scene);

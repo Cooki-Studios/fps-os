@@ -11,6 +11,12 @@ export async function setClock(
   await addAudioToObject(obj, "clock-tick", 0.5);
 }
 
+export function setupClock() {
+  if (!clockParts) return;
+  for (const part of Object.keys(clockParts))
+    if (part != "base") clockParts["base"].attach(clockParts[part]);
+}
+
 let prevSecs = 0,
   prevMins = 0,
   prevHours = 0;
@@ -28,9 +34,9 @@ export function updateClock() {
     secs = date.getSeconds();
 
   if (audio) {
-    if (secs != prevSecs) playAudio("Clock_004", "clock-tick");
-    if (mins != prevMins) playAudio("Clock_003", "clock-tick");
-    if (hours != prevHours) playAudio("Clock_002", "clock-tick");
+    if (secs != prevSecs) playAudio("Hand_002", "clock-tick");
+    if (mins != prevMins) playAudio("Hand_001", "clock-tick");
+    if (hours != prevHours) playAudio("Hand", "clock-tick");
   }
   prevSecs = secs;
   prevMins = mins;
