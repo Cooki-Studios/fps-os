@@ -86,7 +86,7 @@ async function addPhysicsToObjects() {
     } else addPhysicsToObject(mesh, false, true, false);
 
     setTimeout(() => {
-      if (mesh.name == "D_Cylinder_002" || mesh.name == "D_Plane_002")
+      if (mesh.name == "D_Cylinder_002")
         pausePhysicsOfObject(mesh, mesh.userData.body);
     });
   }

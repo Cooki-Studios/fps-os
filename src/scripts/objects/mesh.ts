@@ -32,13 +32,13 @@ export const grabbables = [
   "Clock",
   "Bin",
   "Shelf",
-  "Rug",
   "Keyboard",
   "PC",
   "Poster",
   "Desktop",
   "Light",
   "Bed",
+  "Armchair",
 ];
 
 export const masses: Record<string, number> = {

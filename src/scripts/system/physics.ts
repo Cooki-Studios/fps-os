@@ -410,6 +410,14 @@ export async function addPhysicsToObject(
   bootLog(`Added physics to ${obj.name}`);
 }
 
+function wakeDynamicBodies() {
+  const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
+  for (const obj of dynamicObjects) {
+    if (obj.userData.dynamic && obj.userData.body)
+      bodyInterface.ActivateBody(obj.userData.body.GetID());
+  }
+}
+
 export async function removePhysicsFromObject(
   obj: THREE.Mesh,
   body: JoltTypes.Body,
@@ -422,6 +430,8 @@ export async function removePhysicsFromObject(
     obj.userData.debugMesh.parent.remove(obj.userData.debugMesh);
   dynamicObjects.delete(obj);
   obj.userData = {};
+
+  wakeDynamicBodies();
 }
 
 export function pausePhysicsOfObject(obj: THREE.Mesh, body: JoltTypes.Body) {
@@ -430,6 +440,8 @@ export function pausePhysicsOfObject(obj: THREE.Mesh, body: JoltTypes.Body) {
   bodyInterface.RemoveBody(id);
   if (obj.userData.debugMesh) obj.userData.debugMesh.visible = false;
   dynamicObjects.delete(obj);
+
+  wakeDynamicBodies();
 }
 export function resumePhysicsOfObject(
   obj: THREE.Mesh,

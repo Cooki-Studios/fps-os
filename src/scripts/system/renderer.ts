@@ -67,6 +67,15 @@ export function setSkyLightLevel(intensity = 1) {
   scene.backgroundIntensity = 2 * intensity;
 }
 
+let disabled = false;
+
+export function pauseRenderer() {
+  disabled = true;
+}
+export function resumeRenderer() {
+  disabled = false;
+}
+
 export async function enableRenderer(
   renderScene: THREE.Scene,
   renderCam: THREE.PerspectiveCamera,
@@ -114,6 +123,7 @@ export async function enableRenderer(
 
       renderer.render(scene, camera);
     } else {
+      if (disabled) return;
       updateAnimation(delta);
       updateClock();
       updatePhysics(delta);

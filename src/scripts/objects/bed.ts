@@ -4,31 +4,33 @@ import { disablePlayerControl, enablePlayerControl } from "./player";
 import { pause } from "../system/pause";
 import { removePhysicsFromObject } from "../system/physics";
 import { addAudioToObject, playAudio } from "../system/audio";
+import { pauseRenderer, resumeRenderer } from "../system/renderer";
 
-const html = document.querySelector("html")!;
+const html = document.querySelector("html")!,
+  fadeOverlay = document.getElementById("fade-overlay") as HTMLDivElement;
 
 export async function sleep(canvas: HTMLCanvasElement, scene: THREE.Scene) {
   disablePlayerControl(canvas);
   playAnimation(6);
   await pause(250);
 
-  document.body.style.opacity = "0";
+  fadeOverlay.style.opacity = "1";
   await pause(250);
   playAudio(bed.name, "bed-down-up");
 
   playAnimationReversed(6);
   await pause(250);
 
-  document.body.style.display = "none";
+  pauseRenderer();
 
   html.style.cursor = "pointer";
   document.onclick = async () => {
     document.onclick = null;
     html.style.cursor = "";
-    document.body.style.display = "";
+    resumeRenderer();
     await canvas.requestPointerLock();
 
-    document.body.style.opacity = "1";
+    fadeOverlay.style.opacity = "0";
     playAudio(bed.name, "bed-down-up");
     playAnimation(6);
     await pause(250);
