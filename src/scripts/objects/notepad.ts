@@ -21,7 +21,7 @@ export async function setNotepad(
 }
 
 const rot = new THREE.Euler(-Math.PI / 2, -Math.PI / 2, -Math.PI / 2, "YXZ"),
-  offset = new THREE.Vector3(0, 0.221, 0);
+  offset = new THREE.Vector3(0, 0.2201, 0);
 
 async function updateMD(el: HTMLTextAreaElement, mdEl: HTMLParagraphElement) {
   mdEl.innerHTML = DOMPurify.sanitize(

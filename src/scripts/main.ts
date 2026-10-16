@@ -1,4 +1,4 @@
-import { bootLog, bootFinished, createTitleScene, hideBootLog } from "./boot";
+import { bootLog, createTitleScene } from "./boot";
 
 import * as THREE from "three";
 import { USDLoader } from "three/examples/jsm/loaders/USDLoader.js";
@@ -23,7 +23,7 @@ import { setupAnimation } from "./system/animation";
 import { initWallpaper } from "./objects/wallpaper";
 import { setupMainLight } from "./objects/mainLight";
 import "./system/audio";
-import { addAudioToObject, initAudio } from "./system/audio";
+import { addAudioToObject, enableAudioEl, initAudio } from "./system/audio";
 import { pause } from "./system/pause";
 import { setupMesh } from "./objects/mesh";
 import { initShaders } from "./system/shaders";
@@ -71,13 +71,14 @@ const { canvas, renderer } = initRenderer();
 bootLog("Initialising sky...");
 setupSky(scene, renderer);
 bootLog("Initialising physics...");
-initPhysics(scene);
+await initPhysics(scene);
 bootLog("Initialising input...");
 initInput();
 bootLog("Initialising audio...");
 initAudio(camera);
 
 async function addPhysicsToObjects() {
+  bootLog("Adding physics to objects...");
   for (const mesh of meshes) {
     if (mesh.parent) scene.attach(mesh.parent);
 
@@ -86,7 +87,14 @@ async function addPhysicsToObjects() {
     } else addPhysicsToObject(mesh, false, true, false);
 
     setTimeout(() => {
-      if (mesh.name == "D_Cylinder_002")
+      if (
+        [
+          "D_Cylinder_002",
+          "D_Plane_001",
+          "D_Plane_003",
+          "D_Plane_004",
+        ].includes(mesh.name)
+      )
         pausePhysicsOfObject(mesh, mesh.userData.body);
     });
   }
@@ -141,13 +149,11 @@ loader.loadAsync("room.usdc").then(async (room) => {
 
     bootLog("Scene loaded");
 
-    await bootFinished();
-
-    if (localStorage.getItem("booted")) {
+    if (sessionStorage.getItem("booted")) {
       createKeypad(camera, canvas);
       initShaders(renderer, scene, camera);
       enableRenderer(scene, camera);
-      hideBootLog();
+      enableAudioEl();
       (
         document.querySelector("canvas[data-engine]") as HTMLCanvasElement
       ).style.pointerEvents = "auto";

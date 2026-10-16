@@ -157,10 +157,6 @@ export function createKeypad(
   canvas: HTMLCanvasElement,
 ) {
   bootLog("Creating keypad...");
-  if (autologin) {
-    login();
-    return;
-  }
 
   canvas.onpointermove = (e) => {
     if (!raycaster) return;
@@ -225,6 +221,14 @@ export function createKeypad(
       });
     }
   };
+
+  if (autologin) {
+    codeInput = "";
+    raycaster = undefined;
+    canvas.style.cursor = "default";
+    login();
+    return;
+  }
 }
 
 function login() {

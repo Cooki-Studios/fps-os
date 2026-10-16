@@ -419,7 +419,10 @@ export function contextPlayer(
       } else {
         mesh.userData.paused = false;
         if (mesh.userData.body) resumePhysicsOfObject(mesh, mesh.userData.body);
-        else addPhysicsToObject(mesh, true, false, false);
+        else {
+          if (mesh.parent) scene.attach(mesh.parent);
+          addPhysicsToObject(mesh, true, false, false);
+        }
       }
     };
     menuButtons.appendChild(button);

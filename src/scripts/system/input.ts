@@ -83,7 +83,7 @@ export function initInput() {
     pressEvents[action] = new CustomEvent(`${action}:pressed`);
     releaseEvents[action] = new CustomEvent(`${action}:released`);
     (keyActions[key] ??= []).push(action as Action);
-    bootLog(`Added input action: ${action} with key ${key}`);
+    // bootLog(`Added input action: ${action} with key ${key}`);
   }
 
   window.addEventListener("blur", () => {

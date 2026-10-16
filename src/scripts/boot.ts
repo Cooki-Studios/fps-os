@@ -5,13 +5,13 @@ const start = performance.now(),
 let blink: number | undefined;
 
 let queue: Promise<void> = Promise.resolve();
-export function bootFinished(): Promise<void> {
-  return queue;
-}
 
-export function hideBootLog() {
-  log.style.display = "none";
-  enableAudioEl();
+const fade = document.getElementById("fade-overlay") as HTMLDivElement;
+
+export async function hideBootLog() {
+  bootLog("Loading complete");
+  log.style.opacity = "0";
+  fade.style.opacity = "0";
 }
 
 export function bootLog(msg: string, showTime = true, error = false) {
@@ -70,7 +70,6 @@ import { lerp } from "three/src/math/MathUtils.js";
 import { isMobile, isPortrait, onMobileRotate } from "./util/mobile";
 import { font } from "./util/fonts";
 import { pause } from "./system/pause";
-import { enableAudioEl } from "./system/audio";
 
 const TITLE_DEPTH = 5,
   MOBILE_TITLE_SCALE_PORTRAIT = 0.75;

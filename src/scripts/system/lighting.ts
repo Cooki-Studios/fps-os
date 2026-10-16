@@ -62,9 +62,14 @@ export function updateCSM(delta: number) {
       .set(Math.cos(-angle + phaseOffset), -1, Math.sin(-angle + phaseOffset))
       .normalize();
     setSkyOffset(angle - 0.7);
+    csm.camera.updateMatrixWorld();
     csm.update();
   }
   if (csmHelper) csmHelper.update();
+}
+
+export function resizeCSM() {
+  csm?.updateFrustums();
 }
 
 export function setupShadowMaterial(mat: THREE.MeshPhysicalMaterial) {

@@ -28,8 +28,8 @@ const dynamicObjects = new Set<THREE.Mesh>(),
   LAYER_STATIC = 0,
   LAYER_DYNAMIC = 1,
   LAYER_NOCLIP = 2,
-  NUM_OBJECT_LAYERS = 2,
-  NUM_BROAD_PHASE_LAYERS = 2;
+  NUM_OBJECT_LAYERS = 3,
+  NUM_BROAD_PHASE_LAYERS = 3;
 
 const debugGroup = new THREE.Group();
 debugGroup.visible = false;
@@ -103,6 +103,15 @@ export function isPlayerCrouched(): boolean {
 }
 
 export function setPlayerCollision(enable: boolean) {
+  if (playerChar)
+    joltInterface
+      .GetPhysicsSystem()
+      .GetBodyInterface()
+      .SetObjectLayer(
+        playerChar.GetInnerBodyID(),
+        enable ? LAYER_DYNAMIC : LAYER_NOCLIP,
+      );
+
   if (enable) {
     movingBPFilter = new Jolt.DefaultBroadPhaseLayerFilter(
       joltInterface.GetObjectVsBroadPhaseLayerFilter(),
@@ -271,7 +280,7 @@ export async function addPhysicsToObject(
   if (initPromise) await initPromise;
   if (!obj.parent) return;
 
-  bootLog(`Adding physics to ${obj.name}...`);
+  // bootLog(`Adding physics to ${obj.name}...`);
 
   const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
   let shape: JoltTypes.Shape;
@@ -407,7 +416,7 @@ export async function addPhysicsToObject(
     debugGroup.add(debugMesh);
   }
 
-  bootLog(`Added physics to ${obj.name}`);
+  // bootLog(`Added physics to ${obj.name}`);
 }
 
 function wakeDynamicBodies() {
@@ -709,13 +718,15 @@ function setupCollisionFiltering(settings: JoltTypes.JoltSettings) {
   objectFilter.EnableCollision(LAYER_DYNAMIC, LAYER_DYNAMIC);
 
   const BP_LAYER_STATIC = new Jolt.BroadPhaseLayer(0),
-    BP_LAYER_DYNAMIC = new Jolt.BroadPhaseLayer(1);
+    BP_LAYER_DYNAMIC = new Jolt.BroadPhaseLayer(1),
+    BP_LAYER_NOCLIP = new Jolt.BroadPhaseLayer(2);
   const bpInterface = new Jolt.BroadPhaseLayerInterfaceTable(
     NUM_OBJECT_LAYERS,
     NUM_BROAD_PHASE_LAYERS,
   );
   bpInterface.MapObjectToBroadPhaseLayer(LAYER_STATIC, BP_LAYER_STATIC);
   bpInterface.MapObjectToBroadPhaseLayer(LAYER_DYNAMIC, BP_LAYER_DYNAMIC);
+  bpInterface.MapObjectToBroadPhaseLayer(LAYER_NOCLIP, BP_LAYER_NOCLIP);
 
   settings.mObjectLayerPairFilter = objectFilter;
   settings.mBroadPhaseLayerInterface = bpInterface;

@@ -23,7 +23,7 @@ import {
   resumePhysicsOfObject,
   setPlayerCollision,
 } from "../system/physics";
-import { bootLog } from "../boot";
+import { bootLog, hideBootLog } from "../boot";
 import { isMobile } from "../util/mobile";
 import {
   closeContextMenu,
@@ -465,6 +465,7 @@ export async function initPlayer(
   });
 
   bootLog("Player initialised");
+  hideBootLog();
 }
 
 export function pickupObject(obj: THREE.Object3D) {

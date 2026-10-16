@@ -46,6 +46,8 @@ export const masses: Record<string, number> = {
   Shelf: 20,
   Bin: 5,
   Clock: 2,
+  Note: 1,
+  Screen: 1,
 };
 
 export async function setupMesh(

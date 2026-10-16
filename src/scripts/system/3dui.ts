@@ -68,9 +68,6 @@ export function createUI(
     color: 0xffffff,
     transparent: true,
     depthWrite: false,
-    polygonOffset: true,
-    polygonOffsetFactor: -1,
-    polygonOffsetUnits: -1,
   });
   if (isScreen) {
     shadowMaterial.metalness = 0.65;

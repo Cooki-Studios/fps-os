@@ -1,7 +1,6 @@
 // Sound Effects by freesound_community from Pixabay
 import * as THREE from "three";
 import { pause } from "./pause";
-import { bootLog } from "../boot";
 
 const listener = new THREE.AudioListener();
 const audioEl = document.getElementById("audio") as HTMLDivElement;
@@ -28,7 +27,7 @@ audioEl.onclick = () => {
 };
 
 export function enableAudioEl(enable = true) {
-  audioEl.style.display = enable ? "block" : "none";
+  audioEl.style.visibility = enable ? "visible" : "hidden";
 }
 
 export function initAudio(camera: THREE.Camera) {
@@ -66,7 +65,7 @@ export async function addAudioToObject(
 }
 
 export async function loadBuffer(soundName: string) {
-  bootLog("Loading sound: " + soundName);
+  // bootLog("Loading sound: " + soundName);
   const audioLoader = new THREE.AudioLoader();
   return audioLoader.loadAsync(`audio/${soundName}.mp3`);
 }
@@ -100,7 +99,7 @@ export async function playAudio(
   volume: number | null = 1,
   randomise = true,
 ) {
-  if (!enabled && ctx.state !== "suspended") return;
+  if (!enabled && ctx.state == "suspended") return;
   await pause(delay);
 
   const sound = sounds[objName]?.[soundName];

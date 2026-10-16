@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { updatePhysics } from "./physics";
-import { updateCSM } from "./lighting";
-import { animateTitle, bootLog, hideBootLog } from "../boot";
+import { resizeCSM, updateCSM } from "./lighting";
+import { animateTitle, bootLog } from "../boot";
 import { getMainCam, getMainScene } from "../util/scene";
 import { createKeypad, updateKeypad } from "../objects/keypad";
 import { onMobileRotate } from "../util/mobile";
@@ -14,6 +14,7 @@ import { resize3DUI, update3DUI, updateUIPosRot } from "../system/3dui";
 import { updateGrabInertia, updateMenu } from "./interact";
 import { updateClock } from "../objects/clock";
 import { initShaders, renderWithShaders, resizeShaders } from "./shaders";
+import { enableAudioEl } from "./audio";
 
 let renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
@@ -105,7 +106,6 @@ export async function enableRenderer(
             scene = getMainScene();
             camera = getMainCam();
             title = undefined;
-            hideBootLog();
             resizeRenderer();
             resize3DUI();
 
@@ -117,7 +117,9 @@ export async function enableRenderer(
             canvas.style.pointerEvents = "auto";
             document.body.style.opacity = "1";
 
-            localStorage.setItem("booted", "true");
+            enableAudioEl();
+
+            sessionStorage.setItem("booted", "true");
           }, 500);
         }
 
@@ -164,6 +166,7 @@ export function resizeRenderer() {
   if (camera) {
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
+    resizeCSM();
   }
 }
 
