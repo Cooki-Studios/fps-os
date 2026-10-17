@@ -271,11 +271,32 @@ export function getGravityY() {
   return joltInterface.GetPhysicsSystem().GetGravity().GetY();
 }
 
+function makeHull(mesh: THREE.Mesh, scale: THREE.Vector3): JoltTypes.Shape {
+  const posAttr = mesh.geometry.attributes.position,
+    vertices = new Jolt.ArrayVec3();
+  for (let i = 0; i < posAttr.count; i++) {
+    const pt = new Jolt.Vec3(
+      posAttr.getX(i) * scale.x,
+      posAttr.getY(i) * scale.y,
+      posAttr.getZ(i) * scale.z,
+    );
+    vertices.push_back(pt);
+    Jolt.destroy(pt);
+  }
+  const settings = new Jolt.ConvexHullShapeSettings();
+  settings.set_mPoints(vertices);
+  const shape = settings.Create().Get();
+  Jolt.destroy(vertices);
+  Jolt.destroy(settings);
+  return shape;
+}
+
 export async function addPhysicsToObject(
   obj: THREE.Mesh,
   dynamic = false,
   showDebug = false,
   isPlayer = false,
+  attachments: THREE.Mesh[] = [],
 ) {
   if (initPromise) await initPromise;
   if (!obj.parent) return;
@@ -297,27 +318,34 @@ export async function addPhysicsToObject(
     shape = standingShape;
   } else {
     obj.updateMatrixWorld(true);
-    const posAttr = obj.geometry.attributes.position,
-      vertices = new Jolt.ArrayVec3();
-    if (!posAttr) return;
+    if (!obj.geometry.attributes.position) return;
 
-    for (let i = 0; i < posAttr.count; i++) {
-      const pt = new Jolt.Vec3(
-        posAttr.getX(i) * obj.scale.x,
-        posAttr.getY(i) * obj.scale.y,
-        posAttr.getZ(i) * obj.scale.z,
-      );
-      vertices.push_back(pt);
-      Jolt.destroy(pt);
+    if (!attachments.length) shape = makeHull(obj, obj.scale);
+    else {
+      const compound = new Jolt.StaticCompoundShapeSettings();
+      for (const mesh of [obj, ...attachments]) {
+        mesh.updateMatrixWorld(true);
+        const pos = new THREE.Vector3(),
+          quat = new THREE.Quaternion(),
+          scale = new THREE.Vector3();
+
+        (mesh === obj
+          ? new THREE.Matrix4()
+          : obj.parent.matrixWorld.clone().invert().multiply(mesh.matrixWorld)
+        ).decompose(pos, quat, scale);
+        if (mesh === obj) scale.copy(obj.scale);
+
+        const jPos = new Jolt.Vec3(pos.x, pos.y, pos.z),
+          jQuat = new Jolt.Quat(quat.x, quat.y, quat.z, quat.w);
+        compound.AddShapeShape(jPos, jQuat, makeHull(mesh, scale), 0);
+
+        Jolt.destroy(jPos);
+        Jolt.destroy(jQuat);
+      }
+      shape = compound.Create().Get();
+      Jolt.destroy(compound);
+      attachments.forEach((m) => obj.parent!.attach(m)); // visuals follow the body
     }
-
-    const shapeSettings = new Jolt.ConvexHullShapeSettings();
-    shapeSettings.set_mPoints(vertices);
-    const shapeResult = shapeSettings.Create();
-    shape = shapeResult.Get();
-
-    Jolt.destroy(vertices);
-    Jolt.destroy(shapeSettings);
   }
 
   const p = obj.parent.position,

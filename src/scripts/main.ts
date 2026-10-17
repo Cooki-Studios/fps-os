@@ -77,14 +77,28 @@ initInput();
 bootLog("Initialising audio...");
 initAudio(camera);
 
+const ATTACHED_OBJS: Record<string, string[]> = {
+  D_Cube_007: ["Cube_013", "Cube_014"], // Bed
+  D_Cube_005: ["Cube_007", "Cube_006", "Cube_008"], // Armchair
+  D_Cube_003: ["Cube_002", "Cube_003", "Cube_004", "Cube_005"], // Desk
+  D_Cube_002: ["Cube_009"], // Papers
+};
+const attachedNames = new Set(Object.values(ATTACHED_OBJS).flat());
+
 async function addPhysicsToObjects() {
   bootLog("Adding physics to objects...");
   for (const mesh of meshes) {
     if (mesh.parent) scene.attach(mesh.parent);
 
+    if (attachedNames.has(mesh.name)) continue;
+
+    const attachments = (ATTACHED_OBJS[mesh.name] ?? [])
+      .map((name) => meshes.find((mesh) => mesh.name === name))
+      .filter((mesh): mesh is THREE.Mesh => !!mesh);
+
     if (mesh.name.startsWith("D_")) {
-      addPhysicsToObject(mesh, true, true, false);
-    } else addPhysicsToObject(mesh, false, true, false);
+      addPhysicsToObject(mesh, true, true, false, attachments);
+    } else addPhysicsToObject(mesh, false, true, false, attachments);
 
     setTimeout(() => {
       if (

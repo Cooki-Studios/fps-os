@@ -228,7 +228,8 @@ export function interactPlayer(
               once: true,
             },
           );
-        }
+        } else if (!grabObj && obj?.name == "Screen")
+          enablePC(canvas, scene, undefined, true);
         clickedEl = undefined;
         return;
       }
@@ -258,49 +259,50 @@ export function interactPlayer(
         }
 
     if (name && click && released) {
-      switch (name) {
-        case "Switch":
-          toggleLight();
-          break;
-        case "Door":
-          lock(camera, canvas);
-          break;
-        case "PC":
-          if (!grabObj) enablePC(canvas, scene);
-          break;
-        case "Screen":
-          if (!grabObj) enablePC(canvas, scene, undefined, true);
-          break;
-        case "Bed":
-          sleep(canvas, scene);
-          break;
-        default:
-          if (name.startsWith("Blind")) {
-            const blindNum = Number(name.replace("Blind", ""));
+      if (!grabObj)
+        switch (name) {
+          case "Switch":
+            toggleLight();
+            break;
+          case "Door":
+            lock(camera, canvas);
+            break;
+          case "PC":
+            enablePC(canvas, scene);
+            break;
+          case "Screen":
+            enablePC(canvas, scene, undefined, true);
+            break;
+          case "Bed":
+            sleep(canvas, scene);
+            break;
+          default:
+            if (name.startsWith("Blind")) {
+              const blindNum = Number(name.replace("Blind", ""));
 
-            const time = getAnimationTime(blindNum);
-            if (time > 0 && time < 0.5) return;
+              const time = getAnimationTime(blindNum);
+              if (time > 0 && time < 0.5) return;
 
-            if (blindsDown[blindNum]) {
-              playAnimationReversed(blindNum);
-              playAudio(name, "blind-up", 0, 0.6, 1.5);
-            } else {
-              stopAnimation(blindNum);
-              playAnimation(blindNum);
-              playAudio(name, "blind-down", 0, 0.2);
+              if (blindsDown[blindNum]) {
+                playAnimationReversed(blindNum);
+                playAudio(name, "blind-up", 0, 0.6, 1.5);
+              } else {
+                stopAnimation(blindNum);
+                playAnimation(blindNum);
+                playAudio(name, "blind-down", 0, 0.2);
+              }
+              blindsDown[blindNum] = !blindsDown[blindNum];
+
+              setTimeout(() => {
+                const count = blindsDown.reduce(
+                  (sum, val) => sum + (val ? 1 : 0),
+                  0,
+                );
+                setLightLevel(1 - (count / 4) * 0.5);
+              }, 200);
             }
-            blindsDown[blindNum] = !blindsDown[blindNum];
-
-            setTimeout(() => {
-              const count = blindsDown.reduce(
-                (sum, val) => sum + (val ? 1 : 0),
-                0,
-              );
-              setLightLevel(1 - (count / 4) * 0.5);
-            }, 200);
-          }
-          break;
-      }
+            break;
+        }
       resetGrab();
     }
   } else {

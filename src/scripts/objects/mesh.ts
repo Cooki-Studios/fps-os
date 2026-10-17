@@ -39,6 +39,8 @@ export const grabbables = [
   "Light",
   "Bed",
   "Armchair",
+  "Rug",
+  "PapersPlease",
 ];
 
 export const masses: Record<string, number> = {
@@ -48,6 +50,9 @@ export const masses: Record<string, number> = {
   Clock: 2,
   Note: 1,
   Screen: 1,
+  Bed: 40,
+  Armchair: 20,
+  Desktop: 20,
 };
 
 export async function setupMesh(
