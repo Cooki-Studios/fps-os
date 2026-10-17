@@ -30,13 +30,14 @@ export async function setupMainLight(
   const parent = light.parent;
   if (!parent) return;
   parent.add(spotLight);
+  parent.add(target);
   parent.remove(light);
 
   spotLight.shadow.mapSize.setScalar(isMobile ? 512 : 2048);
   spotLight.shadow.radius = 2.5;
   spotLight.castShadow = true;
 
-  const mesh = parent.parent!.getObjectByName("N_Light") as THREE.Mesh;
+  const mesh = parent.parent!.getObjectByName("D_Light") as THREE.Mesh;
   mat = mesh.material as THREE.MeshPhysicalMaterial;
   mat.emissiveIntensity = 0;
 
@@ -50,6 +51,10 @@ export async function setupMainLight(
   onActionPressed("debug", () => {
     lightHelper.visible = !lightHelper.visible;
   });
+}
+
+export function updateLight() {
+  lightHelper?.update();
 }
 
 let lighting = false;
@@ -74,6 +79,7 @@ export function toggleLight() {
 }
 
 export function disableLight() {
+  spotLight.target.parent?.remove(spotLight.target);
   spotLight.parent?.remove(spotLight);
   lightHelper.parent?.remove(lightHelper);
 }

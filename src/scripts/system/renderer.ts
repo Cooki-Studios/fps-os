@@ -15,6 +15,7 @@ import { updateGrabInertia, updateMenu } from "./interact";
 import { updateClock } from "../objects/clock";
 import { initShaders, renderWithShaders, resizeShaders } from "./shaders";
 import { enableAudioEl } from "./audio";
+import { updateLight } from "../objects/mainLight";
 
 let renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
@@ -135,6 +136,7 @@ export async function enableRenderer(
       update3DUI(scene, camera);
       updateMenu(camera);
       updateCSM(delta);
+      updateLight();
 
       stats.begin();
       renderWithShaders();

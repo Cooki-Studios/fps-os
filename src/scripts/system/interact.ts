@@ -29,7 +29,7 @@ import {
   pickupObject,
 } from "../objects/player";
 import { enableNoteEl, getNoteMeshes, initNote } from "../objects/notepad";
-import { grabbables, interactibles } from "../objects/mesh";
+import { GRABBABLES, INTERACTIBLES } from "../objects/mesh";
 
 const raycaster = new THREE.Raycaster();
 raycaster.far = 8;
@@ -168,11 +168,11 @@ export function interactPlayer(
 
   const name = obj?.name.split("_")[0];
   if (obj) {
-    if (!grabObj && interactibles.includes(name ?? ""))
+    if (!grabObj && INTERACTIBLES.includes(name ?? ""))
       cross.classList.add("active");
     else cross.classList.remove("active");
 
-    if (obj.visible && grabbables.includes(name ?? ""))
+    if (obj.visible && GRABBABLES.includes(name ?? ""))
       cross.classList.add("grabbable");
     else cross.classList.remove("grabbable");
   }
@@ -240,7 +240,7 @@ export function interactPlayer(
     }
 
     if (obj)
-      if (obj.visible && grabbables.includes(name ?? ""))
+      if (obj.visible && GRABBABLES.includes(name ?? ""))
         if (grabTimeout) {
           clearTimeout(grabTimeout);
           grabTimeout = null;
@@ -393,7 +393,7 @@ export function contextPlayer(
 
     label.appendChild(file);
     menuButtons.appendChild(label);
-  } else if (obj.visible && grabbables.includes(name ?? "")) {
+  } else if (obj.visible && GRABBABLES.includes(name ?? "")) {
     const mesh = obj.children[0] as THREE.Mesh;
     const button = document.createElement("button");
     let enabled = false;

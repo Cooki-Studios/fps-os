@@ -16,7 +16,7 @@ import {
 import { lerp } from "three/src/math/MathUtils.js";
 import { bootLog } from "../boot";
 import { isMobile } from "../util/mobile";
-import { masses } from "../objects/mesh";
+import { MASSES } from "../objects/mesh";
 
 const { default: initJolt } = await import("jolt-physics/wasm");
 
@@ -412,7 +412,7 @@ export async function addPhysicsToObject(
       bodySettings.mOverrideMassProperties =
         Jolt.EOverrideMassProperties_CalculateInertia;
       bodySettings.mMassPropertiesOverride.mMass =
-        masses[obj.parent.name] ?? masses["default"];
+        MASSES[obj.parent.name] ?? MASSES["default"];
       obj.userData.dynamic = true;
     }
 
@@ -625,7 +625,7 @@ function updatePrevPos(
 }
 
 function doPhysicsStep(delta: number) {
-  joltInterface.Step(delta, 1);
+  joltInterface.Step(delta, Math.ceil(delta * 60));
 
   const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
 
@@ -637,7 +637,7 @@ function doPhysicsStep(delta: number) {
 
     if (wasReset) {
       Jolt.destroy(pos);
-      const identity = new Jolt.Quat(0, 0, 0, 1);
+      const identity = new Jolt.Quat(-Math.SQRT1_2, 0, 0, Math.SQRT1_2);
       bodyInterface.SetPositionAndRotation(
         bodyId,
         respawnPos,

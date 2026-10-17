@@ -25,7 +25,7 @@ import { setupMainLight } from "./objects/mainLight";
 import "./system/audio";
 import { addAudioToObject, enableAudioEl, initAudio } from "./system/audio";
 import { pause } from "./system/pause";
-import { setupMesh } from "./objects/mesh";
+import { ATTACHED_OBJS, setupMesh } from "./objects/mesh";
 import { initShaders } from "./system/shaders";
 import { setupClock } from "./objects/clock";
 import { scrollPlayer } from "./system/interact";
@@ -77,12 +77,6 @@ initInput();
 bootLog("Initialising audio...");
 initAudio(camera);
 
-const ATTACHED_OBJS: Record<string, string[]> = {
-  D_Cube_007: ["Cube_013", "Cube_014"], // Bed
-  D_Cube_005: ["Cube_007", "Cube_006", "Cube_008"], // Armchair
-  D_Cube_003: ["Cube_002", "Cube_003", "Cube_004", "Cube_005"], // Desk
-  D_Cube_002: ["Cube_009"], // Papers
-};
 const attachedNames = new Set(Object.values(ATTACHED_OBJS).flat());
 
 async function addPhysicsToObjects() {
@@ -107,6 +101,7 @@ async function addPhysicsToObjects() {
           "D_Plane_001",
           "D_Plane_003",
           "D_Plane_004",
+          "D_Light",
         ].includes(mesh.name)
       )
         pausePhysicsOfObject(mesh, mesh.userData.body);

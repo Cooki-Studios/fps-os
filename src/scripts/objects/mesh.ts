@@ -9,7 +9,7 @@ import { setNotepad } from "./notepad";
 
 const wind = await loadBuffer("windows-wind");
 
-export const interactibles = [
+export const INTERACTIBLES = [
   "Switch",
   "Door",
   "PC",
@@ -25,7 +25,7 @@ export const interactibles = [
   "Blind5",
   "Blind5_001",
 ];
-export const grabbables = [
+export const GRABBABLES = [
   "Pillow",
   "Note",
   "Screen",
@@ -42,8 +42,14 @@ export const grabbables = [
   "Rug",
   "PapersPlease",
 ];
-
-export const masses: Record<string, number> = {
+export const ATTACHED_OBJS: Record<string, string[]> = {
+  D_Cube_007: ["Cube_013", "Cube_014"], // Bed
+  D_Cube_005: ["Cube_007", "Cube_006", "Cube_008"], // Armchair
+  D_Cube_003: ["Cube_002", "Cube_003", "Cube_004", "Cube_005"], // Desk
+  D_Cube_002: ["Cube_009"], // Papers
+  D_Light: ["Sphere", "N_Cylinder_001"], // MainLight
+};
+export const MASSES: Record<string, number> = {
   default: 10,
   Shelf: 20,
   Bin: 5,
@@ -53,6 +59,7 @@ export const masses: Record<string, number> = {
   Bed: 40,
   Armchair: 20,
   Desktop: 20,
+  Light: 1,
 };
 
 export async function setupMesh(
