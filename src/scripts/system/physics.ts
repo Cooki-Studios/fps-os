@@ -224,6 +224,7 @@ export function crouchPlayer(
     playerChar.SetPosition(pos);
     return false;
   }
+  playerChar.SetInnerBodyShape(crouch ? crouchingShape : standingShape);
 
   updatePrevPos(obj.parent.userData, playerChar.GetPosition(), true);
   const startScale =
@@ -254,7 +255,7 @@ export async function initPhysics(scene: THREE.Scene): Promise<void> {
     Jolt.destroy(settings);
 
     gravity = joltInterface.GetPhysicsSystem().GetGravity();
-    respawnPos = new Jolt.RVec3(0, 2, -8.5);
+    respawnPos = new Jolt.RVec3(0, 0, -8.5);
     playerRespawnPos = new Jolt.RVec3(0, 2, 0.3);
     zeroVel = new Jolt.Vec3(0, 0, 0);
     tempVec3 = new Jolt.Vec3(0, 0, 0);

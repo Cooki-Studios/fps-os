@@ -90,6 +90,36 @@ function resetGrab() {
   }
 }
 
+let holdDistance = 0,
+  grabDistance = 0;
+const holdDirection = new THREE.Vector3(),
+  grabOrigin = new THREE.Vector3(),
+  grabDirection = new THREE.Vector3(),
+  grabRaycaster = new THREE.Raycaster();
+
+export function updateGrab(
+  camera: THREE.PerspectiveCamera,
+  scene: THREE.Scene,
+) {
+  if (!grabObj) return;
+
+  camera.getWorldPosition(grabOrigin);
+  grabDirection.copy(holdDirection).transformDirection(camera.matrixWorld);
+  grabRaycaster.set(grabOrigin, grabDirection);
+  grabRaycaster.far = holdDistance;
+
+  const hit = grabRaycaster
+    .intersectObject(scene, true)
+    .find(
+      (i) =>
+        i.object instanceof THREE.Mesh && !grabObj?.getObjectById(i.object.id),
+    );
+
+  const target = hit ? Math.max(0, hit.distance) : holdDistance;
+  grabDistance += target - grabDistance;
+  grabObj.position.copy(holdDirection).multiplyScalar(grabDistance);
+}
+
 let interactReleased = true;
 export function getInteractReleased() {
   return interactReleased;
@@ -254,6 +284,9 @@ export function interactPlayer(
               obj.userData.createNote = 1;
 
             pickupObject(obj);
+            holdDistance = obj.position.length();
+            grabDistance = holdDistance;
+            holdDirection.copy(obj.position).normalize();
             grabObj = obj;
           }, 200);
         }

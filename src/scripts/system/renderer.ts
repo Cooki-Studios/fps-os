@@ -11,7 +11,7 @@ import { onActionPressed } from "./input";
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 import { updateAnimation } from "./animation";
 import { resize3DUI, update3DUI, updateUIPosRot } from "../system/3dui";
-import { updateGrabInertia, updateMenu } from "./interact";
+import { updateGrab, updateGrabInertia, updateMenu } from "./interact";
 import { updateClock } from "../objects/clock";
 import { initShaders, renderWithShaders, resizeShaders } from "./shaders";
 import { enableAudioEl } from "./audio";
@@ -132,6 +132,7 @@ export async function enableRenderer(
       updatePhysics(delta);
       updateKeypad(delta, canvas, scene);
       updateGrabInertia();
+      updateGrab(camera, scene);
       updateUIPosRot();
       update3DUI(scene, camera);
       updateMenu(camera);

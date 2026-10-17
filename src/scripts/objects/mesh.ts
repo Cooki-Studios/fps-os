@@ -70,12 +70,13 @@ export async function setupMesh(
 ) {
   mesh.material.dithering = true;
   mesh.receiveShadow = true;
-  mesh.castShadow = true;
-  setupShadowMaterial(mesh.material);
 
-  if (mesh.name == "D_Plane_002") {
-    mesh.material.side = THREE.DoubleSide;
-  } else if (mesh.name.startsWith("N_Blind")) {
+  if (mesh.name != "D_Plane_002") {
+    mesh.castShadow = true;
+    setupShadowMaterial(mesh.material);
+  }
+
+  if (mesh.name.startsWith("N_Blind")) {
     mesh.material.opacity = 0.9;
     mesh.material.transparent = true;
   }
