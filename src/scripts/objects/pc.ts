@@ -19,8 +19,10 @@ export async function setMonitor(obj: THREE.Object3D) {
   await addAudioToObject(monitor, "pc-type", 0.5);
 }
 
-const rot = new THREE.Euler(-Math.PI / 36, -Math.PI, 0, "YXZ"),
-  offset = new THREE.Vector3(0, 1.34, -0.02);
+const rot = new THREE.Quaternion().setFromEuler(
+    new THREE.Euler(Math.PI / 2 - Math.PI / 36, 0, 0),
+  ),
+  offset = new THREE.Vector3(0, -0.02, 1.34);
 
 const WIDTH = 1028,
   HEIGHT = 740;
@@ -81,7 +83,16 @@ function iframeError() {
 
 function initMonitor(scene: THREE.Scene) {
   const monitorScreen = screen.cloneNode(true) as HTMLDivElement;
-  const { mesh, obj } = createUI(scene, monitorScreen, 1.5, undefined, true);
+  const { mesh } = createUI(
+    scene,
+    monitorScreen,
+    1.5,
+    undefined,
+    monitor,
+    offset,
+    rot,
+    true,
+  );
   if (!mesh) return;
   mesh.name = "Screen";
 
@@ -112,15 +123,7 @@ function initMonitor(scene: THREE.Scene) {
   screens.push(monitorScreen);
   screenMeshes.push(mesh);
 
-  const pos = new THREE.Vector3();
-  monitor.getWorldPosition(pos);
-
-  mesh.position.copy(pos.add(offset));
-  mesh.rotation.copy(rot);
   mesh.visible = false;
-
-  obj.position.copy(pos);
-  obj.rotation.copy(rot);
 }
 
 export function getPCScreens() {

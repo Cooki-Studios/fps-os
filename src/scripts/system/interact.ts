@@ -56,10 +56,9 @@ function getObject(
   if (!intersect || !intersect.object.parent) return;
 
   return {
-    obj:
-      intersect.object.name == "Screen" || intersect.object.name == "Note"
-        ? intersect.object
-        : intersect.object.parent,
+    obj: ["Note", "PC"].includes(intersect.object.name)
+      ? intersect.object
+      : intersect.object.parent,
     i: intersect,
   };
 }
@@ -90,35 +89,37 @@ function resetGrab() {
   }
 }
 
-let holdDistance = 0,
-  grabDistance = 0;
-const holdDirection = new THREE.Vector3(),
-  grabOrigin = new THREE.Vector3(),
-  grabDirection = new THREE.Vector3(),
-  grabRaycaster = new THREE.Raycaster();
+// let holdDistance = 0,
+//   grabDistance = 0;
+// const holdDirection = new THREE.Vector3(),
+//   grabOrigin = new THREE.Vector3(),
+//   grabDirection = new THREE.Vector3(),
+//   grabRaycaster = new THREE.Raycaster();
 
-export function updateGrab(
-  camera: THREE.PerspectiveCamera,
-  scene: THREE.Scene,
-) {
-  if (!grabObj) return;
-
-  camera.getWorldPosition(grabOrigin);
-  grabDirection.copy(holdDirection).transformDirection(camera.matrixWorld);
-  grabRaycaster.set(grabOrigin, grabDirection);
-  grabRaycaster.far = holdDistance;
-
-  const hit = grabRaycaster
-    .intersectObject(scene, true)
-    .find(
-      (i) =>
-        i.object instanceof THREE.Mesh && !grabObj?.getObjectById(i.object.id),
-    );
-
-  const target = hit ? Math.max(0, hit.distance) : holdDistance;
-  grabDistance += target - grabDistance;
-  grabObj.position.copy(holdDirection).multiplyScalar(grabDistance);
-}
+// export function updateGrab(
+//   camera: THREE.PerspectiveCamera,
+//   scene: THREE.Scene,
+// ) {
+//   if (!grabObj) return;
+//
+//   camera.getWorldPosition(grabOrigin);
+//   grabDirection.copy(holdDirection).transformDirection(camera.matrixWorld);
+//   grabRaycaster.set(grabOrigin, grabDirection);
+//   grabRaycaster.far = holdDistance;
+//
+//   const hit = grabRaycaster
+//     .intersectObject(scene, true)
+//     .find(
+//       (i) =>
+//         i.object instanceof THREE.Mesh &&
+//         !grabObj?.getObjectById(i.object.id) &&
+//         !["Note", "PC", "shadow"].includes(i.object.name),
+//     );
+//
+//   const target = hit ? Math.max(0, hit.distance) : holdDistance;
+//   grabDistance += target - grabDistance;
+//   grabObj.position.copy(holdDirection).multiplyScalar(grabDistance);
+// }
 
 let interactReleased = true;
 export function getInteractReleased() {
@@ -283,10 +284,13 @@ export function interactPlayer(
             if (!obj.userData.grabbed && obj.name == "Note")
               obj.userData.createNote = 1;
 
+            if (!obj.userData.grabbed && ["Note", "PC"].includes(obj.name))
+              obj.userData.attach = undefined;
+
             pickupObject(obj);
-            holdDistance = obj.position.length();
-            grabDistance = holdDistance;
-            holdDirection.copy(obj.position).normalize();
+            // holdDistance = obj.position.length();
+            // grabDistance = holdDistance;
+            // holdDirection.copy(obj.position).normalize();
             grabObj = obj;
           }, 200);
         }
@@ -440,7 +444,7 @@ export function contextPlayer(
       button2.textContent = "Reset rotation";
       button2.onclick = () => {
         obj.lookAt(getPlayerPosition().add(camera.position));
-        if (obj.name != "Note" && obj.name != "Screen") {
+        if (!["Note", "PC"].includes(obj.name)) {
           obj.rotateY(-Math.PI / 2);
           obj.rotateX(-Math.PI / 2);
         }

@@ -32,6 +32,9 @@ export function createUI(
   el: HTMLElement,
   scale: number = 1,
   overlay = false,
+  attach?: THREE.Object3D,
+  posOffset = new THREE.Vector3(),
+  rotOffset = new THREE.Quaternion(),
   isScreen = false,
 ) {
   el.style.backfaceVisibility = "hidden";
@@ -59,7 +62,11 @@ export function createUI(
     blending: THREE.NoBlending,
     opacity: 0,
     premultipliedAlpha: true,
+    transparent: true,
     side: THREE.DoubleSide,
+    polygonOffset: true,
+    polygonOffsetFactor: -2,
+    polygonOffsetUnits: -2,
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.castShadow = true;
@@ -68,6 +75,9 @@ export function createUI(
     color: 0xffffff,
     transparent: true,
     depthWrite: false,
+    polygonOffset: true,
+    polygonOffsetFactor: -2,
+    polygonOffsetUnits: -2,
   });
   if (isScreen) {
     shadowMaterial.metalness = 0.65;
@@ -105,6 +115,25 @@ export function createUI(
 
   mesh.userData.ui = obj;
 
+  if (attach) {
+    const pos = new THREE.Vector3();
+    attach.getWorldPosition(pos);
+    const rot = new THREE.Quaternion();
+    attach.getWorldQuaternion(rot);
+
+    mesh.position.copy(pos.add(posOffset));
+    mesh.quaternion.copy(rot.multiply(rotOffset));
+
+    obj.position.copy(pos);
+    obj.quaternion.copy(rot);
+
+    mesh.userData.posOffset = posOffset;
+    mesh.userData.rotOffset = rotOffset;
+    mesh.userData.attach = attach;
+
+    addUpdateUI(mesh);
+  }
+
   return { mesh: mesh, obj: obj };
 }
 
@@ -131,6 +160,17 @@ export function addUpdateUI(obj: THREE.Object3D) {
 
 export function updateUIPosRot() {
   for (const updateUI of updateUIs) {
+    const attach = updateUI.userData.attach;
+    if (attach) {
+      attach.getWorldPosition(uiPos);
+      attach.getWorldQuaternion(uiRot);
+
+      updateUI.position.copy(
+        uiPos.add(updateUI.userData.posOffset.clone().applyQuaternion(uiRot)),
+      );
+      updateUI.quaternion.copy(uiRot.multiply(updateUI.userData.rotOffset));
+    }
+
     updateUI.getWorldPosition(uiPos);
     updateUI.getWorldQuaternion(uiRot);
 

@@ -41,7 +41,6 @@ import {
   stopAudio,
 } from "../system/audio";
 import { isInPC } from "./pc";
-import { addUpdateUI } from "../system/3dui";
 
 export type PlayerData = {
   velPosX: number;
@@ -476,8 +475,6 @@ export function pickupObject(obj: THREE.Object3D) {
 
   camera.attach(obj);
   obj.userData.grabbed = true;
-
-  if (obj.userData.ui) addUpdateUI(obj);
 }
 
 export function dropObject(obj: THREE.Object3D, vel: THREE.Vector3) {
@@ -487,6 +484,4 @@ export function dropObject(obj: THREE.Object3D, vel: THREE.Vector3) {
   if (physObj && physObj.userData.body && !physObj.userData.paused) {
     resumePhysicsOfObject(physObj, physObj.userData.body, vel);
   }
-
-  if (obj.userData.ui) addUpdateUI(obj);
 }

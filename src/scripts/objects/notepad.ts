@@ -20,8 +20,10 @@ export async function setNotepad(
   enableNote(scene, canvas);
 }
 
-const rot = new THREE.Euler(-Math.PI / 2, -Math.PI / 2, -Math.PI / 2, "YXZ"),
-  offset = new THREE.Vector3(0, 0.2201, 0);
+const rot = new THREE.Quaternion().setFromEuler(
+    new THREE.Euler(0, 0, -Math.PI / 2),
+  ),
+  offset = new THREE.Vector3(0, 0, 0.2201);
 
 async function updateMD(el: HTMLTextAreaElement, mdEl: HTMLParagraphElement) {
   mdEl.innerHTML = DOMPurify.sanitize(
@@ -65,20 +67,19 @@ export function initNote(scene: THREE.Scene, canvas: HTMLCanvasElement) {
     if (e.key == "Escape") el.blur();
   };
 
-  const { mesh, obj } = createUI(scene, div);
+  const { mesh } = createUI(
+    scene,
+    div,
+    undefined,
+    undefined,
+    stack,
+    offset,
+    rot,
+  );
   if (!mesh) return;
   mesh.name = "Note";
 
   noteMeshes.push(mesh);
-
-  const pos = new THREE.Vector3();
-  stack.getWorldPosition(pos);
-
-  mesh.position.copy(pos.add(offset));
-  mesh.rotation.copy(rot);
-
-  obj.position.copy(pos);
-  obj.rotation.copy(rot);
 }
 
 export function enableNote(
