@@ -56,7 +56,7 @@ function getObject(
   if (!intersect || !intersect.object.parent) return;
 
   return {
-    obj: ["Note", "PC"].includes(intersect.object.name)
+    obj: ["Note", "Screen"].includes(intersect.object.name)
       ? intersect.object
       : intersect.object.parent,
     i: intersect,
@@ -113,7 +113,7 @@ function resetGrab() {
 //       (i) =>
 //         i.object instanceof THREE.Mesh &&
 //         !grabObj?.getObjectById(i.object.id) &&
-//         !["Note", "PC", "shadow"].includes(i.object.name),
+//         !["Note", "Screen", "shadow"].includes(i.object.name),
 //     );
 //
 //   const target = hit ? Math.max(0, hit.distance) : holdDistance;
@@ -284,7 +284,7 @@ export function interactPlayer(
             if (!obj.userData.grabbed && obj.name == "Note")
               obj.userData.createNote = 1;
 
-            if (!obj.userData.grabbed && ["Note", "PC"].includes(obj.name))
+            if (!obj.userData.grabbed && ["Note", "Screen"].includes(obj.name))
               obj.userData.attach = undefined;
 
             pickupObject(obj);
@@ -444,7 +444,7 @@ export function contextPlayer(
       button2.textContent = "Reset rotation";
       button2.onclick = () => {
         obj.lookAt(getPlayerPosition().add(camera.position));
-        if (!["Note", "PC"].includes(obj.name)) {
+        if (!["Note", "Screen"].includes(obj.name)) {
           obj.rotateY(-Math.PI / 2);
           obj.rotateX(-Math.PI / 2);
         }
