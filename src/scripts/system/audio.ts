@@ -7,13 +7,28 @@ const audioEl = document.getElementById("audio") as HTMLDivElement;
 let enabled = false;
 
 const loopedSounds = new Set<THREE.PositionalAudio>();
+const ctx = listener.context;
 
-if (sessionStorage.getItem("audio")) {
-  audioEl.classList.add("unmuted");
-  enabled = true;
-}
+if (sessionStorage.getItem("audio")) audioEl.classList.add("unmuted");
 
-audioEl.onclick = () => {
+document.addEventListener(
+  "click",
+  async () => {
+    if (!sessionStorage.getItem("audio")) return;
+
+    enabled = true;
+
+    if (ctx.state === "suspended") await ctx.resume();
+
+    loopedSounds.forEach((sound) => {
+      if (!sound.isPlaying) sound.play();
+    });
+  },
+  { once: true },
+);
+audioEl.onclick = (e) => {
+  e.stopPropagation();
+
   audioEl.classList.toggle("unmuted");
   enabled = audioEl.classList.contains("unmuted");
 
@@ -87,10 +102,11 @@ export function setAudioSpeed(objName: string, soundName: string, speed = 1) {
 
 export async function stopAudio(objName: string, soundName: string) {
   const sound = sounds[objName]?.[soundName];
-  if (sound) sound.stop();
+  if (!sound) return;
+  loopedSounds.delete(sound);
+  sound.stop();
 }
 
-const ctx = listener.context;
 export async function playAudio(
   objName: string,
   soundName: string,
@@ -99,7 +115,6 @@ export async function playAudio(
   volume: number | null = 1,
   randomise = true,
 ) {
-  if (!enabled && ctx.state == "suspended") return;
   await pause(delay);
 
   const sound = sounds[objName]?.[soundName];
@@ -112,5 +127,43 @@ export async function playAudio(
   if (volume != null) sound.setVolume(volume);
   if (randomise) sound.setDetune(Math.random() * 10);
 
+  if (!enabled) return;
+  sound.play();
+}
+
+const hitSounds: THREE.PositionalAudio[] = [],
+  hitBuffers: AudioBuffer[] = [];
+let nextHitSound = 0;
+
+export async function initHitSounds(
+  scene: THREE.Object3D,
+  soundNames: string[],
+  count = 8,
+) {
+  for (const soundName of soundNames)
+    hitBuffers.push(await loadBuffer(soundName));
+
+  for (let i = 0; i < count; i++) {
+    const sound = new THREE.PositionalAudio(listener);
+    sound.setRefDistance(1);
+    scene.add(sound);
+    hitSounds.push(sound);
+  }
+}
+
+export function playHitSound(
+  x: number,
+  y: number,
+  z: number,
+  volume: number,
+  i: number,
+) {
+  if (!enabled || !hitSounds.length) return;
+  const sound = hitSounds[nextHitSound++ % hitSounds.length];
+  if (sound.isPlaying) sound.stop();
+  sound.setBuffer(hitBuffers[i]);
+  sound.position.set(x, y, z);
+  sound.setVolume(volume);
+  sound.setDetune(Math.random() * 10);
   sound.play();
 }

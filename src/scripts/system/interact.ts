@@ -265,8 +265,6 @@ export function interactPlayer(
             if (!obj.userData.grabbed && ["Note", "Screen"].includes(obj.name))
               obj.userData.attach = undefined;
 
-            if (!obj.userData.grabbed && obj.name == "Door") enableDoor();
-
             pickupObject(obj);
             grabObj = obj;
           }, 200);

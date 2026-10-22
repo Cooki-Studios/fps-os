@@ -17,11 +17,14 @@ import { lerp } from "three/src/math/MathUtils.js";
 import { bootLog } from "../boot";
 import { isMobile } from "../util/mobile";
 import { MASSES } from "../objects/mesh";
+import { initHitSounds, playHitSound } from "./audio";
 
 const { default: initJolt } = await import("jolt-physics/wasm");
 
 let Jolt: typeof initJolt,
   joltInterface: JoltTypes.JoltInterface,
+  physicsSystem: JoltTypes.PhysicsSystem,
+  bodyInterface: JoltTypes.BodyInterface,
   initPromise: Promise<void> | null = null;
 
 const dynamicObjects = new Set<THREE.Mesh>(),
@@ -104,13 +107,10 @@ export function isPlayerCrouched(): boolean {
 
 export function setPlayerCollision(enable: boolean) {
   if (playerChar)
-    joltInterface
-      .GetPhysicsSystem()
-      .GetBodyInterface()
-      .SetObjectLayer(
-        playerChar.GetInnerBodyID(),
-        enable ? LAYER_DYNAMIC : LAYER_NOCLIP,
-      );
+    bodyInterface.SetObjectLayer(
+      playerChar.GetInnerBodyID(),
+      enable ? LAYER_DYNAMIC : LAYER_NOCLIP,
+    );
 
   if (enable) {
     movingBPFilter = new Jolt.DefaultBroadPhaseLayerFilter(
@@ -144,10 +144,7 @@ export function applyWallDrag(velocity: THREE.Vector3) {
       nz = n.GetZ();
 
     if (
-      joltInterface
-        .GetPhysicsSystem()
-        .GetBodyInterface()
-        .GetMotionType(contact.mBodyB) === Jolt.EMotionType_Dynamic
+      bodyInterface.GetMotionType(contact.mBodyB) === Jolt.EMotionType_Dynamic
     )
       continue;
 
@@ -240,6 +237,8 @@ export function crouchPlayer(
   return true;
 }
 
+const impacts: { x: number; y: number; z: number; speed: number }[] = [];
+
 export async function initPhysics(scene: THREE.Scene): Promise<void> {
   if (initPromise) return initPromise;
 
@@ -254,11 +253,54 @@ export async function initPhysics(scene: THREE.Scene): Promise<void> {
     joltInterface = new Jolt.JoltInterface(settings);
     Jolt.destroy(settings);
 
-    gravity = joltInterface.GetPhysicsSystem().GetGravity();
+    physicsSystem = joltInterface.GetPhysicsSystem();
+    bodyInterface = physicsSystem.GetBodyInterface();
+
+    gravity = physicsSystem.GetGravity();
     respawnPos = new Jolt.RVec3(0, 0, -8.5);
     playerRespawnPos = new Jolt.RVec3(0, 2, 0.3);
     zeroVel = new Jolt.Vec3(0, 0, 0);
     tempVec3 = new Jolt.Vec3(0, 0, 0);
+
+    await initHitSounds(scene, ["hit", "hit2"]);
+
+    const contactListener = new Jolt.ContactListenerJS();
+
+    contactListener.OnContactPersisted = () => {};
+    contactListener.OnContactRemoved = () => {};
+    contactListener.OnContactValidate = () => {
+      return Jolt.ValidateResult_AcceptContact;
+    };
+
+    contactListener.OnContactAdded = (inBody1, inBody2, inManifold) => {
+      const body1 = Jolt.wrapPointer(inBody1, Jolt.Body);
+      const body2 = Jolt.wrapPointer(inBody2, Jolt.Body);
+
+      const v1 = body1.GetLinearVelocity();
+      const x1 = v1.GetX(),
+        y1 = v1.GetY(),
+        z1 = v1.GetZ();
+
+      const v2 = body2.GetLinearVelocity();
+      const x2 = v2.GetX(),
+        y2 = v2.GetY(),
+        z2 = v2.GetZ();
+
+      const speed = Math.hypot(x1 - x2, y1 - y2, z1 - z2);
+
+      if (speed > 1.5) {
+        const manifold = Jolt.wrapPointer(inManifold, Jolt.ContactManifold);
+        const point = manifold.GetWorldSpaceContactPointOn1(0);
+        impacts.push({
+          x: point.GetX(),
+          y: point.GetY(),
+          z: point.GetZ(),
+          speed,
+        });
+      }
+    };
+
+    physicsSystem.SetContactListener(contactListener);
 
     scene.add(debugGroup);
 
@@ -269,7 +311,7 @@ export async function initPhysics(scene: THREE.Scene): Promise<void> {
 }
 
 export function getGravityY() {
-  return joltInterface.GetPhysicsSystem().GetGravity().GetY();
+  return physicsSystem.GetGravity().GetY();
 }
 
 function makeHull(mesh: THREE.Mesh, scale: THREE.Vector3): JoltTypes.Shape {
@@ -309,7 +351,6 @@ export async function addPhysicsToObject(
 
   // bootLog(`Adding physics to ${obj.name}...`);
 
-  const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
   let shape: JoltTypes.Shape;
 
   if (isPlayer) {
@@ -378,12 +419,7 @@ export async function addPhysicsToObject(
     settings.mInnerBodyShape = shape;
     settings.mInnerBodyLayer = LAYER_DYNAMIC;
 
-    playerChar = new Jolt.CharacterVirtual(
-      settings,
-      pos,
-      rot,
-      joltInterface.GetPhysicsSystem(),
-    );
+    playerChar = new Jolt.CharacterVirtual(settings, pos, rot, physicsSystem);
     obj.userData.character = playerChar;
 
     movingBPFilter = new Jolt.DefaultBroadPhaseLayerFilter(
@@ -457,7 +493,6 @@ export async function addPhysicsToObject(
 }
 
 function wakeDynamicBodies() {
-  const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
   for (const obj of dynamicObjects) {
     if (obj.userData.dynamic && obj.userData.body)
       bodyInterface.ActivateBody(obj.userData.body.GetID());
@@ -468,7 +503,6 @@ export async function removePhysicsFromObject(
   obj: THREE.Mesh,
   body: JoltTypes.Body,
 ) {
-  const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
   const id = body.GetID();
   bodyInterface.RemoveBody(id);
   bodyInterface.DestroyBody(id);
@@ -481,7 +515,6 @@ export async function removePhysicsFromObject(
 }
 
 export function pausePhysicsOfObject(obj: THREE.Mesh, body: JoltTypes.Body) {
-  const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
   const id = body.GetID();
   bodyInterface.RemoveBody(id);
   if (obj.userData.debugMesh) obj.userData.debugMesh.visible = false;
@@ -494,7 +527,6 @@ export function resumePhysicsOfObject(
   body: JoltTypes.Body,
   vel: THREE.Vector3 = new THREE.Vector3(),
 ) {
-  const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
   const id = body.GetID();
   bodyInterface.AddBody(body.GetID(), Jolt.EActivation_DontActivate);
 
@@ -530,7 +562,6 @@ export function resumePhysicsOfObject(
 }
 
 export function addVelocityToObject(obj: THREE.Mesh, vel: THREE.Vector3) {
-  const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
   const id = obj.userData.body.GetID();
   const current = bodyInterface.GetLinearVelocity(id);
 
@@ -609,6 +640,19 @@ export function updatePhysics(delta: number) {
     accumulator -= FIXED_DELTA;
   }
 
+  for (const impact of impacts) {
+    let i = 0;
+    if (impact.speed > 10) i = 1;
+    playHitSound(
+      impact.x,
+      impact.y,
+      impact.z,
+      Math.min(5, impact.speed / 10),
+      i,
+    );
+  }
+  impacts.length = 0;
+
   updatePlayerCrouchAnimation(delta);
   lerpPhysics(accumulator / FIXED_DELTA);
 }
@@ -635,8 +679,6 @@ function updatePrevPos(
 
 function doPhysicsStep(delta: number) {
   joltInterface.Step(delta, Math.ceil(delta * 60));
-
-  const bodyInterface = joltInterface.GetPhysicsSystem().GetBodyInterface();
 
   for (const obj of dynamicObjects) {
     if (!obj.parent) continue;
