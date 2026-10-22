@@ -288,7 +288,7 @@ export async function initPhysics(scene: THREE.Scene): Promise<void> {
 
       const speed = Math.hypot(x1 - x2, y1 - y2, z1 - z2);
 
-      if (speed > 1.5) {
+      if (speed > 0) {
         const manifold = Jolt.wrapPointer(inManifold, Jolt.ContactManifold);
         const point = manifold.GetWorldSpaceContactPointOn1(0);
         impacts.push({

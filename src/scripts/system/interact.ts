@@ -231,6 +231,7 @@ export function interactPlayer(
             () => {
               const note = el.querySelector("textarea")!;
               enableNoteEl(note, el.querySelector("p")!);
+              note.click();
               note.focus();
             },
             {

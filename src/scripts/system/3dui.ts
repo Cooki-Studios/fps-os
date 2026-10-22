@@ -4,10 +4,16 @@ import {
   CSS3DRenderer,
 } from "three/examples/jsm/renderers/CSS3DRenderer.js";
 
-const SCALE = 0.001625;
+const SCALE = 0.001625,
+  windowWidth = window.visualViewport
+    ? window.visualViewport.width
+    : window.innerWidth,
+  windowHeight = window.visualViewport
+    ? window.visualViewport.height
+    : window.innerHeight;
 
 const cssRenderer = new CSS3DRenderer();
-cssRenderer.setSize(window.innerWidth, window.innerHeight);
+cssRenderer.setSize(windowWidth, windowHeight);
 
 const div = cssRenderer.domElement;
 div.style.position = "absolute";
@@ -16,7 +22,7 @@ div.style.pointerEvents = "none";
 document.body.appendChild(div);
 
 const overlayCssRenderer = new CSS3DRenderer();
-overlayCssRenderer.setSize(window.innerWidth, window.innerHeight);
+overlayCssRenderer.setSize(windowWidth, windowHeight);
 
 const overlayDiv = overlayCssRenderer.domElement;
 overlayDiv.style.position = "absolute";
