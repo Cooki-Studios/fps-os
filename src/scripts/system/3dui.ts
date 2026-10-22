@@ -78,6 +78,7 @@ export function createUI(
     polygonOffset: true,
     polygonOffsetFactor: -2,
     polygonOffsetUnits: -2,
+    side: THREE.DoubleSide,
   });
   if (isScreen) {
     shadowMaterial.metalness = 0.65;

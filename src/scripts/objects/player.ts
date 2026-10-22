@@ -265,7 +265,7 @@ function getPlayerVel() {
     playerData.velPosX,
     playerData.velPosY,
     playerData.velPosZ,
-  );
+  ).multiplyScalar(0.1);
 }
 
 export function resetPlayer() {

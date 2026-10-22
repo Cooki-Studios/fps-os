@@ -41,6 +41,7 @@ export const GRABBABLES = [
   "Armchair",
   "Rug",
   "PapersPlease",
+  "Door",
 ];
 export const ATTACHED_OBJS: Record<string, string[]> = {
   D_Cube_007: ["Cube_013", "Cube_014"], // Bed
@@ -48,18 +49,21 @@ export const ATTACHED_OBJS: Record<string, string[]> = {
   D_Cube_003: ["Cube_002", "Cube_003", "Cube_004", "Cube_005"], // Desk
   D_Cube_002: ["Cube_009"], // Papers
   D_Light: ["Sphere", "N_Cylinder_001"], // MainLight
+  D_Cylinder: ["Cylinder_001"], // Bin
 };
+
+for (let i = 3; i < 34; i++) {
+  ATTACHED_OBJS["D_Cylinder"].push(
+    "Cylinder_0" + i.toString().padStart(2, "0"),
+  );
+}
+
 export const MASSES: Record<string, number> = {
-  default: 10,
-  Shelf: 20,
-  Bin: 5,
-  Clock: 2,
-  Note: 1,
-  Screen: 1,
-  Bed: 40,
-  Armchair: 20,
-  Desktop: 20,
-  Light: 1,
+  default: 1,
+  Shelf: 2,
+  Bed: 4,
+  Armchair: 2,
+  Desktop: 2,
 };
 
 export async function setupMesh(

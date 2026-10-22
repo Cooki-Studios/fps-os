@@ -413,7 +413,7 @@ export async function addPhysicsToObject(
       bodySettings.mOverrideMassProperties =
         Jolt.EOverrideMassProperties_CalculateInertia;
       bodySettings.mMassPropertiesOverride.mMass =
-        MASSES[obj.parent.name] ?? MASSES["default"];
+        MASSES[obj.parent.name.split("_")[0]] ?? MASSES["default"];
       obj.userData.dynamic = true;
     }
 

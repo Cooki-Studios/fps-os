@@ -156,6 +156,13 @@ export function interactPlayer(
 ) {
   interactReleased = released;
 
+  if (click && released && grabObj) {
+    resetGrab();
+    clickedEl?.classList.remove("active");
+    clickedEl = undefined;
+    return;
+  }
+
   const intersect = getObject(camera, scene, x, y);
   if (!intersect) {
     cross.classList.remove("active");
@@ -408,11 +415,9 @@ export function contextPlayer(
       const button2 = document.createElement("button");
       button2.textContent = "Reset rotation";
       button2.onclick = () => {
-        obj.lookAt(getPlayerPosition().add(camera.position));
-        if (!["Note", "Screen"].includes(obj.name)) {
-          obj.rotateY(-Math.PI / 2);
-          obj.rotateX(-Math.PI / 2);
-        }
+        if (["Note", "Screen"].includes(obj.name))
+          obj.lookAt(getPlayerPosition().add(camera.position));
+        else obj.rotation.set(-Math.PI / 2, 0, -Math.PI / 2);
       };
       menuButtons.appendChild(button2);
     }
