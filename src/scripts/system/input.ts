@@ -258,19 +258,25 @@ export function getJoystickY(): number {
 
 const jump = document.getElementById("jump") as HTMLDivElement;
 jump.onpointerdown = () => {
+  document.dispatchEvent(pressEvents["jump"]);
   keys[actions["jump"]] = true;
+  jump.classList.add("pressed");
 };
 jump.onpointerup = () => {
+  document.dispatchEvent(releaseEvents["jump"]);
   delete keys[actions["jump"]];
+  jump.classList.remove("pressed");
 };
 
 const crouch = document.getElementById("crouch") as HTMLDivElement;
 crouch.onclick = () => {
   if (keys[actions["crouch"]]) {
-    crouch.classList.remove("pressed");
+    document.dispatchEvent(pressEvents["crouch"]);
     delete keys[actions["crouch"]];
+    crouch.classList.remove("pressed");
   } else {
-    crouch.classList.add("pressed");
+    document.dispatchEvent(releaseEvents["crouch"]);
     keys[actions["crouch"]] = true;
+    crouch.classList.add("pressed");
   }
 };

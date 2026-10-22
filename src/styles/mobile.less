@@ -61,6 +61,7 @@ body.mobile {
             top: 0;
             left: 0;
             background-color: rgba(15, 15, 15, 0.5);
+            backdrop-filter: blur(4px);
             width: 10vmax;
             aspect-ratio: 1 / 1;
             border-radius: 15vmax;
@@ -95,7 +96,6 @@ body.mobile {
     position: absolute;
     z-index: 2;
 
-    &:active,
     &.pressed {
         opacity: 0.5;
     }
@@ -104,10 +104,13 @@ body.mobile {
 #jump {
     width: 10vmax;
     aspect-ratio: 1;
-    background: url("/textures/jump.svg") 50% center no-repeat;
+    background: url("/textures/jump.svg") 50% center / contain no-repeat;
     right: 7em;
     bottom: 3em;
     padding: 1em;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    border-radius: 100%;
 }
 
 #crouch {
@@ -118,4 +121,7 @@ body.mobile {
     bottom: 10em;
     padding: 1em;
     transform: scaleY(-1);
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    border-radius: 100%;
 }
