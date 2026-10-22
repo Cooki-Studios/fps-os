@@ -89,41 +89,6 @@ function resetGrab() {
   }
 }
 
-let holdDistance = 0,
-  grabDistance = 0,
-  grabRadius = 0;
-const holdDirection = new THREE.Vector3(),
-  grabOrigin = new THREE.Vector3(),
-  grabDirection = new THREE.Vector3(),
-  grabRaycaster = new THREE.Raycaster();
-
-export function updateHoldDistance(
-  camera: THREE.PerspectiveCamera,
-  scene: THREE.Scene,
-) {
-  if (!grabObj) return;
-
-  camera.getWorldPosition(grabOrigin);
-  grabDirection.copy(holdDirection).transformDirection(camera.matrixWorld);
-  grabRaycaster.set(grabOrigin, grabDirection);
-  grabRaycaster.far = holdDistance + grabRadius;
-
-  const hit = grabRaycaster
-    .intersectObject(scene, true)
-    .find(
-      (i) =>
-        i.object instanceof THREE.Mesh &&
-        !grabObj?.getObjectById(i.object.id) &&
-        !["Note", "Screen", "shadow"].includes(i.object.name),
-    );
-
-  const target = hit
-    ? Math.max(0, hit.distance - grabRadius - 0.02)
-    : holdDistance;
-  grabDistance = target;
-  grabObj.position.copy(holdDirection).multiplyScalar(grabDistance);
-}
-
 let interactReleased = true;
 export function getInteractReleased() {
   return interactReleased;
@@ -291,13 +256,7 @@ export function interactPlayer(
               obj.userData.attach = undefined;
 
             pickupObject(obj);
-            holdDistance = obj.position.length();
-            grabDistance = holdDistance;
-            holdDirection.copy(obj.position).normalize();
             grabObj = obj;
-            grabRadius = new THREE.Box3()
-              .setFromObject(grabObj)
-              .getBoundingSphere(new THREE.Sphere()).radius;
           }, 200);
         }
 
