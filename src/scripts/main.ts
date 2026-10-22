@@ -90,9 +90,9 @@ async function addPhysicsToObjects() {
       .map((name) => meshes.find((mesh) => mesh.name === name))
       .filter((mesh): mesh is THREE.Mesh => !!mesh);
 
-    if (mesh.name.startsWith("D_")) {
+    if (mesh.name.startsWith("D_"))
       addPhysicsToObject(mesh, true, true, false, attachments);
-    } else addPhysicsToObject(mesh, false, true, false, attachments);
+    else addPhysicsToObject(mesh, false, true, false, attachments);
 
     setTimeout(() => {
       if (

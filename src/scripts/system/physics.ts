@@ -292,6 +292,11 @@ function makeHull(mesh: THREE.Mesh, scale: THREE.Vector3): JoltTypes.Shape {
   return shape;
 }
 
+let doorCoverBody: JoltTypes.Body;
+export function getDoorCoverBody() {
+  return doorCoverBody;
+}
+
 export async function addPhysicsToObject(
   obj: THREE.Mesh,
   dynamic = false,
@@ -422,13 +427,16 @@ export async function addPhysicsToObject(
     Jolt.destroy(bodySettings);
 
     obj.userData.body = body;
-    dynamicObjects.add(obj);
+
+    if (obj.name == "Base_001") doorCoverBody = body;
+
+    if (dynamic) dynamicObjects.add(obj);
   }
 
   Jolt.destroy(pos);
   Jolt.destroy(rot);
 
-  if (showDebug) {
+  if (showDebug && dynamic) {
     const mat = (
       Array.isArray(obj.material) ? obj.material[0] : obj.material
     ) as THREE.MeshBasicMaterial;

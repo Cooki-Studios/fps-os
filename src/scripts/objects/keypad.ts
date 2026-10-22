@@ -8,7 +8,12 @@ import {
   resetPlayer,
   setCutscene,
 } from "./player";
-import { respawnPlayer, setPlayerCollision } from "../system/physics";
+import {
+  getDoorCoverBody,
+  removePhysicsFromObject,
+  respawnPlayer,
+  setPlayerCollision,
+} from "../system/physics";
 import { playAnimation, stopAnimation } from "../system/animation";
 import { isMobile } from "../util/mobile";
 import { setupContextMenu } from "../system/interact";
@@ -41,7 +46,18 @@ export function setKeyLight(mesh: THREE.Mesh) {
   keyLightMat.emissiveIntensity = 0;
 }
 
-export function deleteDoor() {
+export function getDoorBase() {
+  return door.children[0];
+}
+export function getDoorCover(scene: THREE.Scene) {
+  return scene.getObjectByName("Door_001")!;
+}
+
+export function deleteDoor(scene: THREE.Scene) {
+  const cover = getDoorCover(scene);
+  removePhysicsFromObject(cover as THREE.Mesh, getDoorCoverBody());
+  cover.parent?.remove(cover);
+
   door.parent?.remove(door);
 }
 

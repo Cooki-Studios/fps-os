@@ -17,7 +17,7 @@ import {
   stopAnimation,
 } from "./animation";
 import { setLightLevel } from "./lighting";
-import { deleteDoor, lock } from "../objects/keypad";
+import { deleteDoor, getDoorBase, lock } from "../objects/keypad";
 import { deleteBed, sleep } from "../objects/bed";
 import { setWallpaper, toggleWallpaper } from "../objects/wallpaper";
 import { deleteClock } from "../objects/clock";
@@ -55,10 +55,13 @@ function getObject(
   );
   if (!intersect || !intersect.object.parent) return;
 
+  let obj = intersect.object.parent;
+  if (obj.name == "Door_001") obj = getDoorBase();
+
   return {
     obj: ["Note", "Screen"].includes(intersect.object.name)
       ? intersect.object
-      : intersect.object.parent,
+      : obj,
     i: intersect,
   };
 }
@@ -262,6 +265,8 @@ export function interactPlayer(
             if (!obj.userData.grabbed && ["Note", "Screen"].includes(obj.name))
               obj.userData.attach = undefined;
 
+            if (!obj.userData.grabbed && obj.name == "Door") enableDoor();
+
             pickupObject(obj);
             grabObj = obj;
           }, 200);
@@ -448,7 +453,7 @@ export function contextPlayer(
     if (name == "Light") disableLight();
     else if (name == "Bed") deleteBed();
     else if (name == "Clock") deleteClock();
-    else if (name == "Door") deleteDoor();
+    else if (name == "Door") deleteDoor(scene);
 
     obj.parent?.remove(obj);
   };
