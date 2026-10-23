@@ -8,6 +8,10 @@ import {
   isAudioPlaying,
   playAudio,
 } from "../system/audio";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
+
+import readmeContent from "../../../README.md?raw";
 
 let monitor: THREE.Object3D;
 
@@ -33,7 +37,11 @@ const spinner = screen.querySelector(".spinner") as HTMLDivElement;
 
 const screens: HTMLDivElement[] = [],
   screenMeshes: THREE.Mesh[] = [],
-  iframes: HTMLIFrameElement[] = [];
+  readme = document.createElement("p");
+
+readme.innerHTML = DOMPurify.sanitize(
+  await marked.parse(readmeContent, { breaks: true, gfm: true }),
+);
 
 async function loadPage(domain: string, parent: HTMLElement) {
   spinnerBox.style.display = "block";
@@ -51,10 +59,12 @@ async function loadPage(domain: string, parent: HTMLElement) {
   const iframeDiv = parent.querySelector(".iframeDiv");
   if (!iframeDiv) return;
 
+  if (iframeDiv.contains(readme))
+    iframeDiv.childNodes.forEach((child) => iframeDiv.removeChild(child));
+
   if (iframeDiv.children.length == 0) {
     const iframe = document.createElement("iframe");
     iframe.src = domain;
-    iframes.push(iframe);
     iframeDiv.appendChild(iframe);
 
     iframe.onload = () => {
@@ -67,6 +77,27 @@ async function loadPage(domain: string, parent: HTMLElement) {
     const iframe = iframeDiv.querySelector("iframe");
     if (iframe) iframe.src = domain;
   }
+}
+
+async function loadReadMe(parent: HTMLElement) {
+  spinnerBox.style.display = "block";
+  spinner.style.animation =
+    "spin 1s linear infinite, resize 2s ease-in infinite";
+
+  const iframeDiv = parent.querySelector(".iframeDiv") as HTMLDivElement;
+  if (!iframeDiv) return;
+
+  if (!iframeDiv.contains(readme)) {
+    iframeDiv.childNodes.forEach((child) => iframeDiv.removeChild(child));
+    iframeDiv.appendChild(readme);
+  }
+
+  readme.onload = () => {
+    spinnerBox.style.display = "none";
+    spinner.style.animation = "";
+  };
+
+  readme.onerror = () => iframeError();
 }
 
 const iframeDiv = document.createElement("div");
@@ -113,10 +144,12 @@ function initMonitor(scene: THREE.Scene) {
     tundra: "annaxiomm.github.io/tundra",
     google: "google.com",
     threejs: "threejs.org",
+    readme: "",
   };
   for (const button of osButtons) {
     button.onclick = () => {
-      loadPage(oses[button.id], monitorScreen);
+      if (button.id == "readme") loadReadMe(monitorScreen);
+      else loadPage(oses[button.id], monitorScreen);
     };
   }
 
@@ -124,6 +157,23 @@ function initMonitor(scene: THREE.Scene) {
   screenMeshes.push(mesh);
 
   mesh.visible = false;
+
+  const iframeDiv = monitorScreen.querySelector(".iframeDiv") as HTMLDivElement;
+  iframeDiv.onwheel = (e) => {
+    iframeDiv.scrollTop += e.deltaY;
+  };
+  iframeDiv.onpointermove = (e) => {
+    if (e.buttons == 1) iframeDiv.scrollTop -= e.movementY;
+  };
+
+  iframeDiv.onpointerdown = () => {
+    const p = iframeDiv.querySelector("p");
+    if (p) p.style.cursor = "grabbing";
+  };
+  iframeDiv.onpointerup = () => {
+    const p = iframeDiv.querySelector("p");
+    if (p) p.style.cursor = "grab";
+  };
 }
 
 export function getPCScreens() {

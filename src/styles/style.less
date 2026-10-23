@@ -205,6 +205,13 @@ body {
                     background-image: url("https://threejs.org/files/favicon.ico");
                 }
 
+                &#readme {
+                    padding: 1px 4px 0 4px;
+                    font-weight: bold;
+                    font-size: 1.25em;
+                    line-height: 1em;
+                }
+
                 &:hover {
                     opacity: 0.9;
                 }
@@ -269,6 +276,20 @@ body {
             width: 100%;
             height: 100%;
             border: 0;
+        }
+
+        .iframeDiv {
+            overflow-y: scroll;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            overflow: -moz-scrollbars-none;
+            &::-webkit-scrollbar {
+                display: none;
+            }
+
+            > p {
+                cursor: grab;
+            }
         }
     }
 
