@@ -1,14 +1,9 @@
-import { bootLog, createTitleScene } from "./boot";
+import { bootLog } from "./boot";
 
 import * as THREE from "three";
 import { USDLoader } from "three/examples/jsm/loaders/USDLoader.js";
 import { initLighting } from "./system/lighting";
-import {
-  compileRenderer,
-  enableRenderer,
-  initRenderer,
-  setupSky,
-} from "./system/renderer";
+import { compileRenderer, initRenderer, setupSky } from "./system/renderer";
 import {
   addPhysicsToObject,
   initPhysics,
@@ -18,15 +13,12 @@ import {
 import { initInput, isInputEnabled, onActionPressed } from "./system/input";
 import { getPlayerMesh, initPlayer } from "./objects/player";
 import { setMainCam, setMainScene } from "./util/scene";
-import { createKeypad } from "./objects/keypad";
 import { setupAnimation } from "./system/animation";
 import { initWallpaper } from "./objects/wallpaper";
 import { setupMainLight } from "./objects/mainLight";
 import "./system/audio";
-import { addAudioToObject, enableAudioEl, initAudio } from "./system/audio";
-import { pause } from "./system/pause";
+import { addAudioToObject, initAudio } from "./system/audio";
 import { ATTACHED_OBJS, setupMesh } from "./objects/mesh";
-import { initShaders } from "./system/shaders";
 import { setupClock } from "./objects/clock";
 import { scrollPlayer } from "./system/interact";
 
@@ -109,7 +101,7 @@ async function addPhysicsToObjects() {
   }
 
   bootLog("Initialising player...");
-  initPlayer(scene, camera);
+  initPlayer(scene, camera, canvas, renderer);
   addPhysicsToObject(getPlayerMesh(), true, true, true);
 }
 
@@ -118,8 +110,6 @@ const manager = new THREE.LoadingManager();
 
 const loader = new USDLoader(manager),
   meshes: THREE.Mesh[] = [];
-
-const spinner = document.getElementById("spinner") as HTMLDivElement;
 
 loader.loadAsync("room.usdc").then(async (room) => {
   bootLog(`Preparing meshes...`);
@@ -157,29 +147,6 @@ loader.loadAsync("room.usdc").then(async (room) => {
     compileRenderer(scene, camera);
 
     bootLog("Scene loaded");
-
-    if (sessionStorage.getItem("booted")) {
-      createKeypad(camera, canvas);
-      initShaders(renderer, scene, camera);
-      enableRenderer(scene, camera);
-      enableAudioEl();
-      (
-        document.querySelector("canvas[data-engine]") as HTMLCanvasElement
-      ).style.pointerEvents = "auto";
-      return;
-    }
-
-    pause(250);
-
-    const { titleScene, titleCamera, titleTitle } = await createTitleScene();
-
-    setTimeout(() => {
-      spinner.style.animation =
-        "spin 1s linear infinite, resize 2s ease-in infinite";
-      spinner.style.opacity = "1";
-    }, 200);
-
-    enableRenderer(titleScene, titleCamera, titleTitle);
   });
 });
 

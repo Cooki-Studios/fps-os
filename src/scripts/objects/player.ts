@@ -280,6 +280,8 @@ export function resetPlayer() {
 export async function initPlayer(
   scene: THREE.Scene,
   sceneCam: THREE.PerspectiveCamera,
+  canvas: HTMLCanvasElement,
+  renderer: THREE.WebGLRenderer,
 ) {
   camera = sceneCam;
 
@@ -464,7 +466,7 @@ export async function initPlayer(
   });
 
   bootLog("Player initialised");
-  hideBootLog();
+  hideBootLog(camera, canvas, renderer, scene);
 }
 
 export function pickupObject(obj: THREE.Object3D) {

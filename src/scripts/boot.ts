@@ -6,12 +6,41 @@ let blink: number | undefined;
 
 let queue: Promise<void> = Promise.resolve();
 
-const fade = document.getElementById("fade-overlay") as HTMLDivElement;
+const fade = document.getElementById("fade-overlay") as HTMLDivElement,
+  spinner = document.getElementById("spinner") as HTMLDivElement;
 
-export async function hideBootLog() {
+export async function hideBootLog(
+  camera: THREE.PerspectiveCamera,
+  canvas: HTMLCanvasElement,
+  renderer: THREE.WebGLRenderer,
+  scene: THREE.Scene,
+) {
   bootLog("Loading complete");
   log.style.opacity = "0";
   fade.style.opacity = "0";
+
+  if (sessionStorage.getItem("booted")) {
+    createKeypad(camera, canvas);
+    initShaders(renderer, scene, camera);
+    enableRenderer(scene, camera);
+    enableAudioEl();
+    (
+      document.querySelector("canvas[data-engine]") as HTMLCanvasElement
+    ).style.pointerEvents = "auto";
+    return;
+  }
+
+  pause(250);
+
+  const { titleScene, titleCamera, titleTitle } = await createTitleScene();
+
+  setTimeout(() => {
+    spinner.style.animation =
+      "spin 1s linear infinite, resize 2s ease-in infinite";
+    spinner.style.opacity = "1";
+  }, 200);
+
+  enableRenderer(titleScene, titleCamera, titleTitle);
 }
 
 export function bootLog(msg: string, showTime = true, error = false) {
@@ -70,6 +99,10 @@ import { lerp } from "three/src/math/MathUtils.js";
 import { isMobile, isPortrait, onMobileRotate } from "./util/mobile";
 import { font } from "./util/fonts";
 import { pause } from "./system/pause";
+import { enableRenderer } from "./system/renderer";
+import { createKeypad } from "./objects/keypad";
+import { enableAudioEl } from "./system/audio";
+import { initShaders } from "./system/shaders";
 
 const TITLE_DEPTH = 5,
   MOBILE_TITLE_SCALE_PORTRAIT = 0.75;
