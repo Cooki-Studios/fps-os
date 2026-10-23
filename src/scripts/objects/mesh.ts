@@ -41,7 +41,6 @@ export const GRABBABLES = [
   "Armchair",
   "Rug",
   "PapersPlease",
-  "Door",
 ];
 export const ATTACHED_OBJS: Record<string, string[]> = {
   D_Cube_007: ["Cube_013", "Cube_014"], // Bed
