@@ -101,8 +101,8 @@ export function updateQuality() {
   switch (quality) {
     case 2:
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1));
+      renderer.toneMapping = THREE.NoToneMapping;
       renderer.shadowMap.enabled = true;
-      initShaders(renderer, scene, camera);
       break;
     case 1:
       renderer.setPixelRatio(Math.min(window.devicePixelRatio * 0.9, 1));
