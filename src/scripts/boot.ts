@@ -12,7 +12,6 @@ const fade = document.getElementById("fade-overlay") as HTMLDivElement,
 export async function hideBootLog(
   camera: THREE.PerspectiveCamera,
   canvas: HTMLCanvasElement,
-  renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
 ) {
   bootLog("Loading complete");
@@ -21,8 +20,8 @@ export async function hideBootLog(
 
   if (sessionStorage.getItem("booted")) {
     createKeypad(camera, canvas);
-    initShaders(renderer, scene, camera);
     enableRenderer(scene, camera);
+    updateQuality();
     enableAudioEl();
     (
       document.querySelector("canvas[data-engine]") as HTMLCanvasElement
@@ -99,10 +98,9 @@ import { lerp } from "three/src/math/MathUtils.js";
 import { isMobile, isPortrait, onMobileRotate } from "./util/mobile";
 import { font } from "./util/fonts";
 import { pause } from "./system/pause";
-import { enableRenderer } from "./system/renderer";
+import { enableRenderer, updateQuality } from "./system/renderer";
 import { createKeypad } from "./objects/keypad";
 import { enableAudioEl } from "./system/audio";
-import { initShaders } from "./system/shaders";
 
 const TITLE_DEPTH = 5,
   MOBILE_TITLE_SCALE_PORTRAIT = 0.75;

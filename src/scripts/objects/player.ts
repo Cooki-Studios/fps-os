@@ -178,7 +178,7 @@ export function enablePlayerControl(
         }
         if (warnEl) {
           warnEl.style.opacity = "0";
-          warnEl.textContent = "Press ESC to exit PC";
+          warnEl.textContent = `Press ESC to exit WINDOW`;
         }
       }
     };
@@ -281,7 +281,6 @@ export async function initPlayer(
   scene: THREE.Scene,
   sceneCam: THREE.PerspectiveCamera,
   canvas: HTMLCanvasElement,
-  renderer: THREE.WebGLRenderer,
 ) {
   camera = sceneCam;
 
@@ -466,7 +465,7 @@ export async function initPlayer(
   });
 
   bootLog("Player initialised");
-  hideBootLog(camera, canvas, renderer, scene);
+  hideBootLog(camera, canvas, scene);
 }
 
 export function pickupObject(obj: THREE.Object3D) {

@@ -4,29 +4,42 @@ import { CSMHelper } from "three/addons/csm/CSMHelper.js";
 import { bootLog } from "../boot";
 import { isMobile } from "../util/mobile";
 import { setSkyLightLevel, setSkyOffset } from "./renderer";
+import { setMainLightMap } from "../objects/mainLight";
 
 let csm: CSM | undefined,
   csmHelper: CSMHelper | undefined,
   ambientLight: THREE.AmbientLight,
   hemisphereLight: THREE.HemisphereLight;
 
-export function initLighting(
-  scene: THREE.Scene,
-  camera: THREE.PerspectiveCamera,
-  debug = false,
-) {
+const baseMapSize = isMobile ? 512 : 2048;
+
+export function initLighting(scene: THREE.Scene) {
   ambientLight = new THREE.AmbientLight(0xffffff, 0.25);
   scene.add(ambientLight);
 
   hemisphereLight = new THREE.HemisphereLight(0x87ceeb, 0xffa500, 0.25);
   scene.add(hemisphereLight);
 
+  bootLog("Lighting initialised");
+}
+
+function createCSM(
+  scene: THREE.Scene,
+  camera: THREE.PerspectiveCamera,
+  debug = false,
+  dir?: THREE.Vector3,
+  quality?: number,
+) {
+  if (quality == 0) return;
+
+  const mapSize = quality ? baseMapSize * (quality / 2) : baseMapSize;
+
   csm = new CSM({
     maxFar: 50,
     mode: "practical",
     parent: scene,
-    shadowMapSize: isMobile ? 512 : 2048,
-    lightDirection: new THREE.Vector3(-1, -1, -1).normalize(),
+    shadowMapSize: mapSize,
+    lightDirection: dir || new THREE.Vector3(-1, -1, -1).normalize(),
     lightIntensity: 2,
     camera: camera,
   });
@@ -42,7 +55,30 @@ export function initLighting(
     scene.add(csmHelper);
   }
 
-  bootLog("Lighting initialised");
+  setMainLightMap(mapSize);
+}
+
+export function changeCSMQuality(
+  scene: THREE.Scene,
+  camera: THREE.PerspectiveCamera,
+  quality: number,
+) {
+  const dir = csm?.lightDirection.clone();
+  if (csm) {
+    csm.lights.forEach((l) => l.shadow.map?.dispose());
+    csm.remove();
+    csm.dispose();
+    csm = undefined;
+  }
+  if (csmHelper) {
+    csmHelper.dispose();
+    csmHelper = undefined;
+  }
+
+  if (quality == 0) ambientLight.intensity = 1;
+  else ambientLight.intensity = 0.25;
+
+  createCSM(scene, camera, undefined, dir, quality);
 }
 
 export function setLightLevel(intensity = 1) {

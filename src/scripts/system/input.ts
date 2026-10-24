@@ -110,7 +110,6 @@ export function initInput() {
     }
 
     if (!enabled && !globalKeys.has(key)) return;
-    e.preventDefault();
 
     if (!keys[key])
       for (const action of keyActions[key] ?? [])
@@ -123,7 +122,6 @@ export function initInput() {
     const key = e.key.toLowerCase();
 
     if (!enabled && !globalKeys.has(key)) return;
-    e.preventDefault();
 
     delete keys[key];
     for (const action of keyActions[key] ?? [])
@@ -161,8 +159,12 @@ export function getInputAxis(
   );
 }
 
-export function onActionPressed(action: Action, callback: (e: Event) => void) {
-  document.addEventListener(`${action}:pressed`, callback);
+export function onActionPressed(
+  action: Action,
+  callback: (e: Event) => void,
+  once = false,
+) {
+  document.addEventListener(`${action}:pressed`, callback, { once: once });
   return () => document.removeEventListener(`${action}:pressed`, callback);
 }
 

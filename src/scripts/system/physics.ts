@@ -411,7 +411,7 @@ export async function addPhysicsToObject(
     const settings = new Jolt.CharacterVirtualSettings();
     settings.mShape = shape;
     settings.mMass = 1;
-    settings.mMaxStrength = 100;
+    settings.mMaxStrength = 10;
     settings.set_mMaxSlopeAngle((45 * Math.PI) / 180);
     settings.mCharacterPadding = 0.02;
     settings.mPenetrationRecoverySpeed = 1.0;

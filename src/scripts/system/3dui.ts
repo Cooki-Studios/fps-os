@@ -185,3 +185,12 @@ export function updateUIPosRot() {
     updateUI.userData.ui.quaternion.copy(uiRot);
   }
 }
+
+const warnEl = document.getElementById("literal-pc-info") as HTMLHeadingElement;
+export function showWarnEl(name: string) {
+  warnEl.textContent = `Press ESC to exit ${name}`;
+  warnEl.style.opacity = "1";
+}
+export function resetWarnEl() {
+  warnEl.textContent = "Click to play";
+}

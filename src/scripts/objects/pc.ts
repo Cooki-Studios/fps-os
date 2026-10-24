@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { createUI } from "../system/3dui";
+import { createUI, resetWarnEl, showWarnEl } from "../system/3dui";
 import { disablePlayerControl, enablePlayerControl } from "./player";
 import { onActionPressed } from "../system/input";
 import {
@@ -114,6 +114,8 @@ function iframeError() {
 
 function initMonitor(scene: THREE.Scene) {
   const monitorScreen = screen.cloneNode(true) as HTMLDivElement;
+  monitorScreen.classList.add("instance");
+
   const { mesh } = createUI(
     scene,
     monitorScreen,
@@ -185,8 +187,6 @@ export function isInPC() {
   return inPC;
 }
 
-const warnEl = document.getElementById("literal-pc-info") as HTMLHeadingElement;
-
 export function enablePC(
   canvas: HTMLCanvasElement,
   scene: THREE.Scene,
@@ -216,7 +216,7 @@ export function enablePC(
     screens[id + 1].style.opacity = "1";
   }
 
-  warnEl.style.opacity = "1";
+  showWarnEl("PC");
   disablePlayerControl(canvas);
   canvas.style.pointerEvents = "none";
   enableAudioEl(false);
@@ -227,11 +227,15 @@ export function enablePC(
     url = screens[id].querySelector(".url") as HTMLInputElement;
   setTimeout(() => url?.focus());
 
-  onActionPressed("exitPC", () => {
-    inPC = false;
-    enableAudioEl();
-    enablePlayerControl(canvas, scene);
-    canvas.style.pointerEvents = "auto";
-    warnEl.textContent = "Click to play";
-  });
+  onActionPressed(
+    "exitPC",
+    () => {
+      inPC = false;
+      enableAudioEl();
+      enablePlayerControl(canvas, scene);
+      canvas.style.pointerEvents = "auto";
+      resetWarnEl();
+    },
+    true,
+  );
 }

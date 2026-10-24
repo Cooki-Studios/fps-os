@@ -3,7 +3,8 @@ import * as THREE from "three";
 import { pause } from "./pause";
 
 const listener = new THREE.AudioListener();
-const audioEl = document.getElementById("audio") as HTMLDivElement;
+const audioEl = document.getElementById("audio") as HTMLDivElement,
+  qualityEl = document.getElementById("quality-label") as HTMLDivElement;
 let enabled = false;
 
 const loopedSounds = new Set<THREE.PositionalAudio>();
@@ -43,6 +44,7 @@ audioEl.onclick = (e) => {
 
 export function enableAudioEl(enable = true) {
   audioEl.style.visibility = enable ? "visible" : "hidden";
+  qualityEl.style.visibility = enable ? "visible" : "hidden";
 }
 
 export function initAudio(camera: THREE.Camera) {

@@ -57,7 +57,7 @@ setMainCam(camera);
 bootLog("Camera created");
 
 bootLog("Initialising lighting...");
-initLighting(scene, camera);
+initLighting(scene);
 bootLog("Initialising renderer...");
 const { canvas, renderer } = initRenderer();
 bootLog("Initialising sky...");
@@ -101,7 +101,7 @@ async function addPhysicsToObjects() {
   }
 
   bootLog("Initialising player...");
-  initPlayer(scene, camera, canvas, renderer);
+  initPlayer(scene, camera, canvas);
   addPhysicsToObject(getPlayerMesh(), true, true, true);
 }
 

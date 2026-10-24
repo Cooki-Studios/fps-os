@@ -20,6 +20,13 @@ body {
     }
 }
 
+button,
+input {
+    font-family:
+        Inter Semi-Bold,
+        sans-serif;
+}
+
 body {
     transition: opacity 500ms;
 
@@ -46,6 +53,29 @@ body {
 
         &.unmuted {
             background-image: url("/textures/unmuted.svg");
+        }
+    }
+
+    label:has(#quality) {
+        visibility: hidden;
+        position: absolute;
+        bottom: calc(15% - 2.1em);
+        left: calc(15% - 3em);
+        z-index: 2;
+
+        font-family:
+            Inter Semi-Bold,
+            sans-serif;
+        font-size: 1.5em;
+        font-weight: bold;
+
+        background-color: rgba(0, 0, 0, 0.65);
+        backdrop-filter: blur(4px);
+        border-radius: 16px;
+        padding: 1em;
+
+        #quality {
+            accent-color: #ffa500;
         }
     }
 
@@ -124,13 +154,16 @@ body {
     }
 
     .screen {
-        display: grid;
-        opacity: 0;
+        display: none;
         transition: opacity 500ms;
         background: black;
         position: absolute;
         top: 0;
         z-index: -1;
+
+        &.instance {
+            display: grid;
+        }
 
         #spinner-box {
             display: none;

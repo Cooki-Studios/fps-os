@@ -1,6 +1,11 @@
 import * as THREE from "three";
 import { updatePhysics } from "./physics";
-import { resizeCSM, updateCSM } from "./lighting";
+import {
+  changeCSMQuality,
+  resizeCSM,
+  setupShadowMaterial,
+  updateCSM,
+} from "./lighting";
 import { animateTitle, bootLog } from "../boot";
 import { getMainCam, getMainScene } from "../util/scene";
 import { createKeypad, updateKeypad } from "../objects/keypad";
@@ -78,6 +83,50 @@ export function resumeRenderer() {
   disabled = false;
 }
 
+const qualityEl = document.getElementById("quality") as HTMLInputElement;
+
+if (localStorage.getItem("quality"))
+  qualityEl.value = localStorage.getItem("quality") as string;
+
+let quality = Number(qualityEl.value);
+
+qualityEl.oninput = () => {
+  quality = Number(qualityEl.value);
+  localStorage.setItem("quality", qualityEl.value);
+
+  updateQuality();
+};
+
+export function updateQuality() {
+  switch (quality) {
+    case 2:
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1));
+      renderer.shadowMap.enabled = true;
+      initShaders(renderer, scene, camera);
+      break;
+    case 1:
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio * 0.9, 1));
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.shadowMap.enabled = true;
+      break;
+    default:
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio * 0.8, 1));
+      renderer.toneMapping = THREE.NoToneMapping;
+      renderer.shadowMap.enabled = false;
+      break;
+  }
+
+  changeCSMQuality(scene, camera, quality);
+
+  scene.traverse((mesh) => {
+    if (mesh instanceof THREE.Mesh && mesh.material) {
+      if (mesh.name == "shadow") return;
+      if (mesh.name != "D_Plane_002") setupShadowMaterial(mesh.material);
+      mesh.material.needsUpdate = true;
+    }
+  });
+}
+
 export async function enableRenderer(
   renderScene: THREE.Scene,
   renderCam: THREE.PerspectiveCamera,
@@ -85,6 +134,9 @@ export async function enableRenderer(
 ) {
   scene = renderScene;
   camera = renderCam;
+
+  initShaders(renderer, scene, camera);
+
   const canvas = document.querySelector(
     "canvas[data-engine]",
   ) as HTMLCanvasElement;
@@ -107,10 +159,12 @@ export async function enableRenderer(
             scene = getMainScene();
             camera = getMainCam();
             title = undefined;
+
+            updateQuality();
+            initShaders(renderer, scene, camera);
+
             resizeRenderer();
             resize3DUI();
-
-            initShaders(renderer, scene, camera);
 
             const logo = document.getElementById("logo");
             if (logo) logo.style.display = "none";
@@ -124,9 +178,13 @@ export async function enableRenderer(
           }, 500);
         }
 
-      renderer.render(scene, camera);
+      if (quality > 1) renderWithShaders();
+      else renderer.render(scene, camera);
     } else {
       if (disabled) return;
+
+      stats.begin();
+
       updateAnimation(delta);
       updateClock();
       updatePhysics(delta);
@@ -138,8 +196,9 @@ export async function enableRenderer(
       updateCSM(delta);
       updateLight();
 
-      stats.begin();
-      renderWithShaders();
+      if (quality > 1) renderWithShaders();
+      else renderer.render(scene, camera);
+
       stats.end();
     }
   }
@@ -182,10 +241,7 @@ export function initRenderer(): {
     alpha: false,
     stencil: false,
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1));
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.shadowMap.enabled = true;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
   const canvas = renderer.domElement;
   document.body.appendChild(canvas);

@@ -21,7 +21,7 @@ import { deleteDoor, getDoorBase, lock } from "../objects/keypad";
 import { deleteBed, sleep } from "../objects/bed";
 import { setWallpaper, toggleWallpaper } from "../objects/wallpaper";
 import { deleteClock } from "../objects/clock";
-import { playAudio } from "./audio";
+import { enableAudioEl, playAudio } from "./audio";
 import {
   disablePlayerControl,
   dropObject,
@@ -233,6 +233,7 @@ export function interactPlayer(
               enableNoteEl(note, el.querySelector("p")!);
               note.click();
               note.focus();
+              enableAudioEl(false);
             },
             {
               once: true,

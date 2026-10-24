@@ -17,13 +17,17 @@ import {
   NoToneMapping,
 } from "three";
 
-let composer: EffectComposer;
+let composer: EffectComposer,
+  shadersLoaded: Scene[] = [];
 
 export function initShaders(
   renderer: WebGLRenderer,
   scene: Scene,
   camera: Camera,
 ) {
+  if (shadersLoaded.includes(scene)) return;
+  shadersLoaded.push(scene);
+
   renderer.toneMapping = NoToneMapping;
 
   composer = new EffectComposer(renderer, {

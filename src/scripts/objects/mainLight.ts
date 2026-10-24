@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { isMobile } from "../util/mobile";
 import {
   playAnimation,
   playAnimationReversed,
@@ -33,7 +32,6 @@ export async function setupMainLight(
   parent.add(target);
   parent.remove(light);
 
-  spotLight.shadow.mapSize.setScalar(isMobile ? 512 : 2048);
   spotLight.shadow.radius = 2.5;
   spotLight.castShadow = true;
 
@@ -51,6 +49,14 @@ export async function setupMainLight(
   onActionPressed("debug", () => {
     lightHelper.visible = !lightHelper.visible;
   });
+}
+
+export function setMainLightMap(size: number) {
+  spotLight.shadow.mapSize.setScalar(size);
+  if (spotLight.shadow.map) {
+    spotLight.shadow.map.dispose();
+    spotLight.shadow.map = null;
+  }
 }
 
 export function updateLight() {

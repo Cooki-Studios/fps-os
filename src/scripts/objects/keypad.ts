@@ -166,7 +166,7 @@ function getMousePos(e: PointerEvent, canvas: HTMLCanvasElement) {
 }
 
 let autologin = false;
-if (import.meta.env.DEV) autologin = true;
+// if (import.meta.env.DEV) autologin = true;
 
 export function createKeypad(
   camera: THREE.PerspectiveCamera,
@@ -233,6 +233,7 @@ export function createKeypad(
     } else if (codeInput.length > 3) {
       playAudio(door.name, "door-wrong", 0, 0, 1, false);
       setTimeout(() => {
+        keyLightMat.emissive = new THREE.Color(1, 0, 0);
         keyLightMat.emissiveIntensity = 1;
       });
     }

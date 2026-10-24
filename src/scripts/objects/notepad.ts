@@ -1,8 +1,9 @@
 import * as THREE from "three";
-import { createUI } from "../system/3dui";
+import { createUI, resetWarnEl, showWarnEl } from "../system/3dui";
 import { enablePlayerControl } from "./player";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
+import { enableAudioEl } from "../system/audio";
 
 let stack: THREE.Object3D;
 const noteMeshes: THREE.Mesh[] = [];
@@ -39,6 +40,7 @@ export function enableNoteEl(
 ) {
   el.style.display = "block";
   mdEl.style.display = "none";
+  showWarnEl("Note");
 }
 
 export function initNote(scene: THREE.Scene, canvas: HTMLCanvasElement) {
@@ -59,8 +61,10 @@ export function initNote(scene: THREE.Scene, canvas: HTMLCanvasElement) {
 
   el.onblur = () => {
     updateMD(el, mdEl);
+    enableAudioEl();
     enablePlayerControl(canvas, scene);
     canvas.style.pointerEvents = "auto";
+    resetWarnEl();
   };
 
   el.onkeydown = (e) => {
