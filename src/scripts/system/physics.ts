@@ -62,6 +62,7 @@ const FIXED_DELTA = isMobile ? 1 / 15 : 1 / 30,
 let gravity: JoltTypes.Vec3,
   tempVec3: JoltTypes.Vec3,
   respawnPos: JoltTypes.RVec3,
+  respawnPosUp: JoltTypes.RVec3,
   playerRespawnPos: JoltTypes.RVec3,
   zeroVel: JoltTypes.Vec3,
   playerWasReset = false;
@@ -258,6 +259,7 @@ export async function initPhysics(scene: THREE.Scene): Promise<void> {
 
     gravity = physicsSystem.GetGravity();
     respawnPos = new Jolt.RVec3(0, 0, -8.5);
+    respawnPosUp = new Jolt.RVec3(0, 0.95, -8.5);
     playerRespawnPos = new Jolt.RVec3(0, 2, 0.3);
     zeroVel = new Jolt.Vec3(0, 0, 0);
     tempVec3 = new Jolt.Vec3(0, 0, 0);
@@ -276,25 +278,42 @@ export async function initPhysics(scene: THREE.Scene): Promise<void> {
       const body1 = Jolt.wrapPointer(inBody1, Jolt.Body);
       const body2 = Jolt.wrapPointer(inBody2, Jolt.Body);
 
-      const v1 = body1.GetLinearVelocity();
-      const x1 = v1.GetX(),
-        y1 = v1.GetY(),
-        z1 = v1.GetZ();
+      const manifold = Jolt.wrapPointer(inManifold, Jolt.ContactManifold);
+      const point = manifold.GetWorldSpaceContactPointOn1(0);
+      const x = point.GetX(),
+        y = point.GetY(),
+        z = point.GetZ();
 
-      const v2 = body2.GetLinearVelocity();
-      const x2 = v2.GetX(),
-        y2 = v2.GetY(),
-        z2 = v2.GetZ();
+      // v + ω × r
+      const pointVel = (body: JoltTypes.Body) => {
+        const v = body.GetLinearVelocity();
+        const w = body.GetAngularVelocity();
+        const c = body.GetCenterOfMassPosition();
+
+        const rx = x - c.GetX(),
+          ry = y - c.GetY(),
+          rz = z - c.GetZ();
+        const wx = w.GetX(),
+          wy = w.GetY(),
+          wz = w.GetZ();
+
+        return [
+          v.GetX() + (wy * rz - wz * ry),
+          v.GetY() + (wz * rx - wx * rz),
+          v.GetZ() + (wx * ry - wy * rx),
+        ];
+      };
+
+      const [x1, y1, z1] = pointVel(body1);
+      const [x2, y2, z2] = pointVel(body2);
 
       const speed = Math.hypot(x1 - x2, y1 - y2, z1 - z2);
 
       if (speed > 0) {
-        const manifold = Jolt.wrapPointer(inManifold, Jolt.ContactManifold);
-        const point = manifold.GetWorldSpaceContactPointOn1(0);
         impacts.push({
-          x: point.GetX(),
-          y: point.GetY(),
-          z: point.GetZ(),
+          x: x,
+          y: y,
+          z: z,
           speed,
         });
       }
@@ -691,7 +710,7 @@ function doPhysicsStep(delta: number) {
       const identity = new Jolt.Quat(-Math.SQRT1_2, 0, 0, Math.SQRT1_2);
       bodyInterface.SetPositionAndRotation(
         bodyId,
-        respawnPos,
+        obj.parent.name.startsWith("Poster") ? respawnPosUp : respawnPos,
         identity,
         Jolt.EActivation_Activate,
       );

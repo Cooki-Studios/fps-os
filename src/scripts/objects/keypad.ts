@@ -166,7 +166,7 @@ function getMousePos(e: PointerEvent, canvas: HTMLCanvasElement) {
 }
 
 let autologin = false;
-// if (import.meta.env.DEV) autologin = true;
+if (import.meta.env.DEV) autologin = true;
 
 export function createKeypad(
   camera: THREE.PerspectiveCamera,
