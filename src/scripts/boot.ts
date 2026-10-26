@@ -98,7 +98,7 @@ import { lerp } from "three/src/math/MathUtils.js";
 import { isMobile, isPortrait, onMobileRotate } from "./util/mobile";
 import { font } from "./util/fonts";
 import { pause } from "./system/pause";
-import { enableRenderer, updateQuality } from "./system/renderer";
+import { enableRenderer, getQuality, updateQuality } from "./system/renderer";
 import { createKeypad } from "./objects/keypad";
 import { enableAudioEl } from "./system/audio";
 
@@ -132,10 +132,13 @@ export async function createTitleScene(): Promise<{
   camera.rotation.order = "YXZ";
   camera.position.set(0, -0.5, 10);
 
-  const ambientLight = new THREE.AmbientLight(0xffa500, 0.75);
+  const ambientLight = new THREE.AmbientLight(
+    0xffa500,
+    getQuality() == 3 ? 0.75 : 1,
+  );
   scene.add(ambientLight);
 
-  light = new THREE.DirectionalLight(0xffffff, 3);
+  light = new THREE.DirectionalLight(0xffffff, getQuality() == 3 ? 3 : 5);
   light.position.set(0, -1.5, TITLE_DEPTH);
   scene.add(light);
 
@@ -173,7 +176,7 @@ export async function createTitleScene(): Promise<{
 
     const material = new THREE.MeshPhysicalMaterial({
       color: 0xffa500,
-      metalness: 0.65,
+      metalness: 0.4,
       roughness: 0.6,
     });
 
@@ -243,6 +246,8 @@ export function animateTitle(delta: number) {
               0,
               2 - Math.abs(highlight.position.x) * 0.2,
             );
+            if (getQuality() != 3) highlight.intensity *= 1.2;
+
             highlight.position.x += 10 * delta;
           }, 500);
         }

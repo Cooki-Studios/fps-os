@@ -104,6 +104,8 @@ qualityEl.oninput = () => {
 };
 
 export function updateQuality() {
+  if (quality > 2) initShaders(renderer, scene, camera);
+
   switch (quality) {
     case 3:
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1));
@@ -151,7 +153,7 @@ export async function enableRenderer(
   scene = renderScene;
   camera = renderCam;
 
-  initShaders(renderer, scene, camera);
+  if (quality > 2) initShaders(renderer, scene, camera);
 
   const canvas = document.querySelector(
     "canvas[data-engine]",
@@ -176,7 +178,7 @@ export async function enableRenderer(
             camera = getMainCam();
             title = undefined;
 
-            initShaders(renderer, scene, camera);
+            if (quality > 2) initShaders(renderer, scene, camera);
             updateQuality();
 
             resizeRenderer();

@@ -238,7 +238,12 @@ export function crouchPlayer(
   return true;
 }
 
-const impacts: { x: number; y: number; z: number; speed: number }[] = [];
+const impacts: {
+  x: number;
+  y: number;
+  z: number;
+  speed: number;
+}[] = [];
 
 export async function initPhysics(scene: THREE.Scene): Promise<void> {
   if (initPromise) return initPromise;
@@ -275,20 +280,31 @@ export async function initPhysics(scene: THREE.Scene): Promise<void> {
     };
 
     contactListener.OnContactAdded = (inBody1, inBody2, inManifold) => {
-      const body1 = Jolt.wrapPointer(inBody1, Jolt.Body);
-      const body2 = Jolt.wrapPointer(inBody2, Jolt.Body);
+      const body1 = Jolt.wrapPointer(inBody1, Jolt.Body),
+        body2 = Jolt.wrapPointer(inBody2, Jolt.Body);
 
-      const manifold = Jolt.wrapPointer(inManifold, Jolt.ContactManifold);
-      const point = manifold.GetWorldSpaceContactPointOn1(0);
+      const manifold = Jolt.wrapPointer(inManifold, Jolt.ContactManifold),
+        point = manifold.GetWorldSpaceContactPointOn1(0);
+
       const x = point.GetX(),
         y = point.GetY(),
         z = point.GetZ();
 
+      const getMass = (body: JoltTypes.Body) => {
+        if (!body.IsDynamic()) return 0;
+
+        const motion = body.GetMotionProperties();
+        if (!motion) return 0;
+
+        const invMass = motion.GetInverseMass();
+        return invMass > 0 ? 1.0 / invMass : 0;
+      };
+
       // v + ω × r
       const pointVel = (body: JoltTypes.Body) => {
-        const v = body.GetLinearVelocity();
-        const w = body.GetAngularVelocity();
-        const c = body.GetCenterOfMassPosition();
+        const v = body.GetLinearVelocity(),
+          w = body.GetAngularVelocity(),
+          c = body.GetCenterOfMassPosition();
 
         const rx = x - c.GetX(),
           ry = y - c.GetY(),
@@ -304,18 +320,22 @@ export async function initPhysics(scene: THREE.Scene): Promise<void> {
         ];
       };
 
-      const [x1, y1, z1] = pointVel(body1);
-      const [x2, y2, z2] = pointVel(body2);
+      const [x1, y1, z1] = pointVel(body1),
+        [x2, y2, z2] = pointVel(body2);
 
-      const speed = Math.hypot(x1 - x2, y1 - y2, z1 - z2);
+      const speed1 = Math.hypot(x1, y1, z1),
+        speed2 = Math.hypot(x2, y2, z2);
+
+      const mass1 = getMass(body1),
+        mass2 = getMass(body2);
+      let mass = speed1 >= speed2 ? mass1 : mass2;
+
+      if (mass === 0) mass = Math.max(mass1, mass2);
+
+      const speed = Math.hypot(x1 - x2, y1 - y2, z1 - z2) * mass;
 
       if (speed > 0) {
-        impacts.push({
-          x: x,
-          y: y,
-          z: z,
-          speed,
-        });
+        impacts.push({ x, y, z, speed });
       }
     };
 
@@ -711,7 +731,9 @@ function doPhysicsStep(delta: number) {
       const identity = new Jolt.Quat(-Math.SQRT1_2, 0, 0, Math.SQRT1_2);
       bodyInterface.SetPositionAndRotation(
         bodyId,
-        obj.parent.name.startsWith("Poster") ? respawnPosUp : respawnPos,
+        obj.parent.name == "Light" || obj.parent.name.startsWith("Poster")
+          ? respawnPosUp
+          : respawnPos,
         identity,
         Jolt.EActivation_Activate,
       );

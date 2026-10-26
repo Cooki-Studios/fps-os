@@ -63,6 +63,11 @@ export const MASSES: Record<string, number> = {
   Bed: 4,
   Armchair: 2,
   Desktop: 2,
+  PC: 2,
+  Keyboard: 0.5,
+  Poster: 1.5,
+  Light: 0.25,
+  Rug: 0.1,
 };
 
 export async function setupMesh(
@@ -77,11 +82,15 @@ export async function setupMesh(
   if (mesh.name != "D_Plane_002") {
     mesh.castShadow = true;
     setupShadowMaterial(mesh.material);
-  }
 
-  if (mesh.name.startsWith("N_Blind")) {
-    mesh.material.opacity = 0.9;
-    mesh.material.transparent = true;
+    if (mesh.name.startsWith("N_Blind")) {
+      mesh.material.opacity = 0.9;
+      mesh.material.transparent = true;
+    }
+  } else {
+    mesh.material.polygonOffset = true;
+    mesh.material.polygonOffsetFactor = -1;
+    mesh.material.polygonOffsetUnits = -1;
   }
 
   if (mesh.parent) {
