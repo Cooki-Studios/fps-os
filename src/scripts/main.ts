@@ -134,18 +134,18 @@ loader.loadAsync("room.usdc").then(async (room) => {
   setupClock();
   bootLog(`Meshes loaded`);
 
-  setupAnimation(room, room.animations[0], "DoorGroup");
-  setupAnimation(room, room.animations[0], "Switch", 1 / 6);
-  setupAnimation(room, room.animations[0], "Blind2", 0.5);
-  setupAnimation(room, room.animations[0], "Blind3", 0.5);
-  setupAnimation(room, room.animations[0], "Blind4", 0.5);
-  setupAnimation(room, room.animations[0], "Blind5", 0.5);
-  setupAnimation(room, room.animations[0], "Bed_003", 0.25);
-
   addPhysicsToObjects().then(async () => {
+    const clip = room.animations[0];
+    setupAnimation(room, clip, "DoorGroup");
+    setupAnimation(room, clip, "Switch", 1 / 6);
+    setupAnimation(room, clip, "Blind2", 0.5);
+    setupAnimation(room, clip, "Blind3", 0.5);
+    setupAnimation(room, clip, "Blind4", 0.5);
+    setupAnimation(room, clip, "Blind5", 0.5);
+    setupAnimation(scene, clip, "Bed_003", 0.25);
+
     bootLog("Compiling renderer...");
     compileRenderer(scene, camera);
-
     bootLog("Scene loaded");
   });
 });

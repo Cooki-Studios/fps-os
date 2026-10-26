@@ -18,7 +18,7 @@ import {
 } from "./animation";
 import { setLightLevel } from "./lighting";
 import { deleteDoor, getDoorBase, lock } from "../objects/keypad";
-import { deleteBed, sleep } from "../objects/bed";
+import { deleteBed, getBedBase, sleep } from "../objects/bed";
 import { setWallpaper, toggleWallpaper } from "../objects/wallpaper";
 import { deleteClock } from "../objects/clock";
 import { enableAudioEl, playAudio } from "./audio";
@@ -57,6 +57,7 @@ function getObject(
 
   let obj = intersect.object.parent;
   if (obj.name == "Door_001") obj = getDoorBase();
+  else if (obj.name == "Bed_003") obj = getBedBase();
 
   return {
     obj: ["Note", "Screen"].includes(intersect.object.name)
@@ -114,8 +115,8 @@ export function setGrabVel(
     .set(playerVel.x * 2, playerVel.y * 2, playerVel.z * 2)
     .applyQuaternion(camera.quaternion);
 
-  grabVel.addScaledVector(up, -y);
-  grabVel.addScaledVector(right, x);
+  grabVel.addScaledVector(up, -y * 0.2);
+  grabVel.addScaledVector(right, x * 0.2);
 }
 
 const DAMPING = 0.5;
@@ -449,6 +450,8 @@ export function contextPlayer(
       const mesh = obj.children[0];
       if (mesh.userData.body) removePhysicsFromObject(mesh, mesh.userData.body);
     }
+
+    obj.userData.ui?.parent.remove(obj.userData.ui);
 
     if (name == "Light") disableLight();
     else if (name == "Bed") deleteBed();

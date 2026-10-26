@@ -9,35 +9,76 @@ import { pauseRenderer, resumeRenderer } from "../system/renderer";
 const html = document.querySelector("html")!,
   fadeOverlay = document.getElementById("fade-overlay") as HTMLDivElement;
 
+const zTimeouts: number[] = [];
+
+export function updateBedCover(scene: THREE.Scene) {
+  const pos = new THREE.Vector3();
+  bed.getWorldPosition(pos);
+  const rot = new THREE.Quaternion();
+  bed.getWorldQuaternion(rot);
+
+  const cover = scene.getObjectByName("N_Cube_014")!.parent!;
+
+  cover.position.set(-2.485, 0, 0);
+  cover.parent!.position.set(pos.x, -pos.z, pos.y);
+
+  const coordFixQuat = new THREE.Quaternion().setFromAxisAngle(
+    new THREE.Vector3(1, 0, 0),
+    Math.PI / 2,
+  );
+  const newRot = rot.clone().premultiply(coordFixQuat);
+  cover.parent!.quaternion.copy(newRot);
+}
+
 export async function sleep(canvas: HTMLCanvasElement, scene: THREE.Scene) {
   disablePlayerControl(canvas);
   playAnimation(6);
+  playAudio(bed.name, "bed");
   await pause(250);
 
   fadeOverlay.style.opacity = "1";
   await pause(250);
-  playAudio(bed.name, "bed-down-up");
+  playAudio(bed.name, "bed");
 
   playAnimationReversed(6);
   await pause(250);
 
   pauseRenderer();
 
+  for (let i = 0; i < 3; i++) {
+    zTimeouts.push(
+      setTimeout(() => {
+        const z = document.createElement("p");
+        z.textContent = "Z";
+        fadeOverlay.appendChild(z);
+      }, i * 750),
+    );
+  }
+
   html.style.cursor = "pointer";
   document.onclick = async () => {
     document.onclick = null;
     html.style.cursor = "";
+
     resumeRenderer();
     await canvas.requestPointerLock();
 
+    for (const zTimeout of zTimeouts) {
+      clearTimeout(zTimeout);
+    }
     fadeOverlay.style.opacity = "0";
-    playAudio(bed.name, "bed-down-up");
+
+    playAudio(bed.name, "bed");
     playAnimation(6);
     await pause(250);
 
+    while (fadeOverlay.lastElementChild) {
+      fadeOverlay.removeChild(fadeOverlay.lastElementChild);
+    }
     enablePlayerControl(canvas, scene);
-    await pause(250);
 
+    await pause(250);
+    playAudio(bed.name, "bed");
     playAnimationReversed(6);
   };
 }
@@ -48,8 +89,12 @@ const bedParts: THREE.Object3D[] = [];
 export async function setBed(obj: THREE.Object3D, main = false) {
   if (main) {
     bed = obj;
-    await addAudioToObject(obj, "bed-down-up", 10);
+    await addAudioToObject(obj, "bed", 2);
   } else bedParts.push(obj);
+}
+
+export function getBedBase() {
+  return bed;
 }
 
 export function deleteBed() {

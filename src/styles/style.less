@@ -1,3 +1,19 @@
+@import "inter-ui/inter-variable";
+
+* {
+    font-feature-settings:
+        "liga" 1,
+        "calt" 1,
+        "case",
+        "ss01",
+        "ss02",
+        "cv01",
+        "cv06",
+        "cv11",
+        "cv12",
+        "cv13";
+}
+
 html,
 body {
     width: 100vw;
@@ -23,7 +39,7 @@ body {
 button,
 input {
     font-family:
-        Inter Semi-Bold,
+        Inter Variable,
         sans-serif;
 }
 
@@ -64,7 +80,7 @@ body {
         z-index: 2;
 
         font-family:
-            Inter Semi-Bold,
+            Inter Variable,
             sans-serif;
         font-size: 1.5em;
         font-weight: bold;
@@ -91,6 +107,56 @@ body {
         z-index: 3;
         pointer-events: none;
         backdrop-filter: blur(4px);
+
+        p {
+            font-family:
+                Inter Variable,
+                sans-serif;
+            font-size: 1.5em;
+            font-weight: bold;
+
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation:
+                snooze-move 3s infinite linear,
+                snooze-rotate 3s infinite linear;
+
+            @keyframes snooze-rotate {
+                0% {
+                    rotate: -15deg;
+                }
+                25% {
+                    rotate: 0deg;
+                }
+                50% {
+                    rotate: 15deg;
+                }
+                75% {
+                    rotate: 0;
+                }
+                100% {
+                    rotate: 0;
+                }
+            }
+
+            @keyframes snooze-move {
+                0% {
+                    opacity: 0;
+                    top: 50%;
+                    left: 50%;
+                }
+                5% {
+                    opacity: 1;
+                }
+                100% {
+                    top: 40%;
+                    left: 60%;
+                    opacity: 0;
+                }
+            }
+        }
     }
 
     .note {
@@ -109,7 +175,7 @@ body {
             outline: none;
             border: none;
             font-family:
-                Inter Semi-Bold,
+                Inter Variable,
                 sans-serif;
 
             background: repeating-linear-gradient(
@@ -267,7 +333,7 @@ body {
                 border: none;
                 outline: none;
                 font-family:
-                    Inter Semi-Bold,
+                    Inter Variable,
                     sans-serif;
                 background-color: #f5f5f5;
                 border-radius: 0 4px 4px 0;
@@ -322,6 +388,16 @@ body {
 
             > p {
                 cursor: grab;
+                padding: 0 1em 0 1em;
+
+                img {
+                    pointer-events: none;
+                    width: 100%;
+                }
+
+                a {
+                    color: deepskyblue;
+                }
             }
         }
     }
@@ -391,24 +467,6 @@ body {
     > #context {
         visibility: hidden;
     }
-}
-
-@font-face {
-    font-family: Inter ExtraBold;
-    src: url(/fonts/inter.woff2) format(woff2);
-    font-weight: 800;
-    font-feature-settings:
-        "liga" 1,
-        "calt" 1,
-        "case",
-        "ss01",
-        "ss02",
-        "cv01",
-        "cv06",
-        "cv11",
-        "cv12",
-        "cv13";
-    font-display: swap;
 }
 
 #bootlog {
@@ -523,8 +581,9 @@ canvas[data-engine],
     transition: opacity 1s;
     mix-blend-mode: difference;
     font-family:
-        Inter ExtraBold,
+        Inter Variable,
         sans-serif;
+    font-weight: 800;
 }
 
 #literal-pc-info {
@@ -554,7 +613,7 @@ canvas[data-engine],
         width: 24px;
         height: 24px;
         position: absolute;
-        top: calc(50% - 12.5px);
+        top: calc(50% - 13px);
         left: calc(50% - 14px);
         border-radius: 100%;
         z-index: -1;

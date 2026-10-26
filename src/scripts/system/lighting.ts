@@ -30,7 +30,10 @@ function createCSM(
   dir?: THREE.Vector3,
   quality?: number,
 ) {
-  if (quality == 0) return;
+  if (quality == 0 || quality == 1) {
+    setMainLightMap(0);
+    return;
+  }
 
   const mapSize = quality ? baseMapSize * (quality / 2) : baseMapSize;
 
@@ -58,6 +61,8 @@ function createCSM(
   setMainLightMap(mapSize);
 }
 
+let lightQuality = 0.25;
+
 export function changeCSMQuality(
   scene: THREE.Scene,
   camera: THREE.PerspectiveCamera,
@@ -75,15 +80,17 @@ export function changeCSMQuality(
     csmHelper = undefined;
   }
 
-  if (quality == 0) ambientLight.intensity = 1;
-  else ambientLight.intensity = 0.25;
+  if (quality == 0) lightQuality = 1;
+  else if (quality == 1) lightQuality = 0.5;
+  else lightQuality = 0.25;
+  ambientLight.intensity = lightQuality;
 
   createCSM(scene, camera, undefined, dir, quality);
 }
 
 export function setLightLevel(intensity = 1) {
-  ambientLight.intensity = 0.25 * intensity;
-  hemisphereLight.intensity = 0.25 * intensity;
+  ambientLight.intensity = lightQuality * intensity;
+  hemisphereLight.intensity = lightQuality * intensity;
   setSkyLightLevel(intensity);
 }
 

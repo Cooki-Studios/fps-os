@@ -410,7 +410,8 @@ export async function addPhysicsToObject(
       }
       shape = compound.Create().Get();
       Jolt.destroy(compound);
-      attachments.forEach((m) => obj.parent!.attach(m)); // visuals follow the body
+
+      attachments.forEach((m) => obj.parent!.attach(m));
     }
   }
 
@@ -430,7 +431,7 @@ export async function addPhysicsToObject(
     const settings = new Jolt.CharacterVirtualSettings();
     settings.mShape = shape;
     settings.mMass = 1;
-    settings.mMaxStrength = 10;
+    settings.mMaxStrength = 5;
     settings.set_mMaxSlopeAngle((45 * Math.PI) / 180);
     settings.mCharacterPadding = 0.02;
     settings.mPenetrationRecoverySpeed = 1.0;

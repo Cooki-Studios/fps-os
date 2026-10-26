@@ -12,6 +12,11 @@ import { marked } from "marked";
 import DOMPurify from "dompurify";
 
 import readmeContent from "../../../README.md?raw";
+const readmeImages = import.meta.glob("../../screenshots/*", {
+  eager: true,
+  query: "?url",
+  import: "default",
+}) as Record<string, string>;
 
 let monitor: THREE.Object3D;
 
@@ -41,7 +46,10 @@ const screens: HTMLDivElement[] = [],
 
 readme.innerHTML = DOMPurify.sanitize(
   await marked.parse(readmeContent, { breaks: true, gfm: true }),
-);
+).replace(/src="(?:\.\/)?src\/(screenshots\/[^"]+)"/g, (match, path) => {
+  const url = readmeImages[`../../${decodeURI(path)}`];
+  return url ? `src="${url}"` : match;
+});
 
 async function loadPage(domain: string, parent: HTMLElement) {
   spinnerBox.style.display = "block";
@@ -165,16 +173,27 @@ function initMonitor(scene: THREE.Scene) {
     iframeDiv.scrollTop += e.deltaY;
   };
   iframeDiv.onpointermove = (e) => {
-    if (e.buttons == 1) iframeDiv.scrollTop -= e.movementY;
+    const mult =
+      iframeDiv.clientHeight / iframeDiv.getBoundingClientRect().height;
+
+    if (e.buttons == 1) iframeDiv.scrollTop -= e.movementY * mult;
   };
 
-  iframeDiv.onpointerdown = () => {
+  iframeDiv.onpointerdown = (e) => {
     const p = iframeDiv.querySelector("p");
-    if (p) p.style.cursor = "grabbing";
+    if (p) {
+      document.body.style.cursor = "grabbing";
+      iframeDiv.style.cursor = "grabbing";
+      iframeDiv.setPointerCapture(e.pointerId);
+    }
   };
-  iframeDiv.onpointerup = () => {
+  iframeDiv.onpointerup = (e) => {
     const p = iframeDiv.querySelector("p");
-    if (p) p.style.cursor = "grab";
+    if (p) {
+      document.body.style.cursor = "";
+      iframeDiv.style.cursor = "";
+      iframeDiv.releasePointerCapture(e.pointerId);
+    }
   };
 }
 

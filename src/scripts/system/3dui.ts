@@ -85,11 +85,12 @@ export function createUI(
     polygonOffsetFactor: -2,
     polygonOffsetUnits: -2,
     side: THREE.DoubleSide,
+    emissive: new THREE.Color(1, 1, 1),
+    emissiveIntensity: 0,
   });
   if (isScreen) {
     shadowMaterial.metalness = 0.65;
     shadowMaterial.roughness = 0.65;
-    shadowMaterial.emissive = new THREE.Color(1, 1, 1);
     shadowMaterial.emissiveIntensity = 0.8;
   }
 

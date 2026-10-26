@@ -52,7 +52,7 @@ export async function setupMainLight(
 }
 
 export function setMainLightMap(size: number) {
-  spotLight.shadow.mapSize.setScalar(size);
+  if (size != 0) spotLight.shadow.mapSize.setScalar(size);
   if (spotLight.shadow.map) {
     spotLight.shadow.map.dispose();
     spotLight.shadow.map = null;

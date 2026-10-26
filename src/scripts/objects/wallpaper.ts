@@ -22,19 +22,15 @@ export async function initWallpaper(walls: THREE.Object3D) {
     mats.push(mat);
   }
 
-  for (const mat of mats) {
-    mat.map = texture;
-    mat.needsUpdate = true;
-  }
-
   const loaded = await restoreSavedWallpaper();
   if (!loaded) {
     await loadWallpaper();
   } else {
-    for (const mat of mats) {
-      mat.map = texture;
-      mat.needsUpdate = true;
-    }
+    if (!localStorage.getItem("wallapaper-off"))
+      for (const mat of mats) {
+        mat.map = texture;
+        mat.needsUpdate = true;
+      }
   }
 
   bootLog("Wallpaper initialised");
@@ -49,13 +45,20 @@ async function loadWallpaper() {
 export function toggleWallpaper() {
   playAudio("Player", "wallpaper-change", 0, 0.1);
   for (const mat of mats) {
-    if (mat.map) mat.map = null;
-    else mat.map = texture;
+    if (mat.map) {
+      mat.map = null;
+      localStorage.setItem("wallapaper-off", "true");
+    } else {
+      mat.map = texture;
+      localStorage.setItem("wallapaper-off", "");
+    }
     mat.needsUpdate = true;
   }
 }
 
 export async function setWallpaper(file: File) {
+  if (localStorage.getItem("wallapaper-off")) return;
+
   await saveWallpaperBlob(file);
   const objectUrl = URL.createObjectURL(file);
   texture = await loader.loadAsync(objectUrl);

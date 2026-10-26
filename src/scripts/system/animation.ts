@@ -4,19 +4,21 @@ const mixers: THREE.AnimationMixer[] = [],
   actions: THREE.AnimationAction[] = [];
 
 export function setupAnimation(
-  mesh: THREE.Object3D,
+  root: THREE.Object3D,
   clip: THREE.AnimationClip,
   name: string,
   durationMul = 1,
 ) {
-  const tracks = clip.tracks.filter((track) => track.name.startsWith(name));
+  const tracks = clip.tracks.filter((track) =>
+    track.name.startsWith(name + "."),
+  );
   const splitClip = new THREE.AnimationClip(
     name,
     clip.duration * durationMul,
     tracks,
   );
 
-  const mixer = new THREE.AnimationMixer(mesh);
+  const mixer = new THREE.AnimationMixer(root);
   const action = mixer.clipAction(splitClip);
   action.loop = THREE.LoopOnce;
   action.clampWhenFinished = true;

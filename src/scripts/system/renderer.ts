@@ -9,7 +9,7 @@ import {
 import { animateTitle, bootLog } from "../boot";
 import { getMainCam, getMainScene } from "../util/scene";
 import { createKeypad, updateKeypad } from "../objects/keypad";
-import { onMobileRotate } from "../util/mobile";
+import { isMobile, onMobileRotate } from "../util/mobile";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import Stats from "stats.js";
 import { onActionPressed } from "./input";
@@ -21,6 +21,7 @@ import { updateClock } from "../objects/clock";
 import { initShaders, renderWithShaders, resizeShaders } from "./shaders";
 import { enableAudioEl } from "./audio";
 import { updateLight } from "../objects/mainLight";
+import { updateBedCover } from "../objects/bed";
 
 let renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
@@ -85,6 +86,8 @@ export function resumeRenderer() {
 
 const qualityEl = document.getElementById("quality") as HTMLInputElement;
 
+if (isMobile) qualityEl.value = "0";
+
 if (localStorage.getItem("quality"))
   qualityEl.value = localStorage.getItem("quality") as string;
 
@@ -99,15 +102,20 @@ qualityEl.oninput = () => {
 
 export function updateQuality() {
   switch (quality) {
-    case 2:
+    case 3:
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1));
       renderer.toneMapping = THREE.NoToneMapping;
       renderer.shadowMap.enabled = true;
       break;
-    case 1:
+    case 2:
       renderer.setPixelRatio(Math.min(window.devicePixelRatio * 0.9, 1));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.shadowMap.enabled = true;
+      break;
+    case 1:
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio * 0.8, 1));
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.shadowMap.enabled = false;
       break;
     default:
       renderer.setPixelRatio(Math.min(window.devicePixelRatio * 0.8, 1));
@@ -120,7 +128,12 @@ export function updateQuality() {
 
   scene.traverse((mesh) => {
     if (mesh instanceof THREE.Mesh && mesh.material) {
-      if (mesh.name == "shadow") return;
+      if (mesh.name == "shadow") {
+        if (mesh.parent?.name == "Screen") return;
+        if (quality == 1) mesh.material.emissiveIntensity = 0.2;
+        else mesh.material.emissiveIntensity = 0;
+        return;
+      }
       if (mesh.name != "D_Plane_002") setupShadowMaterial(mesh.material);
       mesh.material.needsUpdate = true;
     }
@@ -160,8 +173,8 @@ export async function enableRenderer(
             camera = getMainCam();
             title = undefined;
 
-            updateQuality();
             initShaders(renderer, scene, camera);
+            updateQuality();
 
             resizeRenderer();
             resize3DUI();
@@ -178,7 +191,7 @@ export async function enableRenderer(
           }, 500);
         }
 
-      if (quality > 1) renderWithShaders();
+      if (quality > 2) renderWithShaders();
       else renderer.render(scene, camera);
     } else {
       if (disabled) return;
@@ -188,6 +201,7 @@ export async function enableRenderer(
       updateAnimation(delta);
       updateClock();
       updatePhysics(delta);
+      updateBedCover(scene);
       updateKeypad(delta, canvas, scene);
       updateGrabInertia();
       updateUIPosRot();
@@ -196,7 +210,7 @@ export async function enableRenderer(
       updateCSM(delta);
       updateLight();
 
-      if (quality > 1) renderWithShaders();
+      if (quality > 2) renderWithShaders();
       else renderer.render(scene, camera);
 
       stats.end();
