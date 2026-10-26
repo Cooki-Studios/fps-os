@@ -92,6 +92,9 @@ if (localStorage.getItem("quality"))
   qualityEl.value = localStorage.getItem("quality") as string;
 
 let quality = Number(qualityEl.value);
+export function getQuality() {
+  return quality;
+}
 
 qualityEl.oninput = () => {
   quality = Number(qualityEl.value);

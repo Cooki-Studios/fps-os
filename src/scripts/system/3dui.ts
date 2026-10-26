@@ -3,6 +3,7 @@ import {
   CSS3DObject,
   CSS3DRenderer,
 } from "three/examples/jsm/renderers/CSS3DRenderer.js";
+import { getQuality } from "./renderer";
 
 const SCALE = 0.001625,
   windowWidth = window.visualViewport
@@ -86,7 +87,7 @@ export function createUI(
     polygonOffsetUnits: -2,
     side: THREE.DoubleSide,
     emissive: new THREE.Color(1, 1, 1),
-    emissiveIntensity: 0,
+    emissiveIntensity: getQuality() == 1 ? 0.2 : 0,
   });
   if (isScreen) {
     shadowMaterial.metalness = 0.65;
