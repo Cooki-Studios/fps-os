@@ -141,6 +141,12 @@ export function createUI(
     mesh.userData.attach = attach;
 
     addUpdateUI(mesh);
+  } else {
+    mesh.position.copy(posOffset);
+    mesh.quaternion.copy(rotOffset);
+
+    obj.position.copy(posOffset);
+    obj.quaternion.copy(rotOffset);
   }
 
   return { mesh: mesh, obj: obj };

@@ -181,8 +181,8 @@ body {
             background: repeating-linear-gradient(
                 white,
                 white 24px,
-                grey 24px,
-                grey 26px
+                lightgrey 24px,
+                lightgrey 26px
             );
             background-attachment: local;
         }
@@ -207,8 +207,8 @@ body {
                 background: repeating-linear-gradient(
                     white,
                     white 0.9em,
-                    grey 0.9em,
-                    grey calc(0.9em + 2px)
+                    lightgrey 0.9em,
+                    lightgrey calc(0.9em + 2px)
                 );
                 background-attachment: local;
             }
@@ -219,7 +219,8 @@ body {
         }
     }
 
-    .screen {
+    .screen,
+    #clipboard {
         display: none;
         transition: opacity 500ms;
         background: black;

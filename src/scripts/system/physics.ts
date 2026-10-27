@@ -245,6 +245,16 @@ const impacts: {
   speed: number;
 }[] = [];
 
+const roomPhysIds: JoltTypes.BodyID[] = [];
+export function addRoomPhysId(id: JoltTypes.BodyID) {
+  roomPhysIds.push(id);
+}
+
+let rugPhysId: JoltTypes.BodyID;
+export function setRugPhysId(id: JoltTypes.BodyID) {
+  rugPhysId = id;
+}
+
 export async function initPhysics(scene: THREE.Scene): Promise<void> {
   if (initPromise) return initPromise;
 
@@ -275,8 +285,21 @@ export async function initPhysics(scene: THREE.Scene): Promise<void> {
 
     contactListener.OnContactPersisted = () => {};
     contactListener.OnContactRemoved = () => {};
-    contactListener.OnContactValidate = () => {
-      return Jolt.ValidateResult_AcceptContact;
+    contactListener.OnContactValidate = (inBody1, inBody2) => {
+      if (rugPhysId) {
+        const body1 = Jolt.wrapPointer(inBody1, Jolt.Body),
+          body2 = Jolt.wrapPointer(inBody2, Jolt.Body);
+
+        const id1 = body1.GetID();
+        const id2 = body2.GetID();
+
+        const body = id1 === rugPhysId ? id2 : id2 === rugPhysId ? id1 : null;
+
+        if (body !== null && !roomPhysIds.includes(body))
+          return Jolt.ValidateResult_RejectAllContactsForThisBodyPair;
+      }
+
+      return Jolt.ValidateResult_AcceptAllContactsForThisBodyPair;
     };
 
     contactListener.OnContactAdded = (inBody1, inBody2, inManifold) => {
@@ -462,6 +485,22 @@ export async function addPhysicsToObject(
     playerChar = new Jolt.CharacterVirtual(settings, pos, rot, physicsSystem);
     obj.userData.character = playerChar;
 
+    const characterListener = new Jolt.CharacterContactListenerJS();
+
+    characterListener.OnContactValidate = (_inCharacter, inBodyID2) => {
+      const id = Jolt.wrapPointer(inBodyID2, Jolt.BodyID);
+      return (
+        id.GetIndexAndSequenceNumber() !== rugPhysId.GetIndexAndSequenceNumber()
+      );
+    };
+    characterListener.OnAdjustBodyVelocity = () => {};
+    characterListener.OnContactAdded = () => {};
+    characterListener.OnContactPersisted = () => {};
+    characterListener.OnContactSolve = () => {};
+    characterListener.OnContactRemoved = () => {};
+
+    playerChar.SetListener(characterListener);
+
     movingBPFilter = new Jolt.DefaultBroadPhaseLayerFilter(
       joltInterface.GetObjectVsBroadPhaseLayerFilter(),
       LAYER_NOCLIP,
@@ -505,8 +544,14 @@ export async function addPhysicsToObject(
     obj.userData.body = body;
 
     if (obj.name == "Base_001") doorCoverBody = body;
-
-    if (dynamic) dynamicObjects.add(obj);
+    else if (obj.name == "D_Plane_002") setRugPhysId(body.GetID());
+    else if (
+      obj.name == "Plane" ||
+      obj.name == "Room_001" ||
+      obj.name == "Base_001" ||
+      obj.parent.name.startsWith("Wall")
+    )
+      addRoomPhysId(body.GetID());
   }
 
   Jolt.destroy(pos);

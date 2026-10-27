@@ -6,6 +6,7 @@ import { setKeyLight, setDoor, setKeypad } from "./keypad";
 import { setMonitor } from "./pc";
 import { addAudioToObject, loadBuffer } from "../system/audio";
 import { setNotepad } from "./notepad";
+import { setClipboard } from "./clipboard";
 
 const wind = await loadBuffer("windows-wind");
 
@@ -75,6 +76,7 @@ export async function setupMesh(
   meshes: THREE.Mesh[],
   scene: THREE.Scene,
   canvas: HTMLCanvasElement,
+  camera: THREE.PerspectiveCamera,
 ) {
   mesh.material.dithering = true;
   mesh.receiveShadow = true;
@@ -118,25 +120,31 @@ export async function setupMesh(
         break;
       case "Papers":
         setNotepad(mesh, scene, canvas);
+        break;
+      case "Clipboard":
+        setClipboard(mesh.parent.clone(), camera);
+        mesh.parent.remove(mesh);
+        break;
     }
 
-    if (mesh.parent.parent && mesh.parent.name == "Door")
-      setDoor(mesh.parent.parent);
-    else if (mesh.parent.name.startsWith("key_")) setKeypad(mesh.parent);
-    else if (mesh.parent.name.startsWith("Bed_")) setBed(mesh.parent);
-    else if (mesh.parent.name.startsWith("Blind")) {
-      await addAudioToObject(
-        mesh.parent,
-        "windows-wind",
-        1,
-        true,
-        1,
-        undefined,
-        wind,
-      );
-      await addAudioToObject(mesh.parent, "blind-down");
-      await addAudioToObject(mesh.parent, "blind-up");
-    }
+    if (mesh.parent)
+      if (mesh.parent.parent && mesh.parent.name == "Door")
+        setDoor(mesh.parent.parent);
+      else if (mesh.parent.name.startsWith("key_")) setKeypad(mesh.parent);
+      else if (mesh.parent.name.startsWith("Bed_")) setBed(mesh.parent);
+      else if (mesh.parent.name.startsWith("Blind")) {
+        await addAudioToObject(
+          mesh.parent,
+          "windows-wind",
+          1,
+          true,
+          1,
+          undefined,
+          wind,
+        );
+        await addAudioToObject(mesh.parent, "blind-down");
+        await addAudioToObject(mesh.parent, "blind-up");
+      }
   }
 
   if (!mesh.name.startsWith("N_")) meshes.push(mesh);
