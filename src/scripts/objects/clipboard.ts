@@ -1,16 +1,28 @@
 import * as THREE from "three";
 import { createUI } from "../system/3dui";
 
-let clipboard: THREE.Mesh;
+let clipboard: THREE.Mesh, root: THREE.Object3D;
+
+const START_Y = -4.5,
+  END_Y = -2;
+let targetY = START_Y;
+
+export function updateClipboard(delta: number) {
+  if (!root) return;
+  root.position.y = THREE.MathUtils.damp(root.position.y, targetY, 16, delta);
+  if (targetY === START_Y && root.position.y < START_Y + 0.01)
+    clipboard.visible = false;
+}
 
 export async function setClipboard(
   obj: THREE.Object3D,
   camera: THREE.PerspectiveCamera,
 ) {
+  root = obj;
   clipboard = obj.children[0] as THREE.Mesh;
   clipboard.visible = false;
 
-  obj.position.set(-1.5, -2, -2);
+  obj.position.set(-1.5, START_Y, -2);
   obj.rotateX(Math.PI / 2);
   obj.rotateZ(Math.PI / 8);
   obj.rotateX(Math.PI / 16);
@@ -46,6 +58,7 @@ function copy(div: HTMLDivElement) {
   text = window.getSelection()?.toString();
   if (text) {
     clipboard.visible = true;
+    targetY = END_Y;
     const el = document.createElement("span");
     el.textContent = "\n\n" + text + "\n";
 
@@ -53,5 +66,9 @@ function copy(div: HTMLDivElement) {
     if (first) first.textContent = first.textContent?.trim() + "\n";
 
     div.prepend(el);
-  } else clipboard.visible = false;
+  } else if (clipboard.visible && targetY === END_Y) targetY = START_Y;
+  else {
+    clipboard.visible = true;
+    targetY = END_Y;
+  }
 }

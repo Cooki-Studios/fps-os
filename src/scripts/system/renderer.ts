@@ -22,6 +22,7 @@ import { initShaders, renderWithShaders, resizeShaders } from "./shaders";
 import { enableAudioEl } from "./audio";
 import { updateLight } from "../objects/mainLight";
 import { updateBedCover } from "../objects/bed";
+import { updateClipboard } from "../objects/clipboard";
 
 let renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
@@ -207,6 +208,7 @@ export async function enableRenderer(
       updateClock();
       updatePhysics(delta);
       updateBedCover(scene);
+      updateClipboard(delta);
       updateKeypad(delta, canvas, scene);
       updateGrabInertia();
       updateUIPosRot();
