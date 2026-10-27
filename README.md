@@ -87,3 +87,5 @@ Song: NIVIRO - The Riot (Instrumental Version)
 Music provided by NoCopyrightSounds
 Free Download/Stream: http://ncs.io/TheRiot
 Watch: http://ncs.lnk.to/TheRiotAT/youtube
+
+[Hedges PNGs by Vecteezy](https://www.vecteezy.com/free-png/hedges)

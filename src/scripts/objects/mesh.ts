@@ -83,9 +83,14 @@ export async function setupMesh(
 
   if (mesh.name != "D_Plane_002") {
     mesh.castShadow = true;
+
+    mesh.material.needsUpdate = true;
+
     setupShadowMaterial(mesh.material);
 
-    if (mesh.name.startsWith("N_Blind")) {
+    if (mesh.name.startsWith("N_foliage") || mesh.name.startsWith("N_hedge")) {
+      mesh.material.depthWrite = false;
+    } else if (mesh.name.startsWith("N_Blind")) {
       mesh.material.opacity = 0.9;
       mesh.material.transparent = true;
     }
