@@ -12,14 +12,14 @@
     "@types/three": "^0.185.4",
     "less": "^4.9.1",
     "typescript": "~6.0.3",
-    "vite": "^8.3.1"
+    "vite": "^8.3.5"
   },
   "dependencies": {
     "dompurify": "^3.4.17",
-    "idb": "^8.0.3",
+    "idb": "^8.0.4",
     "inter-ui": "^4.1.1",
-    "jolt-physics": "^1.1.0",
-    "marked": "^18.1.1",
+    "jolt-physics": "^1.1.1",
+    "marked": "^18.1.2",
     "postprocessing": "^6.39.5",
     "stats.js": "^0.17.0",
     "three": "^0.185.1"

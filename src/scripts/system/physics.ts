@@ -535,6 +535,8 @@ export async function addPhysicsToObject(
       bodySettings.mMassPropertiesOverride.mMass =
         MASSES[obj.parent.name.split("_")[0]] ?? MASSES["default"];
       obj.userData.dynamic = true;
+
+      dynamicObjects.add(obj);
     }
 
     const body = bodyInterface.CreateBody(bodySettings);

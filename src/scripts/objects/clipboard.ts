@@ -14,7 +14,7 @@ export function updateClipboard(delta: number) {
     clipboard.visible = false;
 }
 
-export async function setClipboard(
+export function setClipboard(
   obj: THREE.Object3D,
   camera: THREE.PerspectiveCamera,
 ) {

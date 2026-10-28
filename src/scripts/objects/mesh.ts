@@ -7,10 +7,11 @@ import { setMonitor } from "./pc";
 import { addAudioToObject, loadBuffer } from "../system/audio";
 import { setNotepad } from "./notepad";
 import { setClipboard } from "./clipboard";
+import { setGun } from "./gun";
 
 const wind = await loadBuffer("windows-wind");
 
-export const INTERACTIBLES = [
+export const INTERACTIBLES: string[] = [
   "Switch",
   "Door",
   "PC",
@@ -25,8 +26,9 @@ export const INTERACTIBLES = [
   "Blind4_001",
   "Blind5",
   "Blind5_001",
-];
-export const GRABBABLES = [
+  "Gun",
+] as const;
+export const GRABBABLES: string[] = [
   "Pillow",
   "Note",
   "Screen",
@@ -42,7 +44,10 @@ export const GRABBABLES = [
   "Armchair",
   "Rug",
   "PapersPlease",
-];
+] as const;
+
+export const EQUIPABBLES = ["Gun"] as const;
+
 export const ATTACHED_OBJS: Record<string, string[]> = {
   D_Cube_007: ["Cube_013"], // Bed
   D_Cube_005: ["Cube_007", "Cube_006", "Cube_008"], // Armchair
@@ -50,6 +55,7 @@ export const ATTACHED_OBJS: Record<string, string[]> = {
   D_Cube_002: ["Cube_009"], // Papers
   D_Light: ["Sphere", "N_Cylinder_001"], // MainLight
   D_Cylinder: ["Cylinder_001"], // Bin
+  D_Cube_008: ["Cube_010", "Cube_011", "Cube_012", "Cube_014"], // Desk 2
 };
 
 for (let i = 3; i < 34; i++) {
@@ -129,6 +135,9 @@ export async function setupMesh(
       case "Clipboard":
         setClipboard(mesh.parent.clone(), camera);
         mesh.parent.remove(mesh);
+        break;
+      case "Gun":
+        setGun(mesh.parent);
         break;
     }
 

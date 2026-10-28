@@ -23,6 +23,7 @@ import { enableAudioEl } from "./audio";
 import { updateLight } from "../objects/mainLight";
 import { updateBedCover } from "../objects/bed";
 import { updateClipboard } from "../objects/clipboard";
+import { updateRecoil } from "../objects/gun";
 
 let renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
@@ -207,6 +208,7 @@ export async function enableRenderer(
       updateAnimation(delta);
       updateClock();
       updatePhysics(delta);
+      updateRecoil(camera);
       updateBedCover(scene);
       updateClipboard(delta);
       updateKeypad(delta, canvas, scene);

@@ -108,9 +108,10 @@ export function getPlayerMesh() {
   return playerMesh;
 }
 
-const deg = Math.PI / 180,
-  clamp = (num: number, min: number, max: number) =>
-    Math.max(min, Math.min(max, num));
+const deg = Math.PI / 180;
+
+export const clamp = (num: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, num));
 
 const pcInfo = document.getElementById("pc-info") as HTMLHeadingElement,
   warnEl = document.getElementById("literal-pc-info") as HTMLHeadingElement;
@@ -147,8 +148,8 @@ export function enablePlayerControl(
       player.rotation.y -= deltaX * sens * deg;
       camera.rotation.x = clamp(
         camera.rotation.x - deltaY * sens * deg,
-        -90 * deg,
-        90 * deg,
+        -Math.PI / 2,
+        Math.PI / 2,
       );
 
       interactPlayer(camera, scene, canvas, false);

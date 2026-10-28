@@ -89,3 +89,5 @@ Free Download/Stream: http://ncs.io/TheRiot
 Watch: http://ncs.lnk.to/TheRiotAT/youtube
 
 [Hedges PNGs by Vecteezy](https://www.vecteezy.com/free-png/hedges)
+
+Bullet hole images from https://techarthub.com/how-to-make-a-bullet-hole-in-substance-designer/

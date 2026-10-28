@@ -29,7 +29,8 @@ import {
   pickupObject,
 } from "../objects/player";
 import { enableNoteEl, getNoteMeshes, initNote } from "../objects/notepad";
-import { GRABBABLES, INTERACTIBLES } from "../objects/mesh";
+import { GRABBABLES, INTERACTIBLES, EQUIPABBLES } from "../objects/mesh";
+import { pickupGun, shootGun } from "../objects/gun";
 
 const raycaster = new THREE.Raycaster();
 raycaster.far = 8;
@@ -39,7 +40,10 @@ function getObject(
   scene: THREE.Scene,
   x = 0,
   y = 0,
+  far?: number,
 ) {
+  raycaster.far = far || 8;
+
   raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
 
   const intersects = raycaster.intersectObjects([
@@ -64,6 +68,7 @@ function getObject(
       ? intersect.object
       : obj,
     i: intersect,
+    ray: raycaster.ray,
   };
 }
 
@@ -149,6 +154,16 @@ export function scrollPlayer(
   }
 }
 
+let equipped: undefined | (typeof EQUIPABBLES)[number];
+
+export type Intersect =
+  | {
+      obj: THREE.Object3D;
+      i: THREE.Intersection;
+      ray: THREE.Ray;
+    }
+  | undefined;
+
 export function interactPlayer(
   camera: THREE.PerspectiveCamera,
   scene: THREE.Scene,
@@ -164,6 +179,18 @@ export function interactPlayer(
     resetGrab();
     clickedEl?.classList.remove("active");
     clickedEl = undefined;
+    return;
+  }
+
+  if (equipped) {
+    cross.classList.remove("active");
+
+    if (click && released) {
+      switch (equipped) {
+        case "Gun":
+          shootGun(getObject(camera, scene, x, y, 20));
+      }
+    }
     return;
   }
 
@@ -291,6 +318,10 @@ export function interactPlayer(
           case "Bed":
             sleep(canvas, scene);
             break;
+          case "Gun":
+            equipped = "Gun";
+            pickupGun(camera);
+            break;
           default:
             if (name.startsWith("Blind")) {
               const blindNum = Number(name.replace("Blind", ""));
@@ -371,6 +402,8 @@ export function contextPlayer(
   camera: THREE.PerspectiveCamera,
   scene: THREE.Scene,
 ) {
+  if (equipped) return;
+
   const intersect = getObject(camera, scene);
   if (!intersect) return;
 
