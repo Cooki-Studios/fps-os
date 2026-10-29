@@ -3,6 +3,11 @@ import * as THREE from "three";
 const mixers: THREE.AnimationMixer[] = [],
   actions: THREE.AnimationAction[] = [];
 
+export const ROOM_ROT_FIX = new THREE.Quaternion().setFromAxisAngle(
+  new THREE.Vector3(1, 0, 0),
+  Math.PI / 2,
+);
+
 export function setupAnimation(
   root: THREE.Object3D,
   clip: THREE.AnimationClip,

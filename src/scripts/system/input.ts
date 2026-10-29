@@ -4,7 +4,7 @@ import { isMobile } from "../util/mobile";
 import { enableAudioEl } from "./audio";
 import { getInteractReleased, interactPlayer } from "./interact";
 
-const actions = {
+export const actions: Record<string, string> = {
   // General
   fullscreen: "f",
 
@@ -18,12 +18,12 @@ const actions = {
   interact: "e",
   drop: "q",
 
-  speedo: "r",
-  exitPC: "escape",
+  // speedo: "r",
+  exitUI: "escape",
 
   // Debug
-  debug: "`",
-  debugPlayer: "~",
+  // debug: "`",
+  // debugPlayer: "~",
 
   // Noclip
   noclip: "/",
@@ -33,7 +33,7 @@ const actions = {
 } as const;
 export type Action = keyof typeof actions;
 
-const globalActions: Action[] = ["debug", "debugPlayer", "exitPC"];
+const globalActions: Action[] = ["debug", "debugPlayer", "exitUI"];
 const globalKeys = new Set<string>(
   globalActions.map((action) => actions[action]),
 );

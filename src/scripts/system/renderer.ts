@@ -24,6 +24,8 @@ import { updateLight } from "../objects/mainLight";
 import { updateBedCover } from "../objects/bed";
 import { updateClipboard } from "../objects/clipboard";
 import { updateRecoil } from "../objects/gun";
+import { SCREENS } from "../objects/mesh";
+import { updateSettingsPanel } from "../objects/settings";
 
 let renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
@@ -134,16 +136,13 @@ export function updateQuality() {
   changeCSMQuality(scene, camera, quality);
 
   scene.traverse((mesh) => {
-    if (mesh instanceof THREE.Mesh && mesh.material) {
-      if (mesh.name == "shadow") {
-        if (mesh.parent?.name == "Screen") return;
-        if (quality == 1) mesh.material.emissiveIntensity = 0.2;
-        else mesh.material.emissiveIntensity = 0;
-        return;
-      }
-      if (mesh.name != "D_Plane_002") setupShadowMaterial(mesh.material);
-      mesh.material.needsUpdate = true;
-    }
+    if (
+      mesh instanceof THREE.Mesh &&
+      mesh.material &&
+      mesh.name != "D_Plane_002" &&
+      !(SCREENS as readonly string[]).includes(mesh.parent?.name || "")
+    )
+      setupShadowMaterial(mesh.material);
   });
 }
 
@@ -210,6 +209,7 @@ export async function enableRenderer(
       updatePhysics(delta);
       updateRecoil(camera);
       updateBedCover(scene);
+      updateSettingsPanel();
       updateClipboard(delta);
       updateKeypad(delta, canvas, scene);
       updateGrabInertia();

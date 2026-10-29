@@ -1,5 +1,9 @@
 import * as THREE from "three";
-import { playAnimation, playAnimationReversed } from "../system/animation";
+import {
+  playAnimation,
+  playAnimationReversed,
+  ROOM_ROT_FIX,
+} from "../system/animation";
 import { disablePlayerControl, enablePlayerControl } from "./player";
 import { pause } from "../system/pause";
 import { removePhysicsFromObject } from "../system/physics";
@@ -22,11 +26,7 @@ export function updateBedCover(scene: THREE.Scene) {
   cover.position.set(-2.485, 0, 0);
   cover.parent!.position.set(pos.x, -pos.z, pos.y);
 
-  const coordFixQuat = new THREE.Quaternion().setFromAxisAngle(
-    new THREE.Vector3(1, 0, 0),
-    Math.PI / 2,
-  );
-  const newRot = rot.clone().premultiply(coordFixQuat);
+  const newRot = rot.clone().premultiply(ROOM_ROT_FIX);
   cover.parent!.quaternion.copy(newRot);
 }
 

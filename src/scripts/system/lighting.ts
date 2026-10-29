@@ -117,4 +117,5 @@ export function resizeCSM() {
 
 export function setupShadowMaterial(mat: THREE.MeshPhysicalMaterial) {
   if (csm) csm.setupMaterial(mat);
+  mat.needsUpdate = true;
 }

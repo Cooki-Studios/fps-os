@@ -21,6 +21,7 @@ import { addAudioToObject, initAudio } from "./system/audio";
 import { ATTACHED_OBJS, PAUSED_OBJS, setupMesh } from "./objects/mesh";
 import { setupClock } from "./objects/clock";
 import { scrollPlayer } from "./system/interact";
+import { setDebug } from "./objects/settings";
 
 document.addEventListener(
   "wheel",
@@ -87,7 +88,7 @@ async function addPhysicsToObjects() {
     else addPhysicsToObject(mesh, false, true, false, attachments);
 
     setTimeout(() => {
-      if (PAUSED_OBJS.includes(mesh.name)) {
+      if ((PAUSED_OBJS as readonly string[]).includes(mesh.name)) {
         mesh.userData.startPaused = true;
         pausePhysicsOfObject(mesh, mesh.userData.body);
       }
@@ -122,6 +123,12 @@ loader.loadAsync("room.usdc").then(async (room) => {
         case "Switch_003":
           await addAudioToObject(mesh, "light-on");
           await addAudioToObject(mesh, "light-off");
+          break;
+        case "Debug_005":
+          room.attach(mesh);
+          mesh.position.set(0, 0, 0);
+          mesh.rotation.set(0, 0, 0);
+          setDebug(mesh);
           break;
       }
   });

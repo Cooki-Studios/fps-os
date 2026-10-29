@@ -29,9 +29,15 @@ import {
   pickupObject,
 } from "../objects/player";
 import { enableNoteEl, getNoteMeshes, initNote } from "../objects/notepad";
-import { GRABBABLES, INTERACTIBLES, EQUIPABBLES } from "../objects/mesh";
+import {
+  GRABBABLES,
+  INTERACTIBLES,
+  EQUIPABBLES,
+  SCREENS,
+} from "../objects/mesh";
 import { dropGun, pickupGun, shootGun } from "../objects/gun";
 import { onActionReleased } from "./input";
+import { updateSwitch } from "../objects/settings";
 
 const raycaster = new THREE.Raycaster();
 raycaster.far = 8;
@@ -56,8 +62,13 @@ function getObject(
     (i) =>
       i.object instanceof THREE.Mesh &&
       i.object.name != "" &&
+      i.object.name != "shadow" &&
+      i.object.name != "Settings" &&
       !i.object.name.startsWith("N_Hand") &&
-      !(!include3DUI && ["Note", "Screen", "shadow"].includes(i.object.name)),
+      !(
+        !include3DUI &&
+        [...(SCREENS as readonly string[])].includes(i.object.name)
+      ),
   );
   if (!intersect || !intersect.object.parent) return;
 
@@ -66,7 +77,7 @@ function getObject(
   else if (obj.name == "Bed_003") obj = getBedBase();
 
   return {
-    obj: ["Note", "Screen"].includes(intersect.object.name)
+    obj: (SCREENS as readonly string[]).includes(intersect.object.name)
       ? intersect.object
       : obj,
     i: intersect,
@@ -216,11 +227,11 @@ export function interactPlayer(
 
   const name = obj?.name.split("_")[0];
   if (obj) {
-    if (!grabObj && INTERACTIBLES.includes(name ?? ""))
+    if (!grabObj && (INTERACTIBLES as readonly string[]).includes(name ?? ""))
       cross.classList.add("active");
     else cross.classList.remove("active");
 
-    if (obj.visible && GRABBABLES.includes(name ?? ""))
+    if (obj.visible && (GRABBABLES as readonly string[]).includes(name ?? ""))
       cross.classList.add("grabbable");
     else cross.classList.remove("grabbable");
   }
@@ -290,7 +301,7 @@ export function interactPlayer(
     }
 
     if (obj)
-      if (obj.visible && GRABBABLES.includes(name ?? ""))
+      if (obj.visible && (GRABBABLES as readonly string[]).includes(name ?? ""))
         if (grabTimeout) {
           clearTimeout(grabTimeout);
           grabTimeout = null;
@@ -303,7 +314,10 @@ export function interactPlayer(
             if (!obj.userData.grabbed && obj.name == "Note")
               obj.userData.createNote = 1;
 
-            if (!obj.userData.grabbed && ["Note", "Screen"].includes(obj.name))
+            if (
+              !obj.userData.grabbed &&
+              (SCREENS as readonly string[]).includes(obj.name)
+            )
               obj.userData.attach = undefined;
 
             pickupObject(obj);
@@ -313,7 +327,7 @@ export function interactPlayer(
 
     if (name && click && released) {
       if (!grabObj)
-        switch (name) {
+        switch (name as (typeof INTERACTIBLES)[number]) {
           case "Switch":
             toggleLight();
             break;
@@ -332,6 +346,9 @@ export function interactPlayer(
           case "Gun":
             equipped = "Gun";
             pickupGun(camera);
+            break;
+          case "Debug":
+            updateSwitch("debug");
             break;
           default:
             if (name.startsWith("Blind")) {
@@ -452,7 +469,10 @@ export function contextPlayer(
 
     label.appendChild(file);
     menuButtons.appendChild(label);
-  } else if (obj.visible && GRABBABLES.includes(name ?? "")) {
+  } else if (
+    obj.visible &&
+    (GRABBABLES as readonly string[]).includes(name ?? "")
+  ) {
     const mesh = obj.children[0] as THREE.Mesh;
     const button = document.createElement("button");
     let enabled = false;
@@ -465,7 +485,7 @@ export function contextPlayer(
       const button2 = document.createElement("button");
       button2.textContent = "Reset rotation";
       button2.onclick = () => {
-        if (["Note", "Screen"].includes(obj.name))
+        if ((SCREENS as readonly string[]).includes(obj.name))
           obj.lookAt(getPlayerPosition().add(camera.position));
         else obj.rotation.set(-Math.PI / 2, 0, -Math.PI / 2);
       };

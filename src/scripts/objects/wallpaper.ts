@@ -39,7 +39,7 @@ export async function initWallpaper(walls: THREE.Object3D) {
 async function loadWallpaper() {
   const saved = localStorage.getItem("wallpaper");
   if (saved) texture = await loader.loadAsync(saved);
-  else texture = await loader.loadAsync("textures/wallpaper.jpg");
+  else texture = await loader.loadAsync("textures/wallpaper.webp");
 }
 
 export function toggleWallpaper() {

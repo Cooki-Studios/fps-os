@@ -142,7 +142,7 @@ function initMonitor(scene: THREE.Scene) {
   monitorScreen.onkeydown = (e) => {
     if (e.key == "Escape") {
       if (e.target) (e.target as HTMLElement).blur();
-      document.dispatchEvent(new CustomEvent("exitPC:pressed"));
+      document.dispatchEvent(new CustomEvent("exitUI:pressed"));
     }
     playAudio(monitor.name, "pc-type");
   };
@@ -247,7 +247,7 @@ export function enablePC(
   setTimeout(() => url?.focus());
 
   onActionPressed(
-    "exitPC",
+    "exitUI",
     () => {
       inPC = false;
       enableAudioEl();

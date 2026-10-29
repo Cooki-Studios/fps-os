@@ -8,10 +8,11 @@ import { addAudioToObject, loadBuffer } from "../system/audio";
 import { setNotepad } from "./notepad";
 import { setClipboard } from "./clipboard";
 import { setGun } from "./gun";
+import { setDebugParent, setSettingsPanel } from "./settings";
 
 const wind = await loadBuffer("windows-wind");
 
-export const INTERACTIBLES: string[] = [
+export const INTERACTIBLES = [
   "Switch",
   "Door",
   "PC",
@@ -27,8 +28,10 @@ export const INTERACTIBLES: string[] = [
   "Blind5",
   "Blind5_001",
   "Gun",
+  "Debug",
 ] as const;
-export const GRABBABLES: string[] = [
+
+export const GRABBABLES = [
   "Pillow",
   "Note",
   "Screen",
@@ -44,9 +47,11 @@ export const GRABBABLES: string[] = [
   "Armchair",
   "Rug",
   "PapersPlease",
+  "ControlPanel",
 ] as const;
 
 export const EQUIPABBLES = ["Gun"] as const;
+export const SCREENS = ["Note", "Screen", "Settings"] as const;
 
 export const ATTACHED_OBJS: Record<string, string[]> = {
   D_Cube_007: ["Cube_013"], // Bed
@@ -63,7 +68,7 @@ for (let i = 3; i < 34; i++) {
   );
 }
 
-export const PAUSED_OBJS: string[] = [
+export const PAUSED_OBJS = [
   "D_Cylinder_002",
   "D_Plane_001",
   "D_Plane_003",
@@ -82,7 +87,8 @@ export const MASSES: Record<string, number> = {
   Poster: 1.5,
   Light: 0.25,
   Rug: 0.1,
-};
+  ControlPanel: 2,
+} as const;
 
 export async function setupMesh(
   mesh: THREE.Mesh<any, THREE.MeshPhysicalMaterial, any>,
@@ -96,9 +102,6 @@ export async function setupMesh(
 
   if (mesh.name != "D_Plane_002") {
     mesh.castShadow = true;
-
-    mesh.material.needsUpdate = true;
-
     setupShadowMaterial(mesh.material);
 
     if (mesh.name.startsWith("N_foliage") || mesh.name.startsWith("N_hedge")) {
@@ -112,6 +115,8 @@ export async function setupMesh(
     mesh.material.polygonOffsetFactor = -1;
     mesh.material.polygonOffsetUnits = -1;
   }
+
+  mesh.material.needsUpdate = true;
 
   if (mesh.parent) {
     switch (mesh.parent.name) {
@@ -145,6 +150,12 @@ export async function setupMesh(
         break;
       case "Gun":
         setGun(mesh.parent);
+        break;
+      case "ControlPanel":
+        setSettingsPanel(mesh.parent, scene);
+        break;
+      case "Debug_004":
+        setDebugParent(mesh.parent.parent!);
         break;
     }
 
