@@ -18,7 +18,7 @@ import { initWallpaper } from "./objects/wallpaper";
 import { setupMainLight } from "./objects/mainLight";
 import "./system/audio";
 import { addAudioToObject, initAudio } from "./system/audio";
-import { ATTACHED_OBJS, setupMesh } from "./objects/mesh";
+import { ATTACHED_OBJS, PAUSED_OBJS, setupMesh } from "./objects/mesh";
 import { setupClock } from "./objects/clock";
 import { scrollPlayer } from "./system/interact";
 
@@ -87,16 +87,10 @@ async function addPhysicsToObjects() {
     else addPhysicsToObject(mesh, false, true, false, attachments);
 
     setTimeout(() => {
-      if (
-        [
-          "D_Cylinder_002",
-          "D_Plane_001",
-          "D_Plane_003",
-          "D_Plane_004",
-          "D_Light",
-        ].includes(mesh.name)
-      )
+      if (PAUSED_OBJS.includes(mesh.name)) {
+        mesh.userData.startPaused = true;
         pausePhysicsOfObject(mesh, mesh.userData.body);
+      }
     });
   }
 

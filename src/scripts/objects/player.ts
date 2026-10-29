@@ -311,6 +311,7 @@ export async function initPlayer(
 
   onActionPressed("noclip", () => {
     toggleAction("interact", noclip);
+    toggleAction("drop", noclip);
     setPlayerCollision(noclip);
     playerMesh.castShadow = noclip;
     noclip = !noclip;

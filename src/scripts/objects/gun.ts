@@ -1,9 +1,14 @@
 import * as THREE from "three";
 import { DecalGeometry } from "three/addons/geometries/DecalGeometry.js";
-import { addVelocityToObject, pausePhysicsOfObject } from "../system/physics";
+import {
+  addVelocityToObject,
+  pausePhysicsOfObject,
+  resumePhysicsOfObject,
+} from "../system/physics";
 import { type Intersect } from "../system/interact";
 import { clamp } from "./player";
 import { addAudioToObject, playAudio } from "../system/audio";
+import { getMainCam, getMainScene } from "../util/scene";
 
 let gun: THREE.Object3D,
   pickedUp = false;
@@ -37,6 +42,19 @@ export function pickupGun(camera: THREE.PerspectiveCamera) {
   gun.rotation.copy(gunRot);
 
   pickedUp = true;
+}
+
+export function dropGun() {
+  const vel = new THREE.Vector3(0, 0.25, -0.5)
+    .transformDirection(getMainCam().matrixWorld)
+    .multiplyScalar(5);
+
+  const mesh = gun.children[0] as THREE.Mesh;
+  resumePhysicsOfObject(mesh, mesh.userData.body, vel);
+
+  getMainScene().attach(gun);
+
+  pickedUp = false;
 }
 
 const RECOIL = 0.025,
@@ -93,17 +111,19 @@ export function shootGun(intersect: Intersect) {
     return;
   } else if (!intersect.i.object.userData.body) {
     addBulletHole(intersect.i.object as THREE.Mesh, intersect);
-
-    const vel = intersect.ray.direction.clone().multiplyScalar(POWER);
-    addVelocityToObject(mesh, vel);
-
+    knockObject(mesh, intersect.ray.direction.clone().multiplyScalar(POWER));
     return;
   }
 
-  const vel = intersect.ray.direction.clone().multiplyScalar(POWER);
-  addVelocityToObject(mesh, vel);
-
   addBulletHole(mesh, intersect);
+  knockObject(mesh, intersect.ray.direction.clone().multiplyScalar(POWER));
+}
+
+function knockObject(mesh: THREE.Mesh, vel: THREE.Vector3) {
+  if (mesh.userData.startPaused) {
+    mesh.userData.startPaused = false;
+    resumePhysicsOfObject(mesh, mesh.userData.body, vel);
+  } else addVelocityToObject(mesh, vel);
 }
 
 function addBulletHole(obj: THREE.Mesh, intersect: Intersect) {

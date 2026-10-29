@@ -30,7 +30,8 @@ import {
 } from "../objects/player";
 import { enableNoteEl, getNoteMeshes, initNote } from "../objects/notepad";
 import { GRABBABLES, INTERACTIBLES, EQUIPABBLES } from "../objects/mesh";
-import { pickupGun, shootGun } from "../objects/gun";
+import { dropGun, pickupGun, shootGun } from "../objects/gun";
+import { onActionReleased } from "./input";
 
 const raycaster = new THREE.Raycaster();
 raycaster.far = 8;
@@ -155,6 +156,15 @@ export function scrollPlayer(
 }
 
 let equipped: undefined | (typeof EQUIPABBLES)[number];
+
+onActionReleased("drop", () => {
+  switch (equipped) {
+    case "Gun":
+      dropGun();
+      break;
+  }
+  equipped = undefined;
+});
 
 export type Intersect =
   | {

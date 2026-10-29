@@ -16,6 +16,7 @@ const actions = {
   jump: " ",
   crouch: "shift",
   interact: "e",
+  drop: "q",
 
   speedo: "r",
   exitPC: "escape",

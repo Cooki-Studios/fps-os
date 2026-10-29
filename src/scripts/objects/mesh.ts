@@ -57,12 +57,19 @@ export const ATTACHED_OBJS: Record<string, string[]> = {
   D_Cylinder: ["Cylinder_001"], // Bin
   D_Cube_008: ["Cube_010", "Cube_011", "Cube_012", "Cube_014"], // Desk 2
 };
-
 for (let i = 3; i < 34; i++) {
   ATTACHED_OBJS["D_Cylinder"].push(
     "Cylinder_0" + i.toString().padStart(2, "0"),
   );
 }
+
+export const PAUSED_OBJS: string[] = [
+  "D_Cylinder_002",
+  "D_Plane_001",
+  "D_Plane_003",
+  "D_Plane_004",
+  "D_Light",
+] as const;
 
 export const MASSES: Record<string, number> = {
   default: 1,
