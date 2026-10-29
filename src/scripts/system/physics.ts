@@ -778,7 +778,9 @@ function doPhysicsStep(delta: number) {
       const identity = new Jolt.Quat(-Math.SQRT1_2, 0, 0, Math.SQRT1_2);
       bodyInterface.SetPositionAndRotation(
         bodyId,
-        obj.parent.name == "Light" || obj.parent.name.startsWith("Poster")
+        obj.parent.name == "Light" ||
+          obj.parent.name == "Gun" ||
+          obj.parent.name.startsWith("Poster")
           ? respawnPosUp
           : respawnPos,
         identity,

@@ -42,21 +42,22 @@ function getObject(
   x = 0,
   y = 0,
   far?: number,
+  include3DUI = true,
 ) {
   raycaster.far = far || 8;
 
   raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
 
-  const intersects = raycaster.intersectObjects([
-    scene,
-    ...getPCScreens(),
-    ...getNoteMeshes(),
-  ]);
+  const objects: THREE.Object3D[] = [scene];
+  if (include3DUI) objects.push(...getPCScreens(), ...getNoteMeshes());
+
+  const intersects = raycaster.intersectObjects(objects);
   const intersect = intersects.find(
     (i) =>
       i.object instanceof THREE.Mesh &&
       i.object.name != "" &&
-      !i.object.name.startsWith("N_Hand"),
+      !i.object.name.startsWith("N_Hand") &&
+      !(!include3DUI && ["Note", "Screen", "shadow"].includes(i.object.name)),
   );
   if (!intersect || !intersect.object.parent) return;
 
@@ -198,7 +199,7 @@ export function interactPlayer(
     if (click && released) {
       switch (equipped) {
         case "Gun":
-          shootGun(getObject(camera, scene, x, y, 20));
+          shootGun(getObject(camera, scene, x, y, 20, false));
       }
     }
     return;
