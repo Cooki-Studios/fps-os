@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { createUI } from "../system/3dui";
 import { actions } from "../system/input";
 import { ROOM_ROT_FIX } from "../system/animation";
+import ascii from "../../../ascii.html?raw" with { type: "html" };
 
 let panel: THREE.Object3D;
 
@@ -43,11 +44,12 @@ export function updateSettingsPanel() {
   const rot = new THREE.Quaternion();
   debugParent.getWorldQuaternion(rot);
 
-  debug.position.set(pos.x, -pos.z - 0.1, pos.y);
+  debug.position.set(pos.x, -pos.z, pos.y);
   debug.quaternion
     .copy(ROOM_ROT_FIX)
     .multiply(rot)
     .multiply(ROOM_ROT_FIX.clone().invert());
+  debug.translateZ(0.1);
   debug.rotateX(Math.PI / 2);
   debug.rotateX(rotX);
 }
@@ -72,6 +74,11 @@ export async function setSettingsPanel(
   const actionTitle = document.createElement("h2");
   actionTitle.textContent = "Controls";
   div.appendChild(actionTitle);
+
+  const asciiEl = document.createElement("p");
+  asciiEl.id = "ascii";
+  asciiEl.innerHTML = ascii;
+  div.appendChild(asciiEl);
 
   for (const action of Object.keys(actions)) {
     const actionFmt = action

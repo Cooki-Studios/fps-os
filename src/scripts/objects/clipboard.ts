@@ -60,10 +60,10 @@ function copy(div: HTMLDivElement) {
     clipboard.visible = true;
     targetY = END_Y;
     const el = document.createElement("span");
-    el.textContent = "\n\n" + text + "\n";
+    el.textContent = "\n\n" + text + "\n\n";
 
     const first = div.firstChild;
-    if (first) first.textContent = first.textContent?.trim() + "\n";
+    if (first) first.textContent = first.textContent?.trim() + "\n\n";
 
     div.prepend(el);
   } else if (clipboard.visible && targetY === END_Y) targetY = START_Y;
