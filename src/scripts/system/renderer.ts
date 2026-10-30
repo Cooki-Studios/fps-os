@@ -26,6 +26,7 @@ import { updateClipboard } from "../objects/clipboard";
 import { updateRecoil } from "../objects/gun";
 import { SCREENS } from "../objects/mesh";
 import { updateSettingsPanel } from "../objects/settings";
+import { updateFileCabinet } from "../objects/files";
 
 let renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
@@ -209,6 +210,7 @@ export async function enableRenderer(
       updatePhysics(delta);
       updateRecoil(camera);
       updateBedCover(scene);
+      updateFileCabinet(scene, delta);
       updateSettingsPanel(delta);
       updateClipboard(delta);
       updateKeypad(delta, canvas, scene);

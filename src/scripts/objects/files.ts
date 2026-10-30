@@ -1,0 +1,43 @@
+import * as THREE from "three";
+import { ROOM_ROT_FIX } from "../system/animation";
+
+let files: THREE.Object3D,
+  cabinet: THREE.Object3D,
+  cabinetY = 0,
+  open = false;
+
+export async function setFiles(obj: THREE.Object3D) {
+  files = obj;
+}
+
+export function getFilesBase() {
+  return files;
+}
+
+export function updateCabinetPos() {
+  open = !open;
+
+  if (open) cabinetY = -1;
+  else cabinetY = 0;
+}
+
+export function updateFileCabinet(scene: THREE.Scene, delta: number) {
+  const pos = new THREE.Vector3();
+  files.getWorldPosition(pos);
+  const rot = new THREE.Quaternion();
+  files.getWorldQuaternion(rot);
+
+  if (!cabinet) cabinet = scene.getObjectByName("N_Cube_004")!.parent!;
+
+  cabinet.parent!.position.set(pos.x, -pos.z, pos.y);
+
+  cabinet.position.y = THREE.MathUtils.damp(
+    cabinet.position.y,
+    cabinetY,
+    16,
+    delta,
+  );
+
+  const newRot = rot.clone().premultiply(ROOM_ROT_FIX);
+  cabinet.parent!.quaternion.copy(newRot);
+}

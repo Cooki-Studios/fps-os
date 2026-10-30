@@ -15,13 +15,15 @@ const html = document.querySelector("html")!,
 
 const zTimeouts: number[] = [];
 
+let cover: THREE.Object3D;
+
 export function updateBedCover(scene: THREE.Scene) {
   const pos = new THREE.Vector3();
   bed.getWorldPosition(pos);
   const rot = new THREE.Quaternion();
   bed.getWorldQuaternion(rot);
 
-  const cover = scene.getObjectByName("N_Cube_014")!.parent!;
+  if (!cover) cover = scene.getObjectByName("N_Cube_014")!.parent!;
 
   cover.position.set(-2.485, 0, 0);
   cover.parent!.position.set(pos.x, -pos.z, pos.y);

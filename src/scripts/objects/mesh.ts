@@ -10,6 +10,7 @@ import { setClipboard } from "./clipboard";
 import { setGun } from "./gun";
 import { setSettingsPanel, setSettingsSwitch } from "./settings";
 import { setHorn } from "./horn";
+import { setFiles } from "./files";
 
 const wind = await loadBuffer("windows-wind");
 
@@ -33,6 +34,7 @@ export const INTERACTIBLES = [
   "DebugPlayer",
   "Speedo",
   "ChoudharyBillaHorn",
+  "Files",
 ] as const;
 
 export const GRABBABLES = [
@@ -53,6 +55,7 @@ export const GRABBABLES = [
   "PapersPlease",
   "ControlPanel",
   "ChoudharyBillaHorn",
+  "Files",
 ] as const;
 
 export const EQUIPABBLES = ["Gun"] as const;
@@ -180,6 +183,9 @@ export async function setupMesh(
         break;
       case "ChoudharyBillaHorn":
         setHorn(mesh.parent);
+        break;
+      case "Files_001":
+        setFiles(mesh.parent);
         break;
     }
 

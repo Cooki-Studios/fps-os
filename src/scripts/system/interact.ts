@@ -40,6 +40,7 @@ import { dropGun, pickupGun, shootGun } from "../objects/gun";
 import { onActionReleased } from "./input";
 import { updateSwitch } from "../objects/settings";
 import { playHorn } from "../objects/horn";
+import { getFilesBase, updateCabinetPos } from "../objects/files";
 
 const raycaster = new THREE.Raycaster();
 raycaster.far = 8;
@@ -77,6 +78,7 @@ function getObject(
   let obj = intersect.object.parent;
   if (obj.name == "Door_001") obj = getDoorBase();
   else if (obj.name == "Bed_003") obj = getBedBase();
+  else if (obj.name == "Cube_005") obj = getFilesBase();
 
   return {
     obj: (SCREENS as readonly string[]).includes(intersect.object.name)
@@ -372,6 +374,9 @@ export function interactPlayer(
             break;
           case "ChoudharyBillaHorn":
             playHorn();
+            break;
+          case "Files":
+            updateCabinetPos();
             break;
           default:
             if (name.startsWith("Blind")) {
