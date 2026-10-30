@@ -106,6 +106,7 @@ export const MASSES: Record<string, number> = {
   Light: 0.25,
   Rug: 0.1,
   ControlPanel: 2,
+  Files: 3,
 } as const;
 
 export async function setupMesh(

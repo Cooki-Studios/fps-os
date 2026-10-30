@@ -1,5 +1,7 @@
 import * as THREE from "three";
 import { ROOM_ROT_FIX } from "../system/animation";
+import { switchToFiles } from "../files/main";
+import { disablePlayerControl } from "./player";
 
 let files: THREE.Object3D,
   cabinet: THREE.Object3D,
@@ -14,11 +16,25 @@ export function getFilesBase() {
   return files;
 }
 
-export function updateCabinetPos() {
+const fade = document.getElementById("fade-overlay") as HTMLDivElement;
+
+export function updateCabinetPos(canvas: HTMLCanvasElement) {
   open = !open;
 
-  if (open) cabinetY = -1;
-  else cabinetY = 0;
+  if (open) {
+    cabinetY = -1;
+    disablePlayerControl(canvas);
+    setTimeout(() => {
+      fade.style.opacity = "1";
+    }, 200);
+
+    setTimeout(() => {
+      switchToFiles();
+      setTimeout(() => {
+        fade.style.opacity = "0";
+      }, 200);
+    }, 500);
+  } else cabinetY = 0;
 }
 
 export function updateFileCabinet(scene: THREE.Scene, delta: number) {

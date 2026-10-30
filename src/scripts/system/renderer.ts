@@ -147,6 +147,15 @@ export function updateQuality() {
   });
 }
 
+let filesScene: THREE.Scene, filesCamera: THREE.PerspectiveCamera;
+export function setFilesRenderer(
+  scene: THREE.Scene,
+  camera: THREE.PerspectiveCamera,
+) {
+  filesCamera = camera;
+  filesScene = scene;
+}
+
 export async function enableRenderer(
   renderScene: THREE.Scene,
   renderCam: THREE.PerspectiveCamera,
@@ -205,24 +214,28 @@ export async function enableRenderer(
 
       stats.begin();
 
-      updateAnimation(delta);
-      updateClock();
-      updatePhysics(delta);
-      updateRecoil(camera);
-      updateBedCover(scene);
-      updateFileCabinet(scene, delta);
-      updateSettingsPanel(delta);
-      updateClipboard(delta);
-      updateKeypad(delta, canvas, scene);
-      updateGrabInertia();
-      updateUIPosRot();
-      update3DUI(scene, camera);
-      updateMenu(camera);
-      updateCSM(delta);
-      updateLight();
+      if (filesScene) {
+        renderer.render(filesScene, filesCamera);
+      } else {
+        updateAnimation(delta);
+        updateClock();
+        updatePhysics(delta);
+        updateRecoil(camera);
+        updateBedCover(scene);
+        updateFileCabinet(scene, delta);
+        updateSettingsPanel(delta);
+        updateClipboard(delta);
+        updateKeypad(delta, canvas, scene);
+        updateGrabInertia();
+        updateUIPosRot();
+        update3DUI(scene, camera);
+        updateMenu(camera);
+        updateCSM(delta);
+        updateLight();
 
-      if (quality > 2) renderWithShaders();
-      else renderer.render(scene, camera);
+        if (quality > 2) renderWithShaders();
+        else renderer.render(scene, camera);
+      }
 
       stats.end();
     }

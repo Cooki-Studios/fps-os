@@ -376,7 +376,7 @@ export function interactPlayer(
             playHorn();
             break;
           case "Files":
-            updateCabinetPos();
+            updateCabinetPos(canvas);
             break;
           default:
             if (name.startsWith("Blind")) {
