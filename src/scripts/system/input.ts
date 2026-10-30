@@ -1,8 +1,7 @@
 import type { PerspectiveCamera, Scene, Object3DEventMap } from "three";
 import { bootLog } from "../boot";
-import { isMobile } from "../util/mobile";
 import { enableAudioEl } from "./audio";
-import { getInteractReleased, interactPlayer } from "./interact";
+import { getEquipped, getInteractReleased, interactPlayer } from "./interact";
 
 export const actions: Record<string, string> = {
   // General
@@ -18,12 +17,7 @@ export const actions: Record<string, string> = {
   interact: "e",
   drop: "q",
 
-  // speedo: "r",
   exitUI: "escape",
-
-  // Debug
-  // debug: "`",
-  // debugPlayer: "~",
 
   // Noclip
   noclip: "/",
@@ -33,7 +27,7 @@ export const actions: Record<string, string> = {
 } as const;
 export type Action = keyof typeof actions;
 
-const globalActions: Action[] = ["debug", "debugPlayer", "exitUI"];
+const globalActions: Action[] = ["exitUI"];
 const globalKeys = new Set<string>(
   globalActions.map((action) => actions[action]),
 );
@@ -50,12 +44,15 @@ const keys: Record<string, boolean> = {},
   keyActions: Record<string, Action[]> = {};
 export let enabled = false;
 
-const cross = document.getElementById("cross") as HTMLHeadingElement;
+const cross = document.getElementById("cross") as HTMLHeadingElement,
+  ammo = document.getElementById("ammo") as HTMLHeadingElement;
 
 export function enableInput() {
   enabled = true;
   enableAudioEl(false);
-  if (!isMobile) cross.style.visibility = "visible";
+
+  cross.style.visibility = "visible";
+  if (getEquipped() == "Gun") ammo.style.visibility = "visible";
 }
 export function disableInput(
   camera?: PerspectiveCamera,
@@ -63,7 +60,10 @@ export function disableInput(
   canvas?: HTMLCanvasElement,
 ) {
   enabled = false;
-  if (!isMobile) cross.style.visibility = "hidden";
+
+  cross.style.visibility = "hidden";
+  if (getEquipped() == "Gun") ammo.style.visibility = "visible";
+
   resetKeys();
 
   if (camera && scene && canvas && !getInteractReleased())

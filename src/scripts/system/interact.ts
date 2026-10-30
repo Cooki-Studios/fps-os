@@ -8,6 +8,7 @@ import {
   removePhysicsFromObject,
   resumePhysicsOfObject,
   addVelocityToObject,
+  getDebugEnabled,
 } from "./physics";
 import { enablePC, getPCScreens } from "../objects/pc";
 import {
@@ -38,6 +39,7 @@ import {
 import { dropGun, pickupGun, shootGun } from "../objects/gun";
 import { onActionReleased } from "./input";
 import { updateSwitch } from "../objects/settings";
+import { playHorn } from "../objects/horn";
 
 const raycaster = new THREE.Raycaster();
 raycaster.far = 8;
@@ -117,6 +119,11 @@ export function getInteractReleased() {
 }
 
 const grabVel = new THREE.Vector3();
+
+export function getGrabVel() {
+  return grabVel;
+}
+
 export function setGrabVel(
   x: number,
   y: number,
@@ -169,6 +176,10 @@ export function scrollPlayer(
 
 let equipped: undefined | (typeof EQUIPABBLES)[number];
 
+export function getEquipped() {
+  return equipped;
+}
+
 onActionReleased("drop", () => {
   switch (equipped) {
     case "Gun":
@@ -204,20 +215,23 @@ export function interactPlayer(
     return;
   }
 
+  let intersect;
+
   if (equipped) {
     cross.classList.remove("active");
 
     if (click && released) {
       switch (equipped) {
         case "Gun":
-          shootGun(getObject(camera, scene, x, y, 20, false));
+          intersect = getObject(camera, scene, x, y, 20, false);
+          if (!shootGun(intersect)) return;
       }
-    }
-    return;
+    } else return;
   }
 
-  const intersect = getObject(camera, scene, x, y);
-  if (!intersect) {
+  if (!intersect) intersect = getObject(camera, scene, x, y);
+
+  if (!intersect || equipped) {
     cross.classList.remove("active");
     clickedEl?.classList.remove("active");
   }
@@ -226,7 +240,7 @@ export function interactPlayer(
   if (!obj) clickedEl?.classList.remove("active");
 
   const name = obj?.name.split("_")[0];
-  if (obj) {
+  if (obj && !equipped) {
     if (!grabObj && (INTERACTIBLES as readonly string[]).includes(name ?? ""))
       cross.classList.add("active");
     else cross.classList.remove("active");
@@ -332,16 +346,16 @@ export function interactPlayer(
             toggleLight();
             break;
           case "Door":
-            lock(camera, canvas);
+            if (!equipped) lock(camera, canvas);
             break;
           case "PC":
-            enablePC(canvas, scene);
+            if (!equipped) enablePC(canvas, scene);
             break;
           case "Screen":
             enablePC(canvas, scene, undefined, true);
             break;
           case "Bed":
-            sleep(canvas, scene);
+            if (!equipped) sleep(canvas, scene);
             break;
           case "Gun":
             equipped = "Gun";
@@ -349,6 +363,15 @@ export function interactPlayer(
             break;
           case "Debug":
             updateSwitch("debug");
+            break;
+          case "DebugPlayer":
+            updateSwitch("debugPlayer");
+            break;
+          case "Speedo":
+            updateSwitch("speedo");
+            break;
+          case "ChoudharyBillaHorn":
+            playHorn();
             break;
           default:
             if (name.startsWith("Blind")) {
@@ -411,6 +434,7 @@ export function interactPlayer(
 
 const menu = document.getElementById("context") as HTMLDivElement,
   menuName = document.getElementById("ctx-name") as HTMLSpanElement,
+  menuMeshName = document.getElementById("ctx-mesh-name") as HTMLSpanElement,
   menuButtons = document.getElementById("ctx-buttons") as HTMLDivElement;
 
 let contextObj: CSS3DObject, contextRect: DOMRect;
@@ -443,6 +467,17 @@ export function contextPlayer(
   menuName.textContent = name;
 
   menuButtons.textContent = "";
+
+  if (getDebugEnabled() && intersect.obj.children[0].name != "") {
+    menuMeshName.classList.add("debug");
+    menuMeshName.textContent = intersect.obj.children[0].name;
+
+    const button = document.createElement("button");
+    button.textContent = "Copy Mesh Name";
+    button.onclick = () =>
+      navigator.clipboard.writeText(menuMeshName.textContent);
+    menuButtons.appendChild(button);
+  } else menuMeshName.classList.remove("debug");
 
   if (name == "Walls") {
     const button = document.createElement("button");

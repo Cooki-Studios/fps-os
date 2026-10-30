@@ -407,6 +407,7 @@ export async function addPhysicsToObject(
   showDebug = false,
   isPlayer = false,
   attachments: THREE.Mesh[] = [],
+  scene?: THREE.Scene,
 ) {
   if (initPromise) await initPromise;
   if (!obj.parent) return;
@@ -572,8 +573,8 @@ export async function addPhysicsToObject(
     if (isPlayer) {
       debugMesh.name = "playerDebug";
       debugMesh.visible = false;
-    }
-    debugGroup.add(debugMesh);
+      scene!.add(debugMesh);
+    } else debugGroup.add(debugMesh);
   }
 
   // bootLog(`Added physics to ${obj.name}`);
@@ -665,12 +666,16 @@ export function addVelocityToObject(obj: THREE.Mesh, vel: THREE.Vector3) {
   Jolt.destroy(current);
 }
 
-export function togglePhysicsDebug(isPlayer = false) {
+export function togglePhysicsDebug(isPlayer = false, scene?: THREE.Scene) {
   if (isPlayer) {
-    const playerMesh = debugGroup.getObjectByName("playerDebug");
+    const playerMesh = scene!.getObjectByName("playerDebug");
     if (!playerMesh) return;
     playerMesh.visible = !playerMesh.visible;
   } else debugGroup.visible = !debugGroup.visible;
+}
+
+export function getDebugEnabled() {
+  return debugGroup.visible;
 }
 
 function createDebugMesh(

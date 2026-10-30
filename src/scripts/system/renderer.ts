@@ -209,7 +209,7 @@ export async function enableRenderer(
       updatePhysics(delta);
       updateRecoil(camera);
       updateBedCover(scene);
-      updateSettingsPanel();
+      updateSettingsPanel(delta);
       updateClipboard(delta);
       updateKeypad(delta, canvas, scene);
       updateGrabInertia();

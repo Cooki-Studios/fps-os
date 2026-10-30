@@ -221,18 +221,20 @@ body {
         #settings {
             width: calc(100% - 4em);
             height: calc(100% - 4em);
-            padding: 1em;
+            padding: 2em;
 
             #ascii {
                 position: absolute;
                 right: 15%;
                 top: 35%;
                 scale: 3;
+                line-height: 0.4em;
+                font-family: monospace;
             }
 
             h1,
             h2 {
-                margin-bottom: 0.5em;
+                margin-bottom: 0.25em;
             }
             h2 {
                 text-decoration: underline;
@@ -440,10 +442,21 @@ body {
         border: 1px white solid;
         font-family: monospace;
 
-        #ctx-name {
+        #ctx-name,
+        #ctx-mesh-name {
             margin-left: 4px;
             margin-bottom: 3px;
             font-size: 10px;
+        }
+
+        #ctx-mesh-name {
+            font-size: 5px;
+            opacity: 0.5;
+            display: none;
+
+            &.debug {
+                display: block;
+            }
         }
 
         #ctx-buttons {
@@ -589,7 +602,8 @@ body {
 canvas[data-engine],
 #pc-info,
 #literal-pc-info,
-#cross {
+#cross,
+#ammo {
     position: absolute;
     pointer-events: none;
     top: 0;
@@ -617,6 +631,22 @@ canvas[data-engine],
     mix-blend-mode: normal;
     text-align: center;
     transition: none;
+}
+
+#ammo {
+    z-index: 3;
+    height: 1em;
+    top: calc(50% - 0.5em);
+    left: calc(50% + 1.5em);
+    display: flex;
+    gap: 2px;
+    mix-blend-mode: difference;
+    visibility: hidden;
+
+    .bullet {
+        height: 1em;
+        border-left: 4px goldenrod solid;
+    }
 }
 
 #cross {

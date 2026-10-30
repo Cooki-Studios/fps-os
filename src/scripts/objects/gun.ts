@@ -5,13 +5,27 @@ import {
   pausePhysicsOfObject,
   resumePhysicsOfObject,
 } from "../system/physics";
-import { type Intersect } from "../system/interact";
+import { getGrabVel, type Intersect } from "../system/interact";
 import { clamp } from "./player";
 import { addAudioToObject, playAudio } from "../system/audio";
 import { getMainCam, getMainScene } from "../util/scene";
 
 let gun: THREE.Object3D,
-  pickedUp = false;
+  pickedUp = false,
+  bullets = 5,
+  cooldown = false;
+
+const ammoEl = document.getElementById("ammo") as HTMLDivElement;
+
+function reloadBulletEl() {
+  for (let i = 0; i < bullets; i++) {
+    const bulletEl = document.createElement("div");
+    bulletEl.className = "bullet";
+
+    ammoEl.appendChild(bulletEl);
+  }
+}
+reloadBulletEl();
 
 export async function setGun(obj: THREE.Object3D) {
   gun = obj;
@@ -42,15 +56,19 @@ export function pickupGun(camera: THREE.PerspectiveCamera) {
   gun.rotation.copy(gunRot);
 
   pickedUp = true;
+
+  ammoEl.style.visibility = "visible";
 }
 
 export function dropGun() {
+  ammoEl.style.visibility = "hidden";
+
   const vel = new THREE.Vector3(0, 0.25, -0.5)
     .transformDirection(getMainCam().matrixWorld)
     .multiplyScalar(5);
 
   const mesh = gun.children[0] as THREE.Mesh;
-  resumePhysicsOfObject(mesh, mesh.userData.body, vel);
+  resumePhysicsOfObject(mesh, mesh.userData.body, vel.add(getGrabVel()));
 
   getMainScene().attach(gun);
 
@@ -74,21 +92,11 @@ const holeMat = new THREE.MeshStandardMaterial({
   polygonOffsetUnits: -1,
 });
 
-let bullets = 5,
-  cooldown = false;
-
 export function shootGun(intersect: Intersect) {
-  if (cooldown) return;
+  if (cooldown) return false;
 
-  if (bullets == 0) {
-    bullets = -1;
-    setTimeout(() => {
-      playAudio(gun.name, "gun-reload");
-      setTimeout(() => (bullets = 5), 500);
-    }, 500);
-    return;
-  } else if (bullets > 0) bullets--;
-  else return;
+  if (bullets > 0) bullets--;
+  else return false;
 
   playAudio(gun.name, "gun-shoot");
 
@@ -98,25 +106,39 @@ export function shootGun(intersect: Intersect) {
   recoilX += (Math.random() - 0.5) * RECOIL;
   recoilY += RECOIL;
 
-  if (!intersect?.i.normal) return;
+  if (!intersect?.i.normal) return false;
 
   const obj = intersect?.obj;
-  if (!obj) return;
+  if (!obj) return false;
 
   const mesh = obj.children[0] as THREE.Mesh;
-  if (!mesh) return;
+  if (!mesh) return false;
+
+  if (ammoEl.lastChild) ammoEl.removeChild(ammoEl.lastChild);
+
+  if (bullets == 0) {
+    bullets = -1;
+    setTimeout(() => {
+      playAudio(gun.name, "gun-reload");
+      setTimeout(() => {
+        bullets = 5;
+        reloadBulletEl();
+      }, 500);
+    }, 500);
+  }
 
   if (!mesh.userData.body) {
     addBulletHole(mesh, intersect);
-    return;
+    return true;
   } else if (!intersect.i.object.userData.body) {
     addBulletHole(intersect.i.object as THREE.Mesh, intersect);
     knockObject(mesh, intersect.ray.direction.clone().multiplyScalar(POWER));
-    return;
+    return true;
   }
 
   addBulletHole(mesh, intersect);
   knockObject(mesh, intersect.ray.direction.clone().multiplyScalar(POWER));
+  return true;
 }
 
 function knockObject(mesh: THREE.Mesh, vel: THREE.Vector3) {

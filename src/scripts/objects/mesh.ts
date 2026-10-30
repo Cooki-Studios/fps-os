@@ -8,7 +8,8 @@ import { addAudioToObject, loadBuffer } from "../system/audio";
 import { setNotepad } from "./notepad";
 import { setClipboard } from "./clipboard";
 import { setGun } from "./gun";
-import { setDebugParent, setSettingsPanel } from "./settings";
+import { setSettingsPanel, setSettingsSwitch } from "./settings";
+import { setHorn } from "./horn";
 
 const wind = await loadBuffer("windows-wind");
 
@@ -29,6 +30,9 @@ export const INTERACTIBLES = [
   "Blind5_001",
   "Gun",
   "Debug",
+  "DebugPlayer",
+  "Speedo",
+  "ChoudharyBillaHorn",
 ] as const;
 
 export const GRABBABLES = [
@@ -48,6 +52,7 @@ export const GRABBABLES = [
   "Rug",
   "PapersPlease",
   "ControlPanel",
+  "ChoudharyBillaHorn",
 ] as const;
 
 export const EQUIPABBLES = ["Gun"] as const;
@@ -58,9 +63,19 @@ export const ATTACHED_OBJS: Record<string, string[]> = {
   D_Cube_005: ["Cube_007", "Cube_006", "Cube_008"], // Armchair
   D_Cube_003: ["Cube_002", "Cube_003", "Cube_004", "Cube_005"], // Desk
   D_Cube_002: ["Cube_009"], // Papers
-  D_Light: ["Sphere", "N_Cylinder_001"], // MainLight
+  D_Light: ["Sphere", "Cylinder_0038"], // MainLight
   D_Cylinder: ["Cylinder_001"], // Bin
-  D_Cube_008: ["Cube_010", "Cube_011", "Cube_012", "Cube_014"], // Desk 2
+  D_Plane_005: [
+    "Cylinder_034",
+    "Cylinder_002",
+    "Cylinder_035",
+    "Cylinder_036",
+    "Cylinder_037",
+    "BezierCurve_002",
+    "BezierCurve_003",
+    "BezierCurve_004",
+    "BezierCurve_005",
+  ], // Choudhary Billa Horn
 };
 for (let i = 3; i < 34; i++) {
   ATTACHED_OBJS["D_Cylinder"].push(
@@ -155,7 +170,16 @@ export async function setupMesh(
         setSettingsPanel(mesh.parent, scene);
         break;
       case "Debug_004":
-        setDebugParent(mesh.parent.parent!);
+        setSettingsSwitch("debug", mesh.parent.parent!, undefined, true);
+        break;
+      case "DebugPlayer_003":
+        setSettingsSwitch("debugPlayer", mesh.parent.parent!, undefined, true);
+        break;
+      case "Speedo_001":
+        setSettingsSwitch("speedo", mesh.parent.parent!, undefined, true);
+        break;
+      case "ChoudharyBillaHorn":
+        setHorn(mesh.parent);
         break;
     }
 

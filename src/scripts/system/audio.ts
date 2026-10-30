@@ -10,6 +10,27 @@ let enabled = false;
 const loopedSounds = new Set<THREE.PositionalAudio>();
 const ctx = listener.context;
 
+const worldPosition = new THREE.Vector3();
+
+function playSynced(sound: THREE.PositionalAudio) {
+  sound.updateWorldMatrix(true, false);
+  worldPosition.setFromMatrixPosition(sound.matrixWorld);
+
+  const panner = sound.panner;
+  const currentTime = ctx.currentTime;
+  panner.positionX
+    .cancelScheduledValues(currentTime)
+    .setValueAtTime(worldPosition.x, currentTime);
+  panner.positionY
+    .cancelScheduledValues(currentTime)
+    .setValueAtTime(worldPosition.y, currentTime);
+  panner.positionZ
+    .cancelScheduledValues(currentTime)
+    .setValueAtTime(worldPosition.z, currentTime);
+
+  sound.play();
+}
+
 if (sessionStorage.getItem("audio")) audioEl.classList.add("unmuted");
 
 document.addEventListener(
@@ -22,7 +43,7 @@ document.addEventListener(
     if (ctx.state === "suspended") await ctx.resume();
 
     loopedSounds.forEach((sound) => {
-      if (!sound.isPlaying) sound.play();
+      if (!sound.isPlaying) playSynced(sound);
     });
   },
   { once: true },
@@ -37,7 +58,7 @@ audioEl.onclick = (e) => {
   else sessionStorage.setItem("audio", "true");
 
   loopedSounds.forEach((sound) => {
-    if (enabled) sound.play();
+    if (enabled) playSynced(sound);
     else sound.pause();
   });
 };
@@ -130,7 +151,7 @@ export async function playAudio(
   if (randomise) sound.setDetune(Math.random() * 10);
 
   if (!enabled) return;
-  sound.play();
+  playSynced(sound);
 }
 
 const hitSounds: THREE.PositionalAudio[] = [],
@@ -167,5 +188,5 @@ export function playHitSound(
   sound.position.set(x, y, z);
   sound.setVolume(volume);
   sound.setDetune(Math.random() * 10);
-  sound.play();
+  playSynced(sound);
 }

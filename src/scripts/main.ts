@@ -21,7 +21,7 @@ import { addAudioToObject, initAudio } from "./system/audio";
 import { ATTACHED_OBJS, PAUSED_OBJS, setupMesh } from "./objects/mesh";
 import { setupClock } from "./objects/clock";
 import { scrollPlayer } from "./system/interact";
-import { setDebug } from "./objects/settings";
+import { setSettingsSwitch } from "./objects/settings";
 
 document.addEventListener(
   "wheel",
@@ -97,7 +97,7 @@ async function addPhysicsToObjects() {
 
   bootLog("Initialising player...");
   initPlayer(scene, camera, canvas);
-  addPhysicsToObject(getPlayerMesh(), true, true, true);
+  addPhysicsToObject(getPlayerMesh(), true, true, true, undefined, scene);
 }
 
 bootLog("Loading scene...");
@@ -114,23 +114,27 @@ loader.loadAsync("room.usdc").then(async (room) => {
   initWallpaper(room.getObjectByName("Walls")!);
 
   room.traverse(async (mesh) => {
-    if (mesh instanceof THREE.Mesh) {
+    if (mesh instanceof THREE.Mesh)
       setupMesh(mesh, meshes, scene, canvas, camera);
-    } else if (mesh instanceof THREE.PointLight) {
+    else if (mesh instanceof THREE.PointLight) {
       if (mesh.name == "MainLight") setupMainLight(mesh, scene);
-    } else
+    } else {
       switch (mesh.name) {
         case "Switch_003":
           await addAudioToObject(mesh, "light-on");
           await addAudioToObject(mesh, "light-off");
           break;
         case "Debug_005":
-          room.attach(mesh);
-          mesh.position.set(0, 0, 0);
-          mesh.rotation.set(0, 0, 0);
-          setDebug(mesh);
+          setSettingsSwitch("debug", mesh, room);
+          break;
+        case "DebugPlayer_006":
+          setSettingsSwitch("debugPlayer", mesh, room);
+          break;
+        case "Speedo_002":
+          setSettingsSwitch("speedo", mesh, room);
           break;
       }
+    }
   });
   setupClock();
   bootLog(`Meshes loaded`);
@@ -155,5 +159,5 @@ onActionPressed("debug", () => {
   togglePhysicsDebug();
 });
 onActionPressed("debugPlayer", () => {
-  togglePhysicsDebug(true);
+  togglePhysicsDebug(true, scene);
 });
