@@ -24,10 +24,22 @@ export const actions: Record<string, string> = {
   up: "e",
   down: "q",
   sprint: "shift",
+
+  // Files
+  file_forward: "w",
+  file_back: "s",
+  file_left: "a",
+  file_right: "d",
 } as const;
 export type Action = keyof typeof actions;
 
-const globalActions: Action[] = ["exitUI"];
+const globalActions: Action[] = [
+  "exitUI",
+  "file_forward",
+  "file_back",
+  "file_left",
+  "file_right",
+];
 const globalKeys = new Set<string>(
   globalActions.map((action) => actions[action]),
 );
@@ -37,6 +49,11 @@ export function toggleAction(action: Action, enable = false) {
   if (enable) disabledActions.delete(action);
   else disabledActions.add(action);
 }
+
+export function toggleActions(actions: Action[], enable = false) {
+  for (const action of actions) toggleAction(action, enable);
+}
+toggleActions(["file_forward", "file_back", "file_left", "file_right"], false);
 
 const keys: Record<string, boolean> = {},
   pressEvents: Record<string, CustomEvent> = {},

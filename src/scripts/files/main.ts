@@ -4,10 +4,12 @@ import { addGlobalAudio, playAudio } from "../system/audio";
 import {
   createTile,
   generateTile,
+  getTile,
   getTileHeight,
   getTiles,
   getTileWidth,
   SIDES,
+  SIDES_ARR,
   type Tile,
 } from "./tiles";
 import { getAllowMap, showFileCtrl, updateFileControls } from "./controls";
@@ -34,8 +36,8 @@ export function getFileAmbLight() {
 
 const WIDTH = getTileWidth(),
   DEPTH = getTileHeight(),
-  FOG_NEAR = DEPTH * 2,
-  FOG_FAR = DEPTH * 3;
+  FOG_NEAR = DEPTH * 1.5,
+  FOG_FAR = DEPTH * 2;
 
 let playerX = 0,
   playerY = 0;
@@ -44,7 +46,6 @@ export function moveFilesPlayer(x = 0, y = 0) {
   playerX += x;
   playerY += y;
 
-  updateFileMap();
   generateTile(playerX, playerY, scene);
 
   camera.position.z -= y * DEPTH;
@@ -147,7 +148,6 @@ export function switchToFiles() {
 
 const TILE_SIZE = 32;
 
-ctx.fillStyle = "#1c0333";
 ctx.strokeStyle = "white";
 
 const title = document.getElementById("files-title") as HTMLHeadingElement;
@@ -173,7 +173,7 @@ export function updateFileMap() {
   for (const tile in tiles) occupied.add(`${tiles[tile].x},${tiles[tile].y}`);
 
   const exposed = (tile: Tile) =>
-    (Object.keys(SIDES) as (keyof typeof SIDES)[]).some((side) => {
+    SIDES_ARR.some((side) => {
       if (side === "down" || tile.sides.includes(side)) return false;
       const v = SIDES[side];
       return !occupied.has(`${tile.x + v.x},${tile.y - v.z}`);
@@ -189,6 +189,8 @@ export function updateFileMap() {
       y = map.height - TILE_SIZE * (data.y - playerY + 2);
 
     if (data.intro || (data.faded && exposed(data))) ctx.globalAlpha = 0.5;
+    if (data.start) ctx.fillStyle = "#400404";
+    else ctx.fillStyle = "#1c0333";
 
     ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
 
@@ -238,7 +240,8 @@ export function updateFileMap() {
       2 * Math.PI,
     );
     ctx.stroke();
-    updateFileControls(playerTile);
+
+    if (getTile(0, 0)?.canMove) updateFileControls(playerTile);
 
     ctx.globalAlpha = 1;
   }

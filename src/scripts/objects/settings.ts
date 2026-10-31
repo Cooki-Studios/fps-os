@@ -134,6 +134,8 @@ export async function setSettingsPanel(
   div.appendChild(asciiEl);
 
   for (const action of Object.keys(actions)) {
+    if (action.startsWith("files_")) return;
+
     const actionFmt = action
       .replace(/([a-z])([A-Z])/g, "$1 $2")
       .replace(/^./, (str) => str.toUpperCase());

@@ -11,12 +11,18 @@ export const SIDES = {
   back: new THREE.Vector3(0, 0, 1),
 } as const;
 
+export type Side = keyof typeof SIDES;
+
+export const SIDES_ARR = Object.keys(SIDES) as Side[];
+
 export type Tile = {
-  sides: (keyof typeof SIDES)[];
+  sides: Side[];
   x: number;
   y: number;
   intro?: number;
   faded?: boolean;
+  start?: boolean;
+  canMove?: boolean;
 };
 
 const FORWARD = new THREE.Vector3(0, 0, 1);
@@ -42,7 +48,10 @@ export function getTileHeight() {
 }
 
 const geometry = new THREE.PlaneGeometry(WIDTH, DEPTH);
-const material = new THREE.MeshStandardMaterial({ color: 0x1c0333 });
+const material = new THREE.MeshStandardMaterial({
+  color: 0x1c0333,
+  side: THREE.DoubleSide,
+});
 
 const title = document.getElementById("files-title") as HTMLHeadingElement;
 
@@ -54,7 +63,7 @@ export function createTile(data: Tile, scene: THREE.Scene, visited = true) {
   tileIndex.set(key(data.x, data.y), data);
 
   for (const side of ["down", ...data["sides"]]) {
-    const dir = SIDES[side as keyof typeof SIDES];
+    const dir = SIDES[side as Side];
 
     const mesh = new THREE.Mesh(geometry, material);
     mesh.name = side;
@@ -73,10 +82,12 @@ export function createTile(data: Tile, scene: THREE.Scene, visited = true) {
     tile.add(mesh);
   }
 
-  const light = new THREE.SpotLight(0xffffff, 100, 100, Math.PI / 4);
-  light.position.set(0, 10, 0);
-
   if (data.intro) {
+    const light = new THREE.SpotLight(0xffffff, 100, 100, Math.PI / 4);
+    light.position.set(0, 10, 0);
+    tile.add(light);
+    tile.add(light.target);
+
     data.faded = true;
     light.visible = false;
 
@@ -113,14 +124,18 @@ export function createTile(data: Tile, scene: THREE.Scene, visited = true) {
             ambientLight.intensity = 0.8;
             break;
           case 4:
-            ambientLight.intensity = 1;
+            ambientLight.intensity = 2;
+            const dirLight = new THREE.DirectionalLight(0xffffff, 2);
+            dirLight.position.set(1, 2, 1);
+            scene.add(dirLight);
             break;
         }
 
         if (data.intro != 4) {
           data.faded = false;
           data.intro = undefined;
-        }
+          data.start = true;
+        } else getTile(0, 0)!.canMove = true;
         light.visible = true;
 
         updateFileMap();
@@ -128,9 +143,6 @@ export function createTile(data: Tile, scene: THREE.Scene, visited = true) {
       1000 + 500 * data.intro,
     );
   }
-
-  tile.add(light);
-  tile.add(light.target);
 
   tile.position.z = -data.y * DEPTH;
   tile.position.x = data.x * WIDTH;
@@ -153,13 +165,12 @@ export function getTile(x: number, y: number) {
   return tileIndex.get(key(x, y));
 }
 
-const SIDE_KEYS = Object.keys(SIDES) as (keyof typeof SIDES)[],
-  OPPOSITE = {
-    left: "right",
-    right: "left",
-    forward: "back",
-    back: "forward",
-  } as const;
+const OPPOSITE = {
+  left: "right",
+  right: "left",
+  forward: "back",
+  back: "forward",
+} as const;
 
 export function generateTile(
   playerX: number,
@@ -171,7 +182,8 @@ export function generateTile(
   for (const tile of tiles) {
     tile.intro = undefined;
     tile.faded = false;
-    for (const side of SIDE_KEYS) {
+
+    for (const side of SIDES_ARR) {
       if (side == "down" || tile.sides.includes(side)) continue;
 
       const dir = SIDES[side];
@@ -179,11 +191,16 @@ export function generateTile(
       const y = tile.y - dir.z;
       if (tileExistsAt(x, y)) continue;
 
+      const candidates = (
+        ["left", "forward", "right", "back"] as Side[]
+      ).filter((s) => s != OPPOSITE[side]);
+      const open = candidates[Math.floor(Math.random() * candidates.length)];
+
+      const sides = candidates.filter((s) => s != open && Math.random() < 0.35);
+
       createTile(
         {
-          sides: (["left", "forward", "right", "back"] as const).filter(
-            (s) => s != OPPOSITE[side as keyof typeof OPPOSITE],
-          ),
+          sides,
           x,
           y,
           faded: true,
