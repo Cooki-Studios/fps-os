@@ -416,7 +416,7 @@ export async function initPlayer(
       velocity.z += wishDir.z * addSpeed;
       if (noclip) velocity.y += wishDir.y * addSpeed;
 
-      closeContextMenu();
+      // closeContextMenu();
 
       if (grounded && !isAudioPlaying(player.name, "player-steps"))
         playAudio(player.name, "player-steps");

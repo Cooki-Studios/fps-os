@@ -22,3 +22,8 @@ export async function getWallpaperBlob(): Promise<Blob | null> {
   const db = await initDB();
   return (await db.get(STORE_NAME, "current_wallpaper")) || null;
 }
+
+export async function clearWallpaperBlob() {
+  const db = await initDB();
+  await db.delete(STORE_NAME, "current_wallpaper");
+}

@@ -41,6 +41,7 @@ import { onActionReleased } from "./input";
 import { updateSwitch } from "../objects/settings";
 import { playHorn } from "../objects/horn";
 import { getFilesBase, updateCabinetPos } from "../objects/files";
+import { clearWallpaperBlob } from "./db";
 
 const raycaster = new THREE.Raycaster();
 raycaster.far = 8;
@@ -543,6 +544,17 @@ export function contextPlayer(
           addPhysicsToObject(mesh, true, false, false);
         }
       }
+    };
+    menuButtons.appendChild(button);
+  }
+
+  if (obj.name == "ControlPanel") {
+    const button = document.createElement("button");
+    button.textContent = "Delete saved data";
+    button.onclick = () => {
+      localStorage.clear();
+      clearWallpaperBlob();
+      location.reload();
     };
     menuButtons.appendChild(button);
   }
