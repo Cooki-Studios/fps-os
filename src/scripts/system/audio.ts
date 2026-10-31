@@ -12,6 +12,10 @@ const ctx = listener.context;
 
 const worldPosition = new THREE.Vector3();
 
+function updateMute() {
+  listener.setMasterVolume(enabled ? 1 : 0);
+}
+
 function playSynced(sound: THREE.Audio<AudioNode>) {
   if (!(sound instanceof THREE.PositionalAudio)) return sound.play();
 
@@ -41,6 +45,7 @@ document.addEventListener(
     if (!sessionStorage.getItem("audio")) return;
 
     enabled = true;
+    updateMute();
 
     if (ctx.state === "suspended") await ctx.resume();
 
@@ -55,6 +60,7 @@ audioEl.onclick = (e) => {
 
   audioEl.classList.toggle("unmuted");
   enabled = audioEl.classList.contains("unmuted");
+  updateMute();
 
   if (sessionStorage.getItem("audio")) sessionStorage.removeItem("audio");
   else sessionStorage.setItem("audio", "true");

@@ -1,8 +1,9 @@
 import { playAudio, setAudioVolume } from "../system/audio";
 import dialogueJson from "./dialogue.json" with { type: "json" };
 
-import whoImg from "../../../public/textures/dialogue-who.png";
-import tskmgrImg from "../../../public/textures/dialogue-tskmgr.png";
+import whoImg from "../../assets/aseprite/dialogue-who.png";
+import tskmgrImg from "../../assets/aseprite/dialogue-tskmgr.png";
+import { showFileCtrl } from "./controls";
 
 const dialogue = document.getElementById("files-dialogue") as HTMLDivElement,
   diaTitle = dialogue.querySelector("#files-text h1") as HTMLHeadingElement,
@@ -24,6 +25,7 @@ export function introDialogue() {
 
     setTimeout(() => {
       setAudioVolume("global", "music/NIVIRO - The Riot [NCS Release]", 0.25);
+      showFileCtrl();
     }, 9600);
   }, 2200);
 }

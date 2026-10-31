@@ -147,13 +147,20 @@ export function updateQuality() {
   });
 }
 
-let filesScene: THREE.Scene, filesCamera: THREE.PerspectiveCamera;
+let filesScene: THREE.Scene | undefined,
+  filesCamera: THREE.PerspectiveCamera | undefined;
+
 export function setFilesRenderer(
   scene: THREE.Scene,
   camera: THREE.PerspectiveCamera,
 ) {
   filesCamera = camera;
   filesScene = scene;
+}
+
+export function unsetFilesRenderer() {
+  filesCamera = undefined;
+  filesScene = undefined;
 }
 
 export async function enableRenderer(
@@ -214,7 +221,7 @@ export async function enableRenderer(
 
       stats.begin();
 
-      if (filesScene) {
+      if (filesScene && filesCamera) {
         renderer.render(filesScene, filesCamera);
       } else {
         updateAnimation(delta);

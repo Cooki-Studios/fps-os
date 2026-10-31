@@ -29,10 +29,10 @@ export function updateCabinetPos(canvas: HTMLCanvasElement) {
     }, 200);
 
     setTimeout(() => {
-      switchToFiles();
+      switchToFiles(canvas);
       setTimeout(() => {
         fade.style.opacity = "0";
-        updateFileMap();
+        updateFileMap(canvas);
       }, 200);
     }, 500);
   } else cabinetY = 0;

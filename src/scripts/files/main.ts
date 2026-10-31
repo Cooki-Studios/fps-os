@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import { setFilesRenderer } from "../system/renderer";
-import { addGlobalAudio } from "../system/audio";
+import { addGlobalAudio, playAudio } from "../system/audio";
 import { createTile, getTileHeight, getTiles } from "./tiles";
+import { getAllowMap, showFileCtrl, updateFileControls } from "./controls";
 
 const scene = new THREE.Scene();
 const bg = 0x000000;
@@ -16,8 +17,12 @@ const camera = new THREE.PerspectiveCamera(
 camera.rotation.order = "YXZ";
 scene.add(camera);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0);
 scene.add(ambientLight);
+
+export function getFileAmbLight() {
+  return ambientLight;
+}
 
 const DEPTH = getTileHeight(),
   FOG_NEAR = DEPTH * 2,
@@ -40,35 +45,75 @@ const map = document.getElementById("map") as HTMLCanvasElement;
 const ctx = map.getContext("2d") as CanvasRenderingContext2D;
 ctx.lineWidth = 2;
 
-export function switchToFiles() {
-  createTile({ sides: ["right", "left"], x: 0, y: 0, intro: 1 }, scene);
-  createTile(
-    {
-      sides: ["right", "left"],
-      x: 0,
-      y: 1,
-      intro: 2,
-    },
-    scene,
-  );
-  createTile(
-    {
-      sides: ["right", "left"],
-      x: 0,
-      y: 2,
-      intro: 3,
-    },
-    scene,
-  );
-  createTile(
-    {
-      sides: [],
-      x: 0,
-      y: 3,
-      intro: 4,
-    },
-    scene,
-  );
+let visited = localStorage.getItem("files-visited") ? true : false,
+  visitedSession = false;
+
+export function switchToFiles(canvas: HTMLCanvasElement) {
+  visited = localStorage.getItem("files-visited") ? true : false;
+
+  if (!visitedSession) {
+    createTile({ sides: [], x: 0, y: 0, intro: 1 }, scene, canvas, visited);
+    createTile(
+      {
+        sides: ["right", "left"],
+        x: 0,
+        y: 1,
+        intro: 2,
+      },
+      scene,
+      canvas,
+      visited,
+    );
+    createTile(
+      {
+        sides: ["right", "left"],
+        x: 0,
+        y: 2,
+        intro: 3,
+      },
+      scene,
+      canvas,
+      visited,
+    );
+    createTile(
+      {
+        sides: [],
+        x: 0,
+        y: 3,
+        intro: 4,
+      },
+      scene,
+      canvas,
+      visited,
+    );
+  }
+
+  if (visited) {
+    title.classList.add("mini");
+    title.style.opacity = "0.5";
+    title.style.translate = "0 -13em";
+    showFileCtrl();
+
+    if (visitedSession)
+      playAudio(
+        "global",
+        "music/NIVIRO - The Riot [NCS Release]",
+        200,
+        0,
+        0.25,
+      );
+    else
+      playAudio(
+        "global",
+        "music/NIVIRO - The Riot [NCS Release]",
+        1500,
+        0,
+        0.25,
+      );
+  }
+
+  localStorage.setItem("files-visited", "true");
+  visitedSession = true;
 
   setFilesRenderer(scene, camera);
   qualityEl.style.visibility = "hidden";
@@ -81,8 +126,8 @@ ctx.strokeStyle = "white";
 
 const title = document.getElementById("files-title") as HTMLHeadingElement;
 
-export function updateFileMap() {
-  if (!title.style.opacity) {
+export function updateFileMap(canvas: HTMLCanvasElement) {
+  if (getAllowMap() && !title.style.opacity) {
     title.style.opacity = "1";
     title.style.translate = "0";
   }
@@ -112,6 +157,8 @@ export function updateFileMap() {
       );
       ctx.stroke();
       ctx.closePath();
+
+      updateFileControls(data, canvas);
     }
 
     ctx.beginPath();

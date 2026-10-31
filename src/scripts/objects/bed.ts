@@ -57,7 +57,7 @@ export async function sleep(canvas: HTMLCanvasElement, scene: THREE.Scene) {
     );
   }
 
-  html.style.cursor = "pointer";
+  canvas.style.cursor = "pointer";
   document.onclick = async () => {
     document.onclick = null;
     html.style.cursor = "";

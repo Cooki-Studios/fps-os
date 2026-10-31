@@ -1,16 +1,16 @@
 import * as THREE from "three";
 import { introDialogue } from "./dialogue";
 import { playAudio } from "../system/audio";
-import { updateFileMap } from "./main";
+import { getFileAmbLight, updateFileMap } from "./main";
 
-const SIDES = {
+export const SIDES = {
   down: new THREE.Vector3(0, -1, 0),
   right: new THREE.Vector3(1, 0, 0),
   left: new THREE.Vector3(-1, 0, 0),
   forward: new THREE.Vector3(0, 0, -1),
 } as const;
 
-type Tile = {
+export type Tile = {
   sides: (keyof typeof SIDES)[];
   x: number;
   y: number;
@@ -38,7 +38,12 @@ const material = new THREE.MeshStandardMaterial({ color: 0x1c0333 });
 
 const title = document.getElementById("files-title") as HTMLHeadingElement;
 
-export function createTile(data: Tile, scene: THREE.Scene) {
+export function createTile(
+  data: Tile,
+  scene: THREE.Scene,
+  canvas: HTMLCanvasElement,
+  visited = true,
+) {
   const tile = new THREE.Group();
 
   tiles[id] = data;
@@ -71,7 +76,7 @@ export function createTile(data: Tile, scene: THREE.Scene) {
     light.visible = false;
     setTimeout(
       () => {
-        if (data.intro == 1) {
+        if (!visited && data.intro == 1) {
           title.classList.add("mini");
           title.style.opacity = "0.5";
           title.style.translate = "0 -13em";
@@ -87,9 +92,26 @@ export function createTile(data: Tile, scene: THREE.Scene) {
           introDialogue();
         }
 
+        const ambientLight = getFileAmbLight();
+        switch (data.intro) {
+          case 0:
+            ambientLight.intensity = 0.25;
+            break;
+          case 1:
+            ambientLight.intensity = 0.5;
+            break;
+          case 2:
+            ambientLight.intensity = 0.75;
+            break;
+          case 3:
+            ambientLight.intensity = 1;
+            break;
+        }
+
         data.intro = undefined;
         light.visible = true;
-        updateFileMap();
+
+        updateFileMap(canvas);
       },
       1000 + 500 * data.intro,
     );
