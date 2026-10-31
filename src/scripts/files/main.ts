@@ -64,7 +64,6 @@ const qualityEl = document.getElementById("quality-label") as HTMLDivElement;
 
 const map = document.getElementById("map") as HTMLCanvasElement;
 const ctx = map.getContext("2d") as CanvasRenderingContext2D;
-ctx.lineWidth = 2;
 
 let visited = localStorage.getItem("files-visited") ? true : false,
   visitedSession = false;
@@ -146,9 +145,10 @@ export function switchToFiles() {
   qualityEl.style.visibility = "hidden";
 }
 
-const TILE_SIZE = 32;
-
+const TILE_SIZE = 16;
 ctx.strokeStyle = "white";
+ctx.lineWidth = 2;
+ctx.imageSmoothingEnabled = false;
 
 const title = document.getElementById("files-title") as HTMLHeadingElement;
 

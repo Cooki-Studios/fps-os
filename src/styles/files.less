@@ -8,13 +8,21 @@
 #map {
     position: absolute;
     z-index: 2;
-    right: 2em;
-    bottom: 20em;
+    right: 8em;
+    bottom: 40%;
     border: 2px solid white;
     background-color: black;
     pointer-events: none;
     visibility: hidden;
     border-radius: 2px;
+    scale: 2;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+canvas.pixel {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
 
 #files-title {
@@ -50,7 +58,7 @@
     bottom: 10%;
     z-index: 1;
     background-color: black;
-    border: 2px white solid;
+    border: 4px white solid;
     border-radius: 2px;
     pointer-events: none;
     visibility: hidden;
@@ -102,7 +110,7 @@
 
     button {
         pointer-events: auto;
-        border: 2px white solid;
+        border: 4px white solid;
         border-radius: 2px;
         background-color: black;
         color: white;

@@ -156,11 +156,15 @@ export function setFilesRenderer(
 ) {
   filesCamera = camera;
   filesScene = scene;
+  getMainCanvas().classList.add("pixel");
+  renderer.setPixelRatio(0.25);
 }
 
 export function unsetFilesRenderer() {
   filesCamera = undefined;
   filesScene = undefined;
+  getMainCanvas().classList.remove("pixel");
+  updateQuality();
 }
 
 export async function enableRenderer(
