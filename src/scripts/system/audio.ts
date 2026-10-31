@@ -7,12 +7,14 @@ const audioEl = document.getElementById("audio") as HTMLDivElement,
   qualityEl = document.getElementById("quality-label") as HTMLDivElement;
 let enabled = false;
 
-const loopedSounds = new Set<THREE.PositionalAudio>();
+const loopedSounds = new Set<THREE.Audio<AudioNode>>();
 const ctx = listener.context;
 
 const worldPosition = new THREE.Vector3();
 
-function playSynced(sound: THREE.PositionalAudio) {
+function playSynced(sound: THREE.Audio<AudioNode>) {
+  if (!(sound instanceof THREE.PositionalAudio)) return sound.play();
+
   sound.updateWorldMatrix(true, false);
   worldPosition.setFromMatrixPosition(sound.matrixWorld);
 
@@ -72,7 +74,19 @@ export function initAudio(camera: THREE.Camera) {
   camera.add(listener);
 }
 
-const sounds: Record<string, Record<string, THREE.PositionalAudio>> = {};
+const sounds: Record<string, Record<string, THREE.Audio<AudioNode>>> = {};
+
+export async function addGlobalAudio(
+  soundName: string,
+  looping = false,
+  speed = 1,
+) {
+  const sound = new THREE.Audio(listener);
+  sound.setBuffer(await loadBuffer(soundName));
+  sound.setLoop(looping);
+  sound.setPlaybackRate(speed);
+  (sounds.global ??= {})[soundName] = sound;
+}
 
 export async function addAudioToObject(
   obj: THREE.Object3D,

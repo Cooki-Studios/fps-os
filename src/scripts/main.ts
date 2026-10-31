@@ -22,6 +22,7 @@ import { ATTACHED_OBJS, PAUSED_OBJS, setupMesh } from "./objects/mesh";
 import { setupClock } from "./objects/clock";
 import { scrollPlayer } from "./system/interact";
 import { setSettingsSwitch } from "./objects/settings";
+import { setupFilesAudio } from "./files/main";
 
 document.addEventListener(
   "wheel",
@@ -69,6 +70,7 @@ bootLog("Initialising input...");
 initInput();
 bootLog("Initialising audio...");
 initAudio(camera);
+setupFilesAudio();
 
 const attachedNames = new Set(Object.values(ATTACHED_OBJS).flat());
 

@@ -1,0 +1,74 @@
+@font-face {
+    font-family: Pixels;
+    font-style: normal;
+    font-display: swap;
+    src: url("/fonts/Pixels-1.2.woff2") format("woff2");
+}
+
+#files-title {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+    font-family: Pixels;
+    font-weight: normal;
+    font-size: 6em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    opacity: 0;
+    translate: 0 1em;
+
+    transition:
+        opacity 1s,
+        translate 1s,
+        font-size 1s;
+
+    &.mini {
+        font-size: 2em;
+    }
+}
+
+#files-dialogue {
+    position: absolute;
+    width: 60%;
+    left: calc(20% - 0.5em);
+    bottom: 10%;
+    z-index: 1;
+    background-color: black;
+    border: 2px white solid;
+    pointer-events: none;
+    visibility: hidden;
+
+    display: flex;
+    gap: 1em;
+    padding: 0.5em;
+
+    h1,
+    p {
+        font-family: Pixels;
+        margin: 0;
+        font-smooth: never;
+        -webkit-font-smoothing: none;
+    }
+
+    h1 {
+        margin-bottom: 0.1em;
+        font-size: 1em;
+    }
+
+    p {
+        font-size: 1.5em;
+    }
+
+    img {
+        height: 100%;
+        image-rendering: pixelated;
+
+        &[src] {
+            outline: 2px white solid;
+        }
+    }
+}

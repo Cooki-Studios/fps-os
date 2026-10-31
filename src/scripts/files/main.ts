@@ -1,5 +1,7 @@
 import * as THREE from "three";
 import { setFilesRenderer } from "../system/renderer";
+import { addGlobalAudio } from "../system/audio";
+import { createTile, getTileHeight, getTiles } from "./tiles";
 
 const scene = new THREE.Scene();
 const bg = 0x000000;
@@ -17,84 +19,19 @@ scene.add(camera);
 const ambientLight = new THREE.AmbientLight(0xffffff, 1);
 scene.add(ambientLight);
 
-const WIDTH = 8,
-  HEIGHT = 8,
-  FOG_NEAR = HEIGHT * 1.5,
-  FOG_FAR = HEIGHT * 2.5;
+const DEPTH = getTileHeight(),
+  FOG_NEAR = DEPTH * 2,
+  FOG_FAR = DEPTH * 3;
 
-camera.position.z = HEIGHT / 2;
-scene.fog = new THREE.Fog(bg, FOG_NEAR, FOG_FAR);
-
-const geometry = new THREE.PlaneGeometry(WIDTH, HEIGHT);
-const material = new THREE.MeshStandardMaterial({ color: 0x1c0333 });
-
-const SIDES = {
-  down: new THREE.Vector3(0, -1, 0),
-  right: new THREE.Vector3(1, 0, 0),
-  left: new THREE.Vector3(-1, 0, 0),
-  forward: new THREE.Vector3(0, 0, -1),
-} as const;
-
-type Tile = {
-  sides: (keyof typeof SIDES)[];
-  x: number;
-  y: number;
-  intro?: number;
-};
-
-const FORWARD = new THREE.Vector3(0, 0, 1);
-const tiles: Record<number, Tile> = {};
-
-let id = 0,
-  playerX = 0,
+let playerX = 0,
   playerY = 0;
 
-function createTile(data: Tile) {
-  const tile = new THREE.Group();
+camera.position.z = DEPTH / 2;
+scene.fog = new THREE.Fog(bg, FOG_NEAR, FOG_FAR);
 
-  tiles[id] = data;
-  id++;
-
-  for (const side of data["sides"]) {
-    const dir = SIDES[side];
-
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.name = side;
-    mesh.position.copy(dir).multiplyScalar(WIDTH / 2);
-    mesh.quaternion.setFromUnitVectors(FORWARD, dir.clone().negate());
-
-    if (side == "left" || side == "right") {
-      mesh.rotateZ(Math.PI / 2);
-      mesh.scale.x = 2;
-      mesh.position.y += WIDTH / 2;
-    } else if (side == "forward") {
-      mesh.scale.y = 2;
-      mesh.position.y += WIDTH / 2;
-    }
-
-    tile.add(mesh);
-  }
-
-  const light = new THREE.SpotLight(0xffffff, 100, 100, Math.PI / 4);
-  light.position.set(0, 10, 0);
-
-  if (data.intro) {
-    light.visible = false;
-    setTimeout(
-      () => {
-        data.intro = undefined;
-        light.visible = true;
-        updateFileMap();
-      },
-      1000 + 500 * data.intro,
-    );
-  }
-
-  tile.add(light);
-  tile.add(light.target);
-
-  tile.position.z = -data.y * HEIGHT;
-  scene.add(tile);
+export async function setupFilesAudio() {
+  await addGlobalAudio("music/NIVIRO - The Riot [NCS Release]", true);
+  await addGlobalAudio("files/intro");
 }
 
 const qualityEl = document.getElementById("quality-label") as HTMLDivElement;
@@ -104,19 +41,34 @@ const ctx = map.getContext("2d") as CanvasRenderingContext2D;
 ctx.lineWidth = 2;
 
 export function switchToFiles() {
-  createTile({ sides: ["down", "right", "left"], x: 0, y: 0, intro: 1 });
-  createTile({
-    sides: ["down", "right", "left"],
-    x: 0,
-    y: 1,
-    intro: 2,
-  });
-  createTile({
-    sides: ["down", "right", "left", "forward"],
-    x: 0,
-    y: 2,
-    intro: 3,
-  });
+  createTile({ sides: ["right", "left"], x: 0, y: 0, intro: 1 }, scene);
+  createTile(
+    {
+      sides: ["right", "left"],
+      x: 0,
+      y: 1,
+      intro: 2,
+    },
+    scene,
+  );
+  createTile(
+    {
+      sides: ["right", "left"],
+      x: 0,
+      y: 2,
+      intro: 3,
+    },
+    scene,
+  );
+  createTile(
+    {
+      sides: [],
+      x: 0,
+      y: 3,
+      intro: 4,
+    },
+    scene,
+  );
 
   setFilesRenderer(scene, camera);
   qualityEl.style.visibility = "hidden";
@@ -127,12 +79,20 @@ const TILE_SIZE = 32;
 ctx.fillStyle = "#1c0333";
 ctx.strokeStyle = "white";
 
+const title = document.getElementById("files-title") as HTMLHeadingElement;
+
 export function updateFileMap() {
+  if (!title.style.opacity) {
+    title.style.opacity = "1";
+    title.style.translate = "0";
+  }
+
+  const tiles = getTiles();
   for (const tile in tiles) {
     const data = tiles[tile];
     if (data.intro) continue;
 
-    if (map.style.visibility != "visible") map.style.visibility = "visible";
+    if (!map.style.visibility) map.style.visibility = "visible";
 
     const x = map.width / 2 + data.x * TILE_SIZE - TILE_SIZE / 2,
       y = map.height - TILE_SIZE * (data.y + 1);
