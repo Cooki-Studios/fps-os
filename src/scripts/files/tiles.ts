@@ -8,6 +8,7 @@ export const SIDES = {
   right: new THREE.Vector3(1, 0, 0),
   left: new THREE.Vector3(-1, 0, 0),
   forward: new THREE.Vector3(0, 0, -1),
+  back: new THREE.Vector3(0, 0, 1),
 } as const;
 
 export type Tile = {
@@ -29,6 +30,9 @@ let id = 0;
 const WIDTH = 8,
   DEPTH = 8;
 
+export function getTileWidth() {
+  return WIDTH;
+}
 export function getTileHeight() {
   return DEPTH;
 }
@@ -38,12 +42,7 @@ const material = new THREE.MeshStandardMaterial({ color: 0x1c0333 });
 
 const title = document.getElementById("files-title") as HTMLHeadingElement;
 
-export function createTile(
-  data: Tile,
-  scene: THREE.Scene,
-  canvas: HTMLCanvasElement,
-  visited = true,
-) {
+export function createTile(data: Tile, scene: THREE.Scene, visited = true) {
   const tile = new THREE.Group();
 
   tiles[id] = data;
@@ -111,7 +110,7 @@ export function createTile(
         data.intro = undefined;
         light.visible = true;
 
-        updateFileMap(canvas);
+        updateFileMap();
       },
       1000 + 500 * data.intro,
     );

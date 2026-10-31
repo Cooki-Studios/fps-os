@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { setFilesRenderer } from "../system/renderer";
 import { addGlobalAudio, playAudio } from "../system/audio";
-import { createTile, getTileHeight, getTiles } from "./tiles";
+import { createTile, getTileHeight, getTiles, getTileWidth } from "./tiles";
 import { getAllowMap, showFileCtrl, updateFileControls } from "./controls";
 
 const scene = new THREE.Scene();
@@ -24,12 +24,23 @@ export function getFileAmbLight() {
   return ambientLight;
 }
 
-const DEPTH = getTileHeight(),
+const WIDTH = getTileWidth(),
+  DEPTH = getTileHeight(),
   FOG_NEAR = DEPTH * 2,
   FOG_FAR = DEPTH * 3;
 
 let playerX = 0,
   playerY = 0;
+
+export function moveFilesPlayer(x = 0, y = 0) {
+  playerX += x;
+  playerY += y;
+
+  updateFileMap();
+
+  camera.position.z -= y * DEPTH;
+  camera.position.x += x * WIDTH;
+}
 
 camera.position.z = DEPTH / 2;
 scene.fog = new THREE.Fog(bg, FOG_NEAR, FOG_FAR);
@@ -48,11 +59,15 @@ ctx.lineWidth = 2;
 let visited = localStorage.getItem("files-visited") ? true : false,
   visitedSession = false;
 
-export function switchToFiles(canvas: HTMLCanvasElement) {
+export function switchToFiles() {
   visited = localStorage.getItem("files-visited") ? true : false;
 
   if (!visitedSession) {
-    createTile({ sides: [], x: 0, y: 0, intro: 1 }, scene, canvas, visited);
+    createTile(
+      { sides: ["back", "right", "left"], x: 0, y: 0, intro: 1 },
+      scene,
+      visited,
+    );
     createTile(
       {
         sides: ["right", "left"],
@@ -61,7 +76,7 @@ export function switchToFiles(canvas: HTMLCanvasElement) {
         intro: 2,
       },
       scene,
-      canvas,
+
       visited,
     );
     createTile(
@@ -72,7 +87,7 @@ export function switchToFiles(canvas: HTMLCanvasElement) {
         intro: 3,
       },
       scene,
-      canvas,
+
       visited,
     );
     createTile(
@@ -83,7 +98,7 @@ export function switchToFiles(canvas: HTMLCanvasElement) {
         intro: 4,
       },
       scene,
-      canvas,
+
       visited,
     );
   }
@@ -126,7 +141,7 @@ ctx.strokeStyle = "white";
 
 const title = document.getElementById("files-title") as HTMLHeadingElement;
 
-export function updateFileMap(canvas: HTMLCanvasElement) {
+export function updateFileMap() {
   if (getAllowMap() && !title.style.opacity) {
     title.style.opacity = "1";
     title.style.translate = "0";
@@ -158,7 +173,7 @@ export function updateFileMap(canvas: HTMLCanvasElement) {
       ctx.stroke();
       ctx.closePath();
 
-      updateFileControls(data, canvas);
+      updateFileControls(data);
     }
 
     ctx.beginPath();

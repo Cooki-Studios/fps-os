@@ -173,9 +173,7 @@ export async function enableRenderer(
 
   if (quality > 2) initShaders(renderer, scene, camera);
 
-  const canvas = document.querySelector(
-    "canvas[data-engine]",
-  ) as HTMLCanvasElement;
+  const canvas = getMainCanvas();
   resizeRenderer();
   resize3DUI();
 
@@ -276,6 +274,11 @@ export function resizeRenderer() {
   }
 }
 
+let canvas: HTMLCanvasElement;
+export function getMainCanvas() {
+  return canvas;
+}
+
 export function initRenderer(): {
   canvas: HTMLCanvasElement;
   renderer: THREE.WebGLRenderer;
@@ -288,7 +291,7 @@ export function initRenderer(): {
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
 
-  const canvas = renderer.domElement;
+  canvas = renderer.domElement;
   document.body.appendChild(canvas);
 
   canvas.oncontextmenu = (e) => e.preventDefault();

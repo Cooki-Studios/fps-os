@@ -1,8 +1,9 @@
 import { enablePlayerControl } from "../objects/player";
 import { stopAudio } from "../system/audio";
 import { interactPlayer } from "../system/interact";
-import { unsetFilesRenderer } from "../system/renderer";
+import { getMainCanvas, unsetFilesRenderer } from "../system/renderer";
 import { getMainCam, getMainScene } from "../util/scene";
+import { moveFilesPlayer } from "./main";
 import { SIDES, type Tile } from "./tiles";
 
 const controls = document.getElementById("files-ctrl") as HTMLDivElement,
@@ -17,7 +18,7 @@ export function getAllowMap() {
   return allowMap;
 }
 
-export function updateFileControls(tile: Tile, canvas: HTMLCanvasElement) {
+export function updateFileControls(tile: Tile) {
   controls.textContent = "";
 
   for (const side of Object.keys(SIDES)) {
@@ -29,12 +30,19 @@ export function updateFileControls(tile: Tile, canvas: HTMLCanvasElement) {
     switch (side as keyof typeof SIDES) {
       case "forward":
         button.textContent = "↑";
+        button.onclick = () => moveFilesPlayer(0, 1);
+        break;
+      case "back":
+        button.textContent = "↓";
+        button.onclick = () => moveFilesPlayer(0, -1);
         break;
       case "left":
         button.textContent = "←";
+        button.onclick = () => moveFilesPlayer(-1);
         break;
       case "right":
         button.textContent = "→";
+        button.onclick = () => moveFilesPlayer(1);
         break;
     }
 
@@ -43,11 +51,12 @@ export function updateFileControls(tile: Tile, canvas: HTMLCanvasElement) {
   }
 
   const button = document.createElement("button");
-  button.textContent = "Back";
-  button.className = "back";
+  button.textContent = "Exit";
+  button.className = "exit";
   controls.appendChild(button);
 
   button.onclick = () => {
+    button.style.pointerEvents = "none";
     fade.style.opacity = "1";
 
     setTimeout(() => {
@@ -62,8 +71,14 @@ export function updateFileControls(tile: Tile, canvas: HTMLCanvasElement) {
 
       setTimeout(() => {
         fade.style.opacity = "0";
-        interactPlayer(getMainCam(), getMainScene(), canvas, true, true);
-        enablePlayerControl(canvas, getMainScene());
+        interactPlayer(
+          getMainCam(),
+          getMainScene(),
+          getMainCanvas(),
+          true,
+          true,
+        );
+        enablePlayerControl(getMainCanvas(), getMainScene());
       }, 200);
     }, 500);
   };
