@@ -61,7 +61,7 @@ export function updateFileControls(tile: Tile) {
 
     setTimeout(() => {
       unsetFilesRenderer();
-      qualityEl.style.visibility = "";
+      qualityEl.style.visibility = "visible";
       title.style.opacity = "0";
       controls.style.visibility = "";
       allowMap = false;
