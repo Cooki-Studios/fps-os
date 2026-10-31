@@ -251,6 +251,7 @@ export function disablePlayerControl(canvas: HTMLCanvasElement) {
   canvas.onpointerdown = null;
   canvas.onpointerup = null;
   canvas.onpointercancel = null;
+  canvas.style.cursor = "default";
 }
 
 const player = new THREE.Group();

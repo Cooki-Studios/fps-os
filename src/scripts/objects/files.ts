@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { ROOM_ROT_FIX } from "../system/animation";
-import { switchToFiles } from "../files/main";
+import { switchToFiles, updateFileMap } from "../files/main";
 import { disablePlayerControl } from "./player";
 
 let files: THREE.Object3D,
@@ -32,6 +32,7 @@ export function updateCabinetPos(canvas: HTMLCanvasElement) {
       switchToFiles();
       setTimeout(() => {
         fade.style.opacity = "0";
+        updateFileMap();
       }, 200);
     }, 500);
   } else cabinetY = 0;
