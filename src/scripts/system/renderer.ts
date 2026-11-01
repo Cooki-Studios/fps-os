@@ -224,6 +224,7 @@ export async function enableRenderer(
       stats.begin();
 
       if (filesScene && filesCamera) {
+        update3DUI(filesScene, filesCamera);
         renderer.render(filesScene, filesCamera);
       } else {
         updateAnimation(delta);

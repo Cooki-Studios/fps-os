@@ -1,18 +1,9 @@
 import * as THREE from "three";
 import { setFilesRenderer } from "../system/renderer";
 import { addGlobalAudio, playAudio } from "../system/audio";
-import {
-  createTile,
-  generateTile,
-  getTile,
-  getTileHeight,
-  getTiles,
-  getTileWidth,
-  SIDES,
-  SIDES_ARR,
-  type Tile,
-} from "./tiles";
-import { getAllowMap, showFileCtrl, updateFileControls } from "./controls";
+import { createTile, generateTile, getTileHeight, getTileWidth } from "./tiles";
+import { showFileCtrl } from "./controls";
+import { filesPlayerX, filesPlayerY, updateFilesPlayerVars } from "./map";
 
 const scene = new THREE.Scene();
 const bg = 0x000000;
@@ -39,14 +30,10 @@ const WIDTH = getTileWidth(),
   FOG_NEAR = DEPTH * 1.5,
   FOG_FAR = DEPTH * 2;
 
-let playerX = 0,
-  playerY = 0;
-
 export function moveFilesPlayer(x = 0, y = 0) {
-  playerX += x;
-  playerY += y;
+  updateFilesPlayerVars(x, y);
 
-  generateTile(playerX, playerY, scene);
+  generateTile(filesPlayerX, filesPlayerY, scene);
 
   camera.position.z -= y * DEPTH;
   camera.position.x += x * WIDTH;
@@ -60,10 +47,8 @@ export async function setupFilesAudio() {
   await addGlobalAudio("files/intro");
 }
 
-const qualityEl = document.getElementById("quality-label") as HTMLDivElement;
-
-const map = document.getElementById("map") as HTMLCanvasElement;
-const ctx = map.getContext("2d") as CanvasRenderingContext2D;
+const qualityEl = document.getElementById("quality-label") as HTMLDivElement,
+  title = document.getElementById("files-title") as HTMLHeadingElement;
 
 let visited = localStorage.getItem("files-visited") ? true : false,
   visitedSession = false;
@@ -143,106 +128,4 @@ export function switchToFiles() {
 
   setFilesRenderer(scene, camera);
   qualityEl.style.visibility = "hidden";
-}
-
-const TILE_SIZE = 16;
-ctx.strokeStyle = "white";
-ctx.lineWidth = 2;
-ctx.imageSmoothingEnabled = false;
-
-const title = document.getElementById("files-title") as HTMLHeadingElement;
-
-export function updateFileMap() {
-  if (getAllowMap() && !title.style.opacity) {
-    title.style.opacity = "1";
-    title.style.translate = "0";
-  }
-
-  const tiles = getTiles();
-  let playerTile;
-
-  ctx.clearRect(0, 0, map.width, map.height);
-
-  const nextIntro = Math.min(
-    ...Object.values(tiles)
-      .filter((t) => t.intro)
-      .map((t) => t.intro!),
-  );
-
-  const occupied = new Set<string>();
-  for (const tile in tiles) occupied.add(`${tiles[tile].x},${tiles[tile].y}`);
-
-  const exposed = (tile: Tile) =>
-    SIDES_ARR.some((side) => {
-      if (side === "down" || tile.sides.includes(side)) return false;
-      const v = SIDES[side];
-      return !occupied.has(`${tile.x + v.x},${tile.y - v.z}`);
-    });
-
-  for (const tile in tiles) {
-    const data = tiles[tile];
-    if (data.intro && data.intro !== nextIntro) continue;
-
-    if (!map.style.visibility) map.style.visibility = "visible";
-
-    const x = map.width / 2 + (data.x - playerX) * TILE_SIZE - TILE_SIZE / 2,
-      y = map.height - TILE_SIZE * (data.y - playerY + 2);
-
-    if (data.intro || (data.faded && exposed(data))) ctx.globalAlpha = 0.5;
-    if (data.start) ctx.fillStyle = "#400404";
-    else ctx.fillStyle = "#1c0333";
-
-    ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
-
-    if (data.x == playerX && data.y == playerY) playerTile = data;
-
-    for (const side of data["sides"]) {
-      ctx.beginPath();
-
-      switch (side) {
-        case "left":
-          ctx.moveTo(x, y);
-          ctx.lineTo(x, y + TILE_SIZE);
-          break;
-        case "right":
-          ctx.moveTo(x + TILE_SIZE, y);
-          ctx.lineTo(x + TILE_SIZE, y + TILE_SIZE);
-          break;
-        case "forward":
-          ctx.moveTo(x, y);
-          ctx.lineTo(x + TILE_SIZE, y);
-          break;
-        case "back":
-          ctx.moveTo(x, y + TILE_SIZE);
-          ctx.lineTo(x + TILE_SIZE, y + TILE_SIZE);
-          break;
-      }
-
-      ctx.closePath();
-      ctx.stroke();
-    }
-
-    ctx.globalAlpha = 1;
-  }
-
-  if (playerTile) {
-    if (playerTile.intro || (playerTile.faded && exposed(playerTile)))
-      ctx.globalAlpha = 0.5;
-
-    ctx.beginPath();
-    ctx.ellipse(
-      map.width / 2,
-      map.height - TILE_SIZE * 1.5,
-      TILE_SIZE / 4,
-      TILE_SIZE / 4,
-      0,
-      0,
-      2 * Math.PI,
-    );
-    ctx.stroke();
-
-    if (getTile(0, 0)?.canMove) updateFileControls(playerTile);
-
-    ctx.globalAlpha = 1;
-  }
 }

@@ -11,7 +11,8 @@ const controls = document.getElementById("files-ctrl") as HTMLDivElement,
   qualityEl = document.getElementById("quality-label") as HTMLDivElement,
   fade = document.getElementById("fade-overlay") as HTMLDivElement,
   title = document.getElementById("files-title") as HTMLHeadingElement,
-  map = document.getElementById("map") as HTMLCanvasElement;
+  map = document.getElementById("map") as HTMLCanvasElement,
+  obj = document.getElementById("files-obj") as HTMLHeadingElement;
 
 let allowMap = false;
 
@@ -30,6 +31,9 @@ export function updateFileControls(tile: Tile) {
     ["file_forward", "file_back", "file_left", "file_right"],
     false,
   );
+
+  if (tile.type != "Folder") obj.textContent = tile.type || "";
+  else obj.textContent = "";
 
   for (const side of SIDES_ARR) {
     if (side == "down" || tile.sides.includes(side)) continue;

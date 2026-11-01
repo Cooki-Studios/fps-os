@@ -1,7 +1,17 @@
 import * as THREE from "three";
 import { introDialogue } from "./dialogue";
 import { playAudio } from "../system/audio";
-import { getFileAmbLight, updateFileMap } from "./main";
+import { getFileAmbLight } from "./main";
+import { updateFileMap } from "./map";
+import { initNote } from "../objects/notepad";
+import { getMainCanvas } from "../system/renderer";
+import zalgo from "@favware/zalgo";
+
+const docs = import.meta.glob("./docs/*.md", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+}) as Record<string, string>;
 
 export const SIDES = {
   down: new THREE.Vector3(0, -1, 0),
@@ -11,9 +21,18 @@ export const SIDES = {
   back: new THREE.Vector3(0, 0, 1),
 } as const;
 
+const OPPOSITE = {
+  left: "right",
+  right: "left",
+  forward: "back",
+  back: "forward",
+} as const;
+
 export type Side = keyof typeof SIDES;
 
 export const SIDES_ARR = Object.keys(SIDES) as Side[];
+
+export type TileType = "Document" | "Folder";
 
 export type Tile = {
   sides: Side[];
@@ -23,7 +42,51 @@ export type Tile = {
   faded?: boolean;
   start?: boolean;
   canMove?: boolean;
+  type?: TileType;
+  data?: string;
 };
+
+export function generateTile(
+  playerX: number,
+  playerY: number,
+  scene: THREE.Scene,
+) {
+  const tiles = getFadedTiles(playerX, playerY);
+
+  for (const tile of tiles) {
+    tile.intro = undefined;
+    tile.faded = false;
+
+    for (const side of SIDES_ARR) {
+      if (side == "down" || tile.sides.includes(side)) continue;
+
+      const dir = SIDES[side];
+      const x = tile.x + dir.x;
+      const y = tile.y - dir.z;
+      if (tileExistsAt(x, y)) continue;
+
+      const candidates = (
+        ["left", "forward", "right", "back"] as Side[]
+      ).filter((s) => s != OPPOSITE[side]);
+      const open = candidates[Math.floor(Math.random() * candidates.length)];
+
+      const sides = candidates.filter((s) => s != open && Math.random() < 0.35);
+
+      const newTile: Tile = {
+        sides,
+        x,
+        y,
+        faded: true,
+      };
+
+      if (Math.random() < 0.05) newTile.type = "Document";
+
+      createTile(newTile, scene);
+    }
+  }
+
+  updateFileMap();
+}
 
 const FORWARD = new THREE.Vector3(0, 0, 1);
 const tiles: Record<number, Tile> = {};
@@ -116,6 +179,7 @@ export function createTile(data: Tile, scene: THREE.Scene, visited = true) {
             break;
           case 1:
             ambientLight.intensity = 0.4;
+            data.type = "Folder";
             break;
           case 2:
             ambientLight.intensity = 0.6;
@@ -147,6 +211,27 @@ export function createTile(data: Tile, scene: THREE.Scene, visited = true) {
   tile.position.z = -data.y * DEPTH;
   tile.position.x = data.x * WIDTH;
   scene.add(tile);
+
+  let content = docs[`./docs/${Math.floor(Math.random() * 8)}.md`];
+  if (Math.random() < 0.3)
+    content = content
+      .split("\n")
+      .map((line) =>
+        line.trim() && !/^(\s*[#>\-*]|```)/.test(line) && Math.random() < 0.3
+          ? zalgo(line)
+          : line,
+      )
+      .join("\n");
+
+  if (data.type == "Document")
+    initNote(
+      scene,
+      getMainCanvas(),
+      true,
+      content,
+      tile.position.clone().add(new THREE.Vector3(0, 0.2, 2)),
+      new THREE.Quaternion(),
+    );
 }
 
 export function getFadedTiles(playerX: number, playerY: number, distance = 2) {
@@ -163,52 +248,4 @@ export function tileExistsAt(x: number, y: number) {
 
 export function getTile(x: number, y: number) {
   return tileIndex.get(key(x, y));
-}
-
-const OPPOSITE = {
-  left: "right",
-  right: "left",
-  forward: "back",
-  back: "forward",
-} as const;
-
-export function generateTile(
-  playerX: number,
-  playerY: number,
-  scene: THREE.Scene,
-) {
-  const tiles = getFadedTiles(playerX, playerY);
-
-  for (const tile of tiles) {
-    tile.intro = undefined;
-    tile.faded = false;
-
-    for (const side of SIDES_ARR) {
-      if (side == "down" || tile.sides.includes(side)) continue;
-
-      const dir = SIDES[side];
-      const x = tile.x + dir.x;
-      const y = tile.y - dir.z;
-      if (tileExistsAt(x, y)) continue;
-
-      const candidates = (
-        ["left", "forward", "right", "back"] as Side[]
-      ).filter((s) => s != OPPOSITE[side]);
-      const open = candidates[Math.floor(Math.random() * candidates.length)];
-
-      const sides = candidates.filter((s) => s != open && Math.random() < 0.35);
-
-      createTile(
-        {
-          sides,
-          x,
-          y,
-          faded: true,
-        },
-        scene,
-      );
-    }
-  }
-
-  updateFileMap();
 }

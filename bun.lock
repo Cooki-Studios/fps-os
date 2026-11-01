@@ -5,6 +5,7 @@
     "": {
       "name": "fps-os",
       "dependencies": {
+        "@favware/zalgo": "^3.1.3",
         "dompurify": "^3.4.17",
         "idb": "^8.0.4",
         "inter-ui": "^4.1.1",
@@ -24,6 +25,8 @@
   },
   "packages": {
     "@dimforge/rapier3d-compat": ["@dimforge/rapier3d-compat@0.12.0", "", {}, "sha512-uekIGetywIgopfD97oDL5PfeezkFpNhwlzlaEYNOA0N6ghdsOvh/HYjSMek5Q2O1PYvRSDFcqFVJl4r4ZBwOow=="],
+
+    "@favware/zalgo": ["@favware/zalgo@3.1.3", "", {}, "sha512-5QzLu1d6kYLfQknQh+pJNSwjm5o2YfGOBIJmShWTm4y8tKawr4CD4mUXXbF9JafMEZqrmFM+oA82b2IrRwENdw=="],
 
     "@oxc-project/types": ["@oxc-project/types@0.156.0", "", {}, "sha512-1Duyg48TdJNdyhEB8Xn1L36bT9Pv6GUtlKjHxOys8xkaF/rQq3XJE+bAurSK/AgIz5mGFsb77cn9Pb20+WCScw=="],
 

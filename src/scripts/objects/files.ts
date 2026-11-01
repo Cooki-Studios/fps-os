@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import { ROOM_ROT_FIX } from "../system/animation";
-import { switchToFiles, updateFileMap } from "../files/main";
+import { switchToFiles } from "../files/main";
 import { disablePlayerControl } from "./player";
+import { updateFileMap } from "../files/map";
 
 let files: THREE.Object3D,
   cabinet: THREE.Object3D,

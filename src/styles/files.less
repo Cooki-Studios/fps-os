@@ -115,7 +115,7 @@ canvas.pixel {
         background-color: black;
         color: white;
         font-family: Pixels;
-        font-size: 1em;
+        font-size: 0.5em;
         padding-left: 0.18em;
         cursor: pointer;
         position: absolute;
@@ -129,29 +129,43 @@ canvas.pixel {
         }
 
         &.forward {
-            padding-right: 0.18em;
-        }
-
-        &.left {
-            left: 25%;
-        }
-
-        &.right {
-            right: 25%;
-            padding-left: 0.09em;
-            padding-right: 0.09em;
-        }
-
-        &.back {
             bottom: 25%;
             padding-right: 0.18em;
         }
 
+        &.left {
+            bottom: 25%;
+            left: calc(50% - 2.5em);
+        }
+
+        &.right {
+            bottom: 25%;
+            right: calc(50% - 2.5em);
+        }
+
+        &.back {
+            bottom: calc(25% - 1.85em);
+            padding-right: 0.18em;
+        }
+
         &.exit {
-            bottom: 10%;
+            bottom: 1em;
             font-size: 0.5em;
             padding-left: 0.28em;
             background-color: red;
         }
     }
+}
+
+#files-obj {
+    position: absolute;
+    top: 2em;
+    left: calc(50% - 6em);
+    z-index: 2;
+    pointer-events: none;
+    font-family: Pixels;
+    margin: 0;
+    font-smooth: never;
+    -webkit-font-smoothing: none;
+    font-size: 4em;
 }

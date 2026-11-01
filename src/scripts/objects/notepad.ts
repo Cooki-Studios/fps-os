@@ -43,7 +43,14 @@ export function enableNoteEl(
   showWarnEl("Note");
 }
 
-export function initNote(scene: THREE.Scene, canvas: HTMLCanvasElement) {
+export function initNote(
+  scene: THREE.Scene,
+  canvas: HTMLCanvasElement,
+  files = false,
+  content = "",
+  posOffset?: THREE.Vector3,
+  rotOffset?: THREE.Quaternion,
+) {
   const div = document.createElement("div");
   div.classList.add("note");
 
@@ -57,7 +64,8 @@ export function initNote(scene: THREE.Scene, canvas: HTMLCanvasElement) {
   div.appendChild(el);
   div.appendChild(mdEl);
 
-  el.value = "";
+  el.value = content;
+  updateMD(el, mdEl);
 
   el.onblur = () => {
     updateMD(el, mdEl);
@@ -76,14 +84,16 @@ export function initNote(scene: THREE.Scene, canvas: HTMLCanvasElement) {
     div,
     undefined,
     undefined,
-    stack,
-    offset,
-    rot,
+    files ? undefined : stack,
+    files ? posOffset : offset,
+    files ? rotOffset : rot,
   );
   if (!mesh) return;
   mesh.name = "Note";
 
   noteMeshes.push(mesh);
+
+  if (files) return mesh.userData.ui.element;
 }
 
 export function enableNote(
