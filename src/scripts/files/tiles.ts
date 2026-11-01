@@ -44,6 +44,7 @@ export type Tile = {
   canMove?: boolean;
   type?: TileType;
   data?: string;
+  obj?: THREE.Object3D;
 };
 
 export function generateTile(
@@ -223,8 +224,10 @@ export function createTile(data: Tile, scene: THREE.Scene, visited = true) {
       )
       .join("\n");
 
+  data.data = content;
+
   if (data.type == "Document")
-    initNote(
+    data.obj = initNote(
       scene,
       getMainCanvas(),
       true,

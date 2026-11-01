@@ -1,3 +1,5 @@
+import * as THREE from "three";
+import { initNote } from "../objects/notepad";
 import { enablePlayerControl } from "../objects/player";
 import { stopAudio } from "../system/audio";
 import { onActionPressed, toggleAction, toggleActions } from "../system/input";
@@ -5,6 +7,7 @@ import { interactPlayer } from "../system/interact";
 import { getMainCanvas, unsetFilesRenderer } from "../system/renderer";
 import { getMainCam, getMainScene } from "../util/scene";
 import { moveFilesPlayer } from "./main";
+import { updateFileMap } from "./map";
 import { getTile, SIDES_ARR, type Tile } from "./tiles";
 
 const controls = document.getElementById("files-ctrl") as HTMLDivElement,
@@ -69,6 +72,48 @@ export function updateFileControls(tile: Tile) {
 
     button.className = side;
     controls.appendChild(button);
+  }
+
+  if (tile.type == "Document") {
+    const bin = document.createElement("button");
+    bin.textContent = "Send to Bin";
+    bin.className = "send";
+    controls.appendChild(bin);
+
+    bin.onclick = () => {
+      tile.type = undefined;
+
+      tile.obj?.userData.ui?.parent.remove(tile.obj.userData.ui);
+      tile.obj?.parent?.remove(tile.obj);
+
+      initNote(
+        getMainScene(),
+        getMainCanvas(),
+        true,
+        tile.data,
+        new THREE.Vector3(0, 0, 0.75),
+        new THREE.Quaternion().setFromEuler(
+          new THREE.Euler(Math.PI / 2.5, 0, 0),
+        ),
+        getMainScene().getObjectByName("D_Cylinder")?.parent as THREE.Object3D,
+      );
+
+      updateFileMap();
+    };
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "Delete";
+    deleteBtn.className = "delete";
+    controls.appendChild(deleteBtn);
+
+    deleteBtn.onclick = () => {
+      tile.type = undefined;
+
+      tile.obj?.userData.ui?.parent.remove(tile.obj.userData.ui);
+      tile.obj?.parent?.remove(tile.obj);
+
+      updateFileMap();
+    };
   }
 
   if (!tile.start) return;

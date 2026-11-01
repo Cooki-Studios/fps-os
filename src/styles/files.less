@@ -148,11 +148,22 @@ canvas.pixel {
             padding-right: 0.18em;
         }
 
-        &.exit {
+        &.exit,
+        &.send,
+        &.delete {
             bottom: 1em;
             font-size: 0.5em;
             padding-left: 0.28em;
             background-color: red;
+        }
+
+        &.delete {
+            right: calc(50% - 5em);
+        }
+
+        &.send {
+            background-color: limegreen;
+            left: calc(50% - 5em);
         }
     }
 }

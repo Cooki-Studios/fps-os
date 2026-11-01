@@ -50,6 +50,7 @@ export function initNote(
   content = "",
   posOffset?: THREE.Vector3,
   rotOffset?: THREE.Quaternion,
+  attach?: THREE.Object3D,
 ) {
   const div = document.createElement("div");
   div.classList.add("note");
@@ -84,7 +85,7 @@ export function initNote(
     div,
     undefined,
     undefined,
-    files ? undefined : stack,
+    files ? attach || undefined : stack,
     files ? posOffset : offset,
     files ? rotOffset : rot,
   );
@@ -93,7 +94,7 @@ export function initNote(
 
   noteMeshes.push(mesh);
 
-  if (files) return mesh.userData.ui.element;
+  if (files) return mesh;
 }
 
 export function enableNote(
