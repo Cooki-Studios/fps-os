@@ -32,7 +32,7 @@ export type Side = keyof typeof SIDES;
 
 export const SIDES_ARR = Object.keys(SIDES) as Side[];
 
-export type TileType = "Document" | "Folder";
+export type TileType = "Document" | "Folder" | "Exit";
 
 export type Tile = {
   sides: Side[];
@@ -81,6 +81,7 @@ export function generateTile(
       };
 
       if (Math.random() < 0.05) newTile.type = "Document";
+      if (Math.random() < 0.025) newTile.type = "Exit";
 
       createTile(newTile, scene);
     }
@@ -113,11 +114,16 @@ export function getTileHeight() {
 
 const geometry = new THREE.PlaneGeometry(WIDTH, DEPTH);
 const material = new THREE.MeshStandardMaterial({
-  color: 0x1c0333,
-  side: THREE.DoubleSide,
-});
+    color: 0x1c0333,
+    side: THREE.DoubleSide,
+  }),
+  exitMaterial = new THREE.MeshStandardMaterial({
+    color: 0x403204,
+    side: THREE.DoubleSide,
+  });
 
 const title = document.getElementById("files-title") as HTMLHeadingElement;
+const zFightOffset = -0.001;
 
 export function createTile(data: Tile, scene: THREE.Scene, visited = true) {
   const tile = new THREE.Group();
@@ -129,9 +135,13 @@ export function createTile(data: Tile, scene: THREE.Scene, visited = true) {
   for (const side of ["down", ...data["sides"]]) {
     const dir = SIDES[side as Side];
 
-    const mesh = new THREE.Mesh(geometry, material);
+    let mesh: THREE.Mesh;
+    if ((data.intro && data.intro != 4) || data.type == "Exit")
+      mesh = new THREE.Mesh(geometry, exitMaterial);
+    else mesh = new THREE.Mesh(geometry, material);
+
     mesh.name = side;
-    mesh.position.copy(dir).multiplyScalar(WIDTH / 2);
+    mesh.position.copy(dir).multiplyScalar(WIDTH / 2 + zFightOffset);
     mesh.quaternion.setFromUnitVectors(FORWARD, dir.clone().negate());
 
     if (side == "left" || side == "right") {

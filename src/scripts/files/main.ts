@@ -27,19 +27,27 @@ export function getFileAmbLight() {
 
 const WIDTH = getTileWidth(),
   DEPTH = getTileHeight(),
-  FOG_NEAR = DEPTH * 1.5,
-  FOG_FAR = DEPTH * 2;
+  FOG_NEAR = DEPTH * 3,
+  FOG_FAR = DEPTH * 3.5;
+
+let camZ = DEPTH / 2,
+  camX = 0;
 
 export function moveFilesPlayer(x = 0, y = 0) {
   updateFilesPlayerVars(x, y);
 
   generateTile(filesPlayerX, filesPlayerY, scene);
 
-  camera.position.z -= y * DEPTH;
-  camera.position.x += x * WIDTH;
+  camZ -= y * DEPTH;
+  camX += x * WIDTH;
 }
 
-camera.position.z = DEPTH / 2;
+export function updateFilesPlayerPos(delta: number) {
+  camera.position.z = THREE.MathUtils.damp(camera.position.z, camZ, 16, delta);
+  camera.position.x = THREE.MathUtils.damp(camera.position.x, camX, 16, delta);
+}
+
+camera.position.z = camZ;
 scene.fog = new THREE.Fog(bg, FOG_NEAR, FOG_FAR);
 
 export async function setupFilesAudio() {

@@ -27,6 +27,7 @@ import { updateRecoil } from "../objects/gun";
 import { SCREENS } from "../objects/mesh";
 import { updateSettingsPanel } from "../objects/settings";
 import { updateFileCabinet } from "../objects/files";
+import { updateFilesPlayerPos } from "../files/main";
 
 let renderer: THREE.WebGLRenderer,
   scene: THREE.Scene,
@@ -224,6 +225,7 @@ export async function enableRenderer(
       stats.begin();
 
       if (filesScene && filesCamera) {
+        updateFilesPlayerPos(delta);
         update3DUI(filesScene, filesCamera);
         renderer.render(filesScene, filesCamera);
       } else {

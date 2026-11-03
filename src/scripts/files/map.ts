@@ -82,7 +82,7 @@ export function updateFileMap() {
       y = map.height - TILE_SIZE * (data.y - filesPlayerY + 2);
 
     if (data.intro || (data.faded && exposed(data))) ctx.globalAlpha = 0.5;
-    if (data.start) ctx.fillStyle = "#400404";
+    if (data.start || data.type == "Exit") ctx.fillStyle = "#403204";
     else ctx.fillStyle = "#1c0333";
 
     ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);

@@ -116,7 +116,7 @@ export function updateFileControls(tile: Tile) {
     };
   }
 
-  if (!tile.start) return;
+  if (!tile.start && tile.type != "Exit") return;
 
   const button = document.createElement("button");
   button.textContent = "Exit";
