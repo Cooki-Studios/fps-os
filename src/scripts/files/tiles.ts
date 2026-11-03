@@ -21,7 +21,7 @@ export const SIDES = {
   back: new THREE.Vector3(0, 0, 1),
 } as const;
 
-const OPPOSITE = {
+export const OPPOSITE = {
   left: "right",
   right: "left",
   forward: "back",
