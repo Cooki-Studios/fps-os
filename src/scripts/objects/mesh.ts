@@ -51,7 +51,7 @@ export const GRABBABLES = [
   "Light",
   "Bed",
   "Armchair",
-  "Rug",
+  "StarchedRug",
   "PapersPlease",
   "ControlPanel",
   "ChoudharyBillaHorn",
@@ -79,6 +79,7 @@ export const ATTACHED_OBJS: Record<string, string[]> = {
     "BezierCurve_004",
     "BezierCurve_005",
   ], // Choudhary Billa Horn
+  Walls_005: ["Walls_006"],
 };
 for (let i = 3; i < 34; i++) {
   ATTACHED_OBJS["D_Cylinder"].push(
@@ -104,7 +105,7 @@ export const MASSES: Record<string, number> = {
   Keyboard: 0.5,
   Poster: 1.5,
   Light: 0.25,
-  Rug: 0.1,
+  StarchedRug: 0.1,
   ControlPanel: 2,
   Files: 3,
 } as const;
