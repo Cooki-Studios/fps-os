@@ -79,7 +79,6 @@ export const ATTACHED_OBJS: Record<string, string[]> = {
     "BezierCurve_004",
     "BezierCurve_005",
   ], // Choudhary Billa Horn
-  Walls_005: ["Walls_006"],
 };
 for (let i = 3; i < 34; i++) {
   ATTACHED_OBJS["D_Cylinder"].push(

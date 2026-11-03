@@ -128,15 +128,15 @@ export function shootGun(intersect: Intersect) {
   }
 
   if (!mesh.userData.body) {
-    addBulletHole(mesh, intersect);
+    addBulletHole(intersect);
     return true;
   } else if (!intersect.i.object.userData.body) {
-    addBulletHole(intersect.i.object as THREE.Mesh, intersect);
+    addBulletHole(intersect);
     knockObject(mesh, intersect.ray.direction.clone().multiplyScalar(POWER));
     return true;
   }
 
-  addBulletHole(mesh, intersect);
+  addBulletHole(intersect);
   knockObject(mesh, intersect.ray.direction.clone().multiplyScalar(POWER));
   return true;
 }
@@ -148,27 +148,43 @@ function knockObject(mesh: THREE.Mesh, vel: THREE.Vector3) {
   } else addVelocityToObject(mesh, vel);
 }
 
-function addBulletHole(obj: THREE.Mesh, intersect: Intersect) {
+function addBulletHole(intersect: Intersect) {
   if (!intersect || !intersect.i.normal) return;
 
-  const n = intersect.i.normal
-    .clone()
-    .transformDirection(intersect.i.object.matrixWorld);
+  const n = intersect.ray.direction.clone().normalize().negate();
 
   const helper = new THREE.Object3D();
   helper.position.copy(intersect.i.point);
   helper.lookAt(intersect.i.point.clone().add(n));
   const orientation = helper.rotation;
 
-  const holeGeo = new DecalGeometry(
-    obj,
+  const size = new THREE.Vector3(0.25, 0.25, 0.25);
+  const box = new THREE.Box3().setFromCenterAndSize(
     intersect.i.point,
-    orientation,
-    new THREE.Vector3(0.25, 0.25, 0.25),
+    size.clone().multiplyScalar(2),
   );
 
-  const hole = new THREE.Mesh(holeGeo, holeMat);
-  obj.attach(hole);
+  const targets: THREE.Mesh[] = [];
+  getMainScene().traverse((mesh) => {
+    if (
+      !(mesh instanceof THREE.Mesh) ||
+      mesh.userData.isDecal ||
+      mesh.parent === gun
+    )
+      return;
+
+    if (new THREE.Box3().setFromObject(mesh).intersectsBox(box))
+      targets.push(mesh);
+  });
+
+  for (const mesh of targets) {
+    const hole = new THREE.Mesh(
+      new DecalGeometry(mesh, intersect.i.point, orientation, size),
+      holeMat,
+    );
+    hole.userData.isDecal = true;
+    mesh.attach(hole);
+  }
 }
 
 export function updateRecoil(camera: THREE.PerspectiveCamera) {
