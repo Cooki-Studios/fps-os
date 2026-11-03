@@ -56,6 +56,7 @@ export const GRABBABLES = [
   "ControlPanel",
   "ChoudharyBillaHorn",
   "Files",
+  "Gun",
 ] as const;
 
 export const EQUIPABBLES = ["Gun"] as const;
@@ -79,6 +80,15 @@ export const ATTACHED_OBJS: Record<string, string[]> = {
     "BezierCurve_004",
     "BezierCurve_005",
   ], // Choudhary Billa Horn
+  D_Cube_009: [
+    "Cube_010",
+    "Cube_017",
+    "Cube_016",
+    "Cube_014",
+    "Cube_011",
+    "Cube_020",
+    "Cube_018",
+  ], // Shelf
 };
 for (let i = 3; i < 34; i++) {
   ATTACHED_OBJS["D_Cylinder"].push(
