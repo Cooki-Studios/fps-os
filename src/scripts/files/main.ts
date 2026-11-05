@@ -66,12 +66,13 @@ export function switchToFiles() {
 
   if (!visitedSession) {
     createTile(
-      { sides: ["back", "right", "left"], x: 0, y: 0, intro: 1 },
+      { id: -4, sides: ["back", "right", "left"], x: 0, y: 0, intro: 1 },
       scene,
       visited,
     );
     createTile(
       {
+        id: -3,
         sides: ["right", "left"],
         x: 0,
         y: 1,
@@ -83,6 +84,7 @@ export function switchToFiles() {
     );
     createTile(
       {
+        id: -2,
         sides: ["right", "left"],
         x: 0,
         y: 2,
@@ -94,6 +96,7 @@ export function switchToFiles() {
     );
     createTile(
       {
+        id: -1,
         sides: [],
         x: 0,
         y: 3,
