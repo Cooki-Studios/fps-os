@@ -195,7 +195,7 @@ export function updateUIPosRot() {
 
 const warnEl = document.getElementById("literal-pc-info") as HTMLHeadingElement;
 export function showWarnEl(name: string) {
-  warnEl.textContent = `Press ESC to exit ${name}`;
+  warnEl.textContent = `Click here and press ESC to exit ${name}`;
   warnEl.style.opacity = "1";
 }
 export function resetWarnEl() {

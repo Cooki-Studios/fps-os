@@ -179,7 +179,7 @@ export function enablePlayerControl(
         }
         if (warnEl) {
           warnEl.style.opacity = "0";
-          warnEl.textContent = `Press ESC to exit WINDOW`;
+          warnEl.textContent = `Click here and press ESC to exit WINDOW`;
         }
       }
     };

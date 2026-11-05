@@ -62,7 +62,7 @@ function getObject(
   if (include3DUI) objects.push(...getPCScreens(), ...getNoteMeshes());
 
   const intersects = raycaster.intersectObjects(objects);
-  const intersect = intersects.find(
+  let intersect = intersects.find(
     (i) =>
       i.object instanceof THREE.Mesh &&
       i.object.name != "" &&
@@ -76,7 +76,19 @@ function getObject(
   );
   if (!intersect || !intersect.object.parent) return;
 
+  if (intersect.object.name == "Plane") {
+    const ui = intersects.find(
+      (i) =>
+        include3DUI &&
+        [...(SCREENS as readonly string[])].includes(i.object.name),
+    );
+
+    if (ui && ui.distance - intersect.distance < 0.01) intersect = ui;
+  }
+
   let obj = intersect.object.parent;
+  if (!obj) return;
+
   if (obj.name == "Door_001") obj = getDoorBase();
   else if (obj.name == "Bed_003") obj = getBedBase();
   else if (obj.name == "Cube_005") obj = getFilesBase();
@@ -104,6 +116,7 @@ function resetGrab() {
   cross.style.transition = "none";
   cross.style.setProperty("--progress", "0%");
   cross.classList.remove("grabbable");
+  cross.classList.remove("active");
 
   if (grabTimeout) clearTimeout(grabTimeout);
   grabTimeout = null;
