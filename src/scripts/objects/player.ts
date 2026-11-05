@@ -166,13 +166,17 @@ export function enablePlayerControl(
   if (!isMobile) {
     canvas.style.cursor = "pointer";
     canvas.onpointerup = (e) => {
-      if (e.button == 2 || e.ctrlKey) contextPlayer(camera, scene);
+      if (document.pointerLockElement == canvas && (e.button == 2 || e.ctrlKey))
+        contextPlayer(camera, scene);
     };
     canvas.onclick = async (e) => {
-      if (document.pointerLockElement == canvas) {
-        if (e.button == 0) interactPlayer(camera, scene, canvas);
-      } else {
-        await canvas.requestPointerLock();
+      if (document.pointerLockElement == canvas && e.button == 0)
+        interactPlayer(camera, scene, canvas);
+      else {
+        activePointerId = e.pointerId;
+        canvas.setPointerCapture(e.pointerId);
+
+        await canvas.requestPointerLock().then();
         if (pcInfo) {
           pcInfo.style.transition = "none";
           pcInfo.style.opacity = "0";
@@ -188,6 +192,9 @@ export function enablePlayerControl(
         interactPlayer(camera, scene, canvas, true, false);
     };
     document.onpointerlockchange = () => {
+      if (activePointerId && canvas.hasPointerCapture(activePointerId))
+        canvas.releasePointerCapture(activePointerId);
+
       if (document.pointerLockElement == canvas) enableInput();
       else {
         if (!isInPC()) enableAudioEl();
@@ -204,7 +211,9 @@ export function enablePlayerControl(
     };
     canvas.onpointerdown = (e) => {
       if (activePointerId !== null) return;
+      canvas.setPointerCapture(e.pointerId);
       activePointerId = e.pointerId;
+
       dragging = true;
 
       const deltaX = e.clientX - lastPointerX;
@@ -224,9 +233,9 @@ export function enablePlayerControl(
 
     const releasePointer = (e: PointerEvent) => {
       if (e.pointerId !== activePointerId) return;
-      if (canvas.hasPointerCapture(e.pointerId)) {
+      if (canvas.hasPointerCapture(e.pointerId))
         canvas.releasePointerCapture(e.pointerId);
-      }
+
       activePointerId = null;
       dragging = false;
     };

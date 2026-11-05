@@ -202,13 +202,15 @@ let isDragging = false,
   startX = 0,
   startY = 0,
   joystickX = 0,
-  joystickY = 0;
+  joystickY = 0,
+  hasMoved = false;
 
 export function initJoystick() {
   joystickCont.style.display = "grid";
 
   joystickCont.onpointerdown = (e) => {
     isDragging = true;
+    hasMoved = false;
     joystickCont.setPointerCapture(e.pointerId);
 
     startX = e.clientX;
@@ -218,14 +220,15 @@ export function initJoystick() {
 
     joystickPos.style.left = `${e.offsetX}px`;
     joystickPos.style.top = `${e.offsetY}px`;
-
-    joystick.style.visibility = "visible";
-    joystick2.style.visibility = "visible";
-    joystick3.style.visibility = "visible";
   };
 
   joystickCont.onpointermove = (e) => {
     if (!isDragging) return;
+    hasMoved = true;
+
+    joystick.style.visibility = "visible";
+    joystick2.style.visibility = "visible";
+    joystick3.style.visibility = "visible";
 
     const dx = e.clientX - startX,
       dy = e.clientY - startY,
@@ -260,6 +263,22 @@ export function initJoystick() {
     startY = 0;
     joystickX = 0;
     joystickY = 0;
+
+    if (!hasMoved) {
+      joystickCont.style.display = "none";
+      const target = document.elementFromPoint(e.clientX, e.clientY);
+      if (!target) return;
+
+      const clickEvent = new MouseEvent("click", {
+        view: window,
+        bubbles: true,
+        cancelable: true,
+        clientX: e.clientX,
+        clientY: e.clientY,
+      });
+      target.dispatchEvent(clickEvent);
+      joystickCont.style.display = "grid";
+    }
   };
   joystickCont.onpointerup = handlePointerEnd;
   joystickCont.onpointercancel = handlePointerEnd;

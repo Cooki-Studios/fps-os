@@ -9,6 +9,7 @@ import { pause } from "../system/pause";
 import { removePhysicsFromObject } from "../system/physics";
 import { addAudioToObject, playAudio } from "../system/audio";
 import { pauseRenderer, resumeRenderer } from "../system/renderer";
+import { isMobile } from "../util/mobile";
 
 const html = document.querySelector("html")!,
   fadeOverlay = document.getElementById("fade-overlay") as HTMLDivElement;
@@ -63,7 +64,7 @@ export async function sleep(canvas: HTMLCanvasElement, scene: THREE.Scene) {
     html.style.cursor = "";
 
     resumeRenderer();
-    await canvas.requestPointerLock();
+    if (!isMobile) await canvas.requestPointerLock();
 
     for (const zTimeout of zTimeouts) {
       clearTimeout(zTimeout);
