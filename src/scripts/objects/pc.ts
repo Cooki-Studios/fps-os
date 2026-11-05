@@ -56,7 +56,9 @@ async function loadPage(domain: string, parent: HTMLElement) {
   spinner.style.animation =
     "spin 1s linear infinite, resize 2s ease-in infinite";
 
-  if (domain != ".")
+  if (domain.startsWith("yt:"))
+    domain = `https://www.youtube-nocookie.com/embed/${domain.split("yt:")[1]}?autoplay=1&rel=0&playsinline=1&enablejsapi=1`;
+  else if (domain != ".")
     if (domain.includes(".")) {
       if (domain.includes("google.com")) domain += "?igu=1";
       if (!domain.startsWith("http")) domain = "https://" + domain;
