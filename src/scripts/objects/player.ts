@@ -173,8 +173,10 @@ export function enablePlayerControl(
       if (document.pointerLockElement == canvas && e.button == 0)
         interactPlayer(camera, scene, canvas);
       else {
-        activePointerId = e.pointerId;
-        canvas.setPointerCapture(e.pointerId);
+        if (document.pointerLockElement != canvas) {
+          activePointerId = e.pointerId;
+          canvas.setPointerCapture(e.pointerId);
+        }
 
         await canvas.requestPointerLock().then();
         if (pcInfo) {

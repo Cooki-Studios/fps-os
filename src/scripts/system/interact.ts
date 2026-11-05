@@ -43,6 +43,7 @@ import { playHorn } from "../objects/horn";
 import { getFilesBase, updateCabinetPos } from "../objects/files";
 import { clearWallpaperBlob } from "./db";
 import { isMobile } from "../util/mobile";
+import { toggleFileMap } from "../files/map";
 
 const raycaster = new THREE.Raycaster();
 raycaster.far = 8;
@@ -86,6 +87,11 @@ function getObject(
 
     if (ui && ui.distance - intersect.distance < 0.01) intersect = ui;
   }
+
+  if (grabObj?.name == "Note")
+    if (intersects.find((i) => i.object.name == "D_Cube_008"))
+      toggleFileMap(true);
+    else toggleFileMap(false);
 
   let obj = intersect.object.parent;
   if (!obj) return;
@@ -360,7 +366,7 @@ export function interactPlayer(
           }, grabTime);
         }
 
-    if (name && click && released) {
+    if (name && released) {
       if (!grabObj && prevObj == intersect?.obj)
         switch (name as (typeof INTERACTIBLES)[number]) {
           case "Switch":

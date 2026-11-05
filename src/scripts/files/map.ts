@@ -37,6 +37,11 @@ function drawTileIcon(img: HTMLImageElement, x: number, y: number) {
   if (img.complete) ctx.drawImage(img, x + TILE_SIZE / 4, y + TILE_SIZE / 4);
 }
 
+export function toggleFileMap(enable: boolean) {
+  if (enable) map.style.visibility = "visible";
+  else map.style.visibility = "hidden";
+}
+
 export function updateFileMap() {
   if (getAllowMap() && !title.style.opacity) {
     title.style.opacity = "1";
