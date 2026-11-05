@@ -107,7 +107,7 @@ const TITLE_DEPTH = 5,
 let MOBILE_TITLE_SCALE = 2,
   mobileTitleScale = MOBILE_TITLE_SCALE;
 
-if (isMobile && isPortrait()) {
+if (isPortrait()) {
   mobileTitleScale = MOBILE_TITLE_SCALE_PORTRAIT;
 }
 
@@ -200,7 +200,6 @@ export async function createTitleScene(): Promise<{
   recenter();
 
   onMobileRotate((portrait) => {
-    if (!isMobile) return;
     const targetScale = portrait
       ? MOBILE_TITLE_SCALE_PORTRAIT
       : MOBILE_TITLE_SCALE;

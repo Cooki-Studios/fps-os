@@ -180,7 +180,7 @@ export async function enableRenderer(
 
   const canvas = getMainCanvas();
   resizeRenderer();
-  resize3DUI();
+  resize3DUI(canvas);
 
   if (title) createKeypad(getMainCam(), canvas);
 
@@ -203,7 +203,7 @@ export async function enableRenderer(
             updateQuality();
 
             resizeRenderer();
-            resize3DUI();
+            resize3DUI(canvas);
 
             const logo = document.getElementById("logo");
             if (logo) logo.style.display = "none";
@@ -279,6 +279,11 @@ export function resizeRenderer() {
     camera.updateProjectionMatrix();
     resizeCSM();
   }
+
+  if (filesCamera) {
+    filesCamera.aspect = width / height;
+    filesCamera.updateProjectionMatrix();
+  }
 }
 
 let canvas: HTMLCanvasElement;
@@ -305,7 +310,7 @@ export function initRenderer(): {
 
   const onresize = () => {
     resizeRenderer();
-    resize3DUI();
+    resize3DUI(canvas);
   };
 
   window.onresize = onresize;

@@ -7,6 +7,8 @@ export function isPortrait() {
   );
 }
 export function onMobileRotate(func: (arg0: boolean) => void) {
+  if (!isMobile) return;
+
   screen.orientation.addEventListener("change", () => {
     func(
       screen.orientation.type == "portrait-primary" ||

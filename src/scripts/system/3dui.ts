@@ -4,16 +4,9 @@ import {
   CSS3DRenderer,
 } from "three/examples/jsm/renderers/CSS3DRenderer.js";
 
-const SCALE = 0.001625,
-  windowWidth = window.visualViewport
-    ? window.visualViewport.width
-    : window.innerWidth,
-  windowHeight = window.visualViewport
-    ? window.visualViewport.height
-    : window.innerHeight;
+const SCALE = 0.001625;
 
 const cssRenderer = new CSS3DRenderer();
-cssRenderer.setSize(windowWidth, windowHeight);
 
 const div = cssRenderer.domElement;
 div.style.position = "absolute";
@@ -22,7 +15,6 @@ div.style.pointerEvents = "none";
 document.body.appendChild(div);
 
 const overlayCssRenderer = new CSS3DRenderer();
-overlayCssRenderer.setSize(windowWidth, windowHeight);
 
 const overlayDiv = overlayCssRenderer.domElement;
 overlayDiv.style.position = "absolute";
@@ -159,9 +151,16 @@ export function update3DUI(
   overlayCssRenderer.render(overlayScene, camera);
 }
 
-export function resize3DUI() {
-  cssRenderer.setSize(window.innerWidth, window.innerHeight);
-  overlayCssRenderer.setSize(window.innerWidth, window.innerHeight);
+export function resize3DUI(canvas: HTMLCanvasElement) {
+  const rect = canvas.getBoundingClientRect();
+  for (const [renderer, el] of [
+    [cssRenderer, div],
+    [overlayCssRenderer, overlayDiv],
+  ] as const) {
+    el.style.left = `${rect.left + window.scrollX}px`;
+    el.style.top = `${rect.top + window.scrollY}px`;
+    renderer.setSize(rect.width, rect.height);
+  }
 }
 
 const uiPos = new THREE.Vector3(),

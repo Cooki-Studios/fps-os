@@ -202,13 +202,6 @@ export function enablePlayerControl(
       }
     };
   } else {
-    canvas.onclick = async (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1,
-        y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
-      interactPlayer(camera, scene, canvas, true, true, x, y);
-    };
     canvas.onpointerdown = (e) => {
       if (activePointerId !== null) return;
       canvas.setPointerCapture(e.pointerId);
@@ -224,11 +217,7 @@ export function enablePlayerControl(
       const playerVel = getPlayerVel();
       setGrabVel(deltaX, deltaY, playerVel, camera);
 
-      const rect = canvas.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1,
-        y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
-      interactPlayer(camera, scene, canvas, true, false, x, y);
+      interactPlayer(camera, scene, canvas, true, false);
     };
 
     const releasePointer = (e: PointerEvent) => {
@@ -238,6 +227,8 @@ export function enablePlayerControl(
 
       activePointerId = null;
       dragging = false;
+
+      interactPlayer(camera, scene, canvas, true, true);
     };
     canvas.onpointerup = releasePointer;
     canvas.onpointercancel = releasePointer;
@@ -247,6 +238,10 @@ export function enablePlayerControl(
     const mobile = document.getElementById("mobile") as HTMLDivElement;
     mobile.style.display = "block";
     mobile.style.opacity = "1";
+
+    (document.getElementById("cross") as HTMLHeadingElement).classList.add(
+      "mobile",
+    );
   }
 }
 

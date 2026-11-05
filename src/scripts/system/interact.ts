@@ -42,6 +42,7 @@ import { updateSwitch } from "../objects/settings";
 import { playHorn } from "../objects/horn";
 import { getFilesBase, updateCabinetPos } from "../objects/files";
 import { clearWallpaperBlob } from "./db";
+import { isMobile } from "../util/mobile";
 
 const raycaster = new THREE.Raycaster();
 raycaster.far = 8;
@@ -213,6 +214,10 @@ export type Intersect =
     }
   | undefined;
 
+let prevObj: THREE.Object3D | undefined;
+
+const grabTime = isMobile ? 800 : 200;
+
 export function interactPlayer(
   camera: THREE.PerspectiveCamera,
   scene: THREE.Scene,
@@ -336,7 +341,7 @@ export function interactPlayer(
           clearTimeout(grabTimeout);
           grabTimeout = null;
         } else {
-          cross.style.transition = "--progress linear 200ms";
+          cross.style.transition = `--progress linear ${grabTime}ms`;
           cross.style.setProperty("--progress", "100%");
           grabTimeout = setTimeout(() => {
             if (getObject(camera, scene)?.obj !== obj) return resetGrab();
@@ -352,11 +357,11 @@ export function interactPlayer(
 
             pickupObject(obj);
             grabObj = obj;
-          }, 200);
+          }, grabTime);
         }
 
     if (name && click && released) {
-      if (!grabObj)
+      if (!grabObj && prevObj == intersect?.obj)
         switch (name as (typeof INTERACTIBLES)[number]) {
           case "Switch":
             toggleLight();
@@ -422,7 +427,7 @@ export function interactPlayer(
       resetGrab();
     }
   } else {
-    if (grabObj)
+    if (grabObj) {
       if (
         grabObj.name == "Note" &&
         grabObj.userData.grabbed &&
@@ -438,6 +443,13 @@ export function interactPlayer(
             break;
         }
       }
+    } else if (isMobile && grabTimeout && grabVel.length() > 0.3) {
+      cross.style.transition = "none";
+      cross.style.setProperty("--progress", "0%");
+
+      clearTimeout(grabTimeout);
+      grabTimeout = null;
+    }
 
     if (el && menu.contains(el)) {
       if (hoverEl && hoverEl !== el) hoverEl.classList.remove("hover");
@@ -449,6 +461,7 @@ export function interactPlayer(
   }
 
   if (!grabObj && (!intersect || !obj)) resetGrab();
+  if (click) prevObj = intersect?.obj;
 }
 
 const menu = document.getElementById("context") as HTMLDivElement,
