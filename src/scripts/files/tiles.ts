@@ -35,6 +35,7 @@ export const SIDES_ARR = Object.keys(SIDES) as Side[];
 export type TileType = "Document" | "Folder" | "Exit";
 
 export type Tile = {
+  id: number;
   sides: Side[];
   x: number;
   y: number;
@@ -43,9 +44,14 @@ export type Tile = {
   start?: boolean;
   canMove?: boolean;
   type?: TileType;
-  data?: string;
+  data?: string | number;
   obj?: THREE.Object3D;
+  corrupted?: boolean;
 };
+
+export function getDocObj(id: number) {
+  return docObjs[id + 1];
+}
 
 export function generateTile(
   playerX: number,
@@ -55,8 +61,8 @@ export function generateTile(
   const tiles = getFadedTiles(playerX, playerY);
 
   for (const tile of tiles) {
-    tile.intro = undefined;
-    tile.faded = false;
+    if (tile.intro) tile.intro = undefined;
+    if (tile.faded) tile.faded = false;
 
     for (const side of SIDES_ARR) {
       if (side == "down" || tile.sides.includes(side)) continue;
@@ -74,6 +80,7 @@ export function generateTile(
       const sides = candidates.filter((s) => s != open && Math.random() < 0.35);
 
       const newTile: Tile = {
+        id,
         sides,
         x,
         y,
@@ -91,12 +98,14 @@ export function generateTile(
 }
 
 const FORWARD = new THREE.Vector3(0, 0, 1);
-const tiles: Record<number, Tile> = {};
+const tiles: Record<number, Tile> = {},
+  docObjs: Record<number, THREE.Mesh> = {};
 const tileIndex = new Map<string, Tile>(); // coordinate lookup
 
 const key = (x: number, y: number) => `${x},${y}`;
 
 export function getTiles() {
+  console.log(tiles);
   return tiles;
 }
 
@@ -223,21 +232,32 @@ export function createTile(data: Tile, scene: THREE.Scene, visited = true) {
   tile.position.x = data.x * WIDTH;
   scene.add(tile);
 
-  let content = docs[`./docs/${Math.floor(Math.random() * 8)}.md`];
+  const docId = Math.floor(Math.random() * 8);
+
+  let content = docs[`./docs/${docId}.md`],
+    corrupted = false;
+
   if (Math.random() < 0.3)
     content = content
       .split("\n")
-      .map((line) =>
-        line.trim() && !/^(\s*[#>\-*]|```)/.test(line) && Math.random() < 0.3
-          ? zalgo(line)
-          : line,
-      )
+      .map((line) => {
+        if (
+          line.trim() &&
+          !/^(\s*[#>\-*]|```)/.test(line) &&
+          Math.random() < 0.3
+        ) {
+          corrupted = true;
+          return zalgo(line);
+        }
+        return line;
+      })
       .join("\n");
 
-  data.data = content;
+  data.data = docId;
+  if (corrupted) data.corrupted = corrupted;
 
-  if (data.type == "Document")
-    data.obj = initNote(
+  if (data.type == "Document") {
+    const docObj = initNote(
       scene,
       getMainCanvas(),
       true,
@@ -245,6 +265,8 @@ export function createTile(data: Tile, scene: THREE.Scene, visited = true) {
       tile.position.clone().add(new THREE.Vector3(0, 0.2, 2)),
       new THREE.Quaternion(),
     );
+    if (docObj) docObjs[id] = docObj;
+  }
 }
 
 export function getFadedTiles(playerX: number, playerY: number, distance = 2) {

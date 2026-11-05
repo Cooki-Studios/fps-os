@@ -8,7 +8,7 @@ import { getMainCanvas, unsetFilesRenderer } from "../system/renderer";
 import { getMainCam, getMainScene } from "../util/scene";
 import { moveFilesPlayer } from "./main";
 import { updateFileMap } from "./map";
-import { getTile, SIDES_ARR, type Tile } from "./tiles";
+import { getDocObj, getTile, SIDES_ARR, type Tile } from "./tiles";
 
 const controls = document.getElementById("files-ctrl") as HTMLDivElement,
   qualityEl = document.getElementById("quality-label") as HTMLDivElement,
@@ -27,6 +27,17 @@ onActionPressed("file_forward", () => moveFilesPlayer(0, 1));
 onActionPressed("file_back", () => moveFilesPlayer(0, -1));
 onActionPressed("file_left", () => moveFilesPlayer(-1));
 onActionPressed("file_right", () => moveFilesPlayer(1));
+
+function deleteFile(tile: Tile) {
+  const obj = getDocObj(tile.id);
+  if (!obj) return;
+
+  const content = obj.userData.ui.element.textContent;
+  obj.userData.ui?.parent.remove(obj.userData.ui);
+  obj.parent?.remove(obj);
+
+  return content;
+}
 
 export function updateFileControls(tile: Tile) {
   controls.textContent = "";
@@ -83,14 +94,13 @@ export function updateFileControls(tile: Tile) {
     bin.onclick = () => {
       tile.type = undefined;
 
-      tile.obj?.userData.ui?.parent.remove(tile.obj.userData.ui);
-      tile.obj?.parent?.remove(tile.obj);
+      const content = deleteFile(tile);
 
       initNote(
         getMainScene(),
         getMainCanvas(),
         true,
-        tile.data,
+        content,
         new THREE.Vector3(0, 0, 0.75),
         new THREE.Quaternion().setFromEuler(
           new THREE.Euler(Math.PI / 2.5, 0, 0),
@@ -109,9 +119,7 @@ export function updateFileControls(tile: Tile) {
     deleteBtn.onclick = () => {
       tile.type = undefined;
 
-      tile.obj?.userData.ui?.parent.remove(tile.obj.userData.ui);
-      tile.obj?.parent?.remove(tile.obj);
-
+      deleteFile(tile);
       updateFileMap();
     };
   }
